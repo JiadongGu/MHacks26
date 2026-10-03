@@ -14,6 +14,10 @@ const MESSAGES: Record<string, Record<string, { kind: "success" | "error"; text:
     connected: { kind: "success", text: "Fitbit connected." },
     denied: { kind: "error", text: "Fitbit was not connected. You declined access." },
     error: { kind: "error", text: "Fitbit could not be connected. Try again." },
+    notlinked: {
+      kind: "error",
+      text: "That Google account has no Fitbit data. Pick the Google account your Fitbit uses and try again.",
+    },
   },
 };
 

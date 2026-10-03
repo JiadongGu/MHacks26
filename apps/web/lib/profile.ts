@@ -57,10 +57,10 @@ export function validateProfile(p: ProfileInput, today: Date = new Date()): Fiel
   if (!(SEX_OPTIONS as readonly string[]).includes(p.sex)) errors.sex = "Choose one option.";
 
   if (p.height_cm === null || !(p.height_cm >= 30 && p.height_cm <= 260)) {
-    errors.height_cm = "Height must be 30 to 260 cm.";
+    errors.height_cm = "Height must be between 1 ft 0 in and 8 ft 6 in.";
   }
   if (p.weight_kg === null || !(p.weight_kg >= 2 && p.weight_kg <= 500)) {
-    errors.weight_kg = "Weight must be 2 to 500 kg.";
+    errors.weight_kg = "Weight must be between 5 and 1,100 lb.";
   }
   if (!isValidTimeZone(p.timezone)) errors.timezone = "Enter a time zone such as America/Detroit.";
   if (!isHHMM(p.wake_time)) errors.wake_time = "Use HH:MM.";

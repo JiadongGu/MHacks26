@@ -9,6 +9,7 @@ import { NativeSelect } from "@/components/ui/native-select";
 import { Field, describedBy } from "@/components/ui-bits";
 import { agent, errorText } from "@/lib/api-client";
 import { SEX_OPTIONS, validateProfile, type FieldErrors, type ProfileInput } from "@/lib/profile";
+import { cmFromFeetInches, feetInchesFromCm, kgFromLbs, lbsFromKg } from "@/lib/units";
 import { twinProfile } from "./types";
 
 const noopSubscribe = () => () => {};
@@ -21,6 +22,31 @@ const SEX_LABEL: Record<(typeof SEX_OPTIONS)[number], string> = {
   unspecified: "Prefer not to say",
 };
 
+/** What the user types. The profile keeps centimetres and kilograms; these convert on every change. */
+type Units = { feet: string; inches: string; lbs: string };
+
+function unitsFrom(p: Pick<ProfileInput, "height_cm" | "weight_kg">): Units {
+  const h = p.height_cm === null ? null : feetInchesFromCm(p.height_cm);
+  return {
+    feet: h ? String(h.feet) : "",
+    inches: h ? String(h.inches) : "",
+    lbs: p.weight_kg === null ? "" : String(lbsFromKg(p.weight_kg)),
+  };
+}
+
+function heightCm(u: Units): number | null {
+  if (u.feet.trim() === "") return null;
+  const feet = Number(u.feet);
+  const inches = u.inches.trim() === "" ? 0 : Number(u.inches);
+  return Number.isFinite(feet) && Number.isFinite(inches) ? cmFromFeetInches(feet, inches) : null;
+}
+
+function weightKg(u: Units): number | null {
+  if (u.lbs.trim() === "") return null;
+  const lbs = Number(u.lbs);
+  return Number.isFinite(lbs) ? kgFromLbs(lbs) : null;
+}
+
 type Props = {
   initial: ProfileInput;
   onSaved: (profile: ProfileInput) => void;
@@ -30,6 +56,7 @@ export function StepProfile({ initial, onSaved }: Props) {
   // The server renders an empty zone. The browser fills in its own zone after hydration.
   const detected = useSyncExternalStore(noopSubscribe, detectTimeZone, () => "");
   const [draft, setDraft] = useState<ProfileInput>(initial);
+  const [units, setUnits] = useState<Units>(() => unitsFrom(initial));
   const [errors, setErrors] = useState<FieldErrors>({});
   const [busy, setBusy] = useState(false);
 
@@ -40,7 +67,10 @@ export function StepProfile({ initial, onSaved }: Props) {
     // unless the user has already started to type.
     let live = true;
     void loadProfileAction().then((res) => {
-      if (live && res.ok && res.profile && !touched.current) setDraft(res.profile);
+      if (live && res.ok && res.profile && !touched.current) {
+        setDraft(res.profile);
+        setUnits(unitsFrom(res.profile));
+      }
     });
     return () => {
       live = false;
@@ -53,7 +83,12 @@ export function StepProfile({ initial, onSaved }: Props) {
     touched.current = true;
     setDraft((d) => ({ ...d, [key]: v }));
   };
-  const num = (raw: string) => (raw.trim() === "" ? null : Number(raw));
+  const setBody = (patch: Partial<Units>) => {
+    const next = { ...units, ...patch };
+    setUnits(next);
+    set("height_cm", heightCm(next));
+    set("weight_kg", weightKg(next));
+  };
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -117,29 +152,46 @@ export function StepProfile({ initial, onSaved }: Props) {
             ))}
           </NativeSelect>
         </Field>
-        <Field id="p-height" label="Height (cm)" error={errors.height_cm}>
-          <Input
-            id="p-height"
-            type="number"
-            inputMode="decimal"
-            min={30}
-            max={260}
-            step="0.1"
-            value={value.height_cm ?? ""}
-            onChange={(e) => set("height_cm", num(e.target.value))}
-            {...describedBy("p-height", undefined, errors.height_cm)}
-          />
+        <Field id="p-height" label="Height" error={errors.height_cm}>
+          <div className="flex items-center gap-2">
+            <Input
+              id="p-height"
+              type="number"
+              inputMode="numeric"
+              aria-label="Height, feet"
+              min={0}
+              max={8}
+              step={1}
+              className="w-20"
+              value={units.feet}
+              onChange={(e) => setBody({ feet: e.target.value })}
+              {...describedBy("p-height", undefined, errors.height_cm)}
+            />
+            <span className="text-sm text-muted-foreground">ft</span>
+            <Input
+              type="number"
+              inputMode="numeric"
+              aria-label="Height, inches"
+              min={0}
+              max={11}
+              step={1}
+              className="w-20"
+              value={units.inches}
+              onChange={(e) => setBody({ inches: e.target.value })}
+            />
+            <span className="text-sm text-muted-foreground">in</span>
+          </div>
         </Field>
-        <Field id="p-weight" label="Weight (kg)" error={errors.weight_kg}>
+        <Field id="p-weight" label="Weight (lb)" error={errors.weight_kg}>
           <Input
             id="p-weight"
             type="number"
-            inputMode="decimal"
-            min={2}
-            max={500}
-            step="0.1"
-            value={value.weight_kg ?? ""}
-            onChange={(e) => set("weight_kg", num(e.target.value))}
+            inputMode="numeric"
+            min={5}
+            max={1100}
+            step={1}
+            value={units.lbs}
+            onChange={(e) => setBody({ lbs: e.target.value })}
             {...describedBy("p-weight", undefined, errors.weight_kg)}
           />
         </Field>

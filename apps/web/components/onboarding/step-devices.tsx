@@ -1,26 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Watch } from "lucide-react";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
 import { agent, errorText, isEndpointMissing } from "@/lib/api-client";
 import { cn } from "@/lib/utils";
-
-type Probe = "checking" | "ready" | "soon";
-
-/** Asks the proxy for the Fitbit authorize route without following the redirect. A redirect means the route exists. */
-async function probeFitbit(): Promise<Probe> {
-  try {
-    const res = await fetch("/api/agent/integrations/fitbit/authorize", {
-      redirect: "manual",
-      cache: "no-store",
-    });
-    return res.type === "opaqueredirect" || (res.status >= 300 && res.status < 400) ? "ready" : "soon";
-  } catch {
-    return "soon";
-  }
-}
+import { FitbitStatusCard } from "./fitbit-status";
 
 export function StepDevices({
   simulate,
@@ -29,19 +14,8 @@ export function StepDevices({
   simulate: boolean;
   setSimulate: (on: boolean) => void;
 }) {
-  const [fitbit, setFitbit] = useState<Probe>("checking");
   const [busy, setBusy] = useState(false);
   const [simNote, setSimNote] = useState<string | null>(null);
-
-  useEffect(() => {
-    let live = true;
-    void probeFitbit().then((p) => {
-      if (live) setFitbit(p);
-    });
-    return () => {
-      live = false;
-    };
-  }, []);
 
   async function toggleSim() {
     const next = !simulate;
@@ -66,28 +40,12 @@ export function StepDevices({
 
   return (
     <div className="max-w-xl divide-y divide-border border-y border-border">
-      <div className="flex flex-wrap items-center justify-between gap-4 py-5">
-        <div className="min-w-0">
-          <h3 className="text-base font-semibold">Fitbit</h3>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Heart rate and steps. You sign in with Google Health and approve read access.
-          </p>
-        </div>
-        {fitbit === "ready" ? (
-          <Button asChild variant="outline">
-            {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
-            <a href="/api/agent/integrations/fitbit/authorize">Connect Fitbit</a>
-          </Button>
-        ) : (
-          <Button variant="outline" disabled aria-describedby="fitbit-note">
-            {fitbit === "checking" ? "Checking..." : "Coming soon"}
-          </Button>
-        )}
-        {fitbit === "soon" && (
-          <p id="fitbit-note" className="w-full text-xs text-muted-foreground">
-            The Fitbit connection is not deployed yet. You can connect it later in settings.
-          </p>
-        )}
+      <div className="py-5">
+        <h3 className="text-base font-semibold">Fitbit</h3>
+        <p className="mb-4 mt-1 text-sm text-muted-foreground">
+          Pulse reads your watch data through Google Health. You sign in with Google and approve read access.
+        </p>
+        <FitbitStatusCard />
       </div>
 
       <div className="py-5">
