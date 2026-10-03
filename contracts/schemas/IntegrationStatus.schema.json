@@ -1,0 +1,50 @@
+{
+  "$defs": {
+    "IntegrationState": {
+      "properties": {
+        "connected": {
+          "default": false,
+          "title": "Connected",
+          "type": "boolean"
+        },
+        "last_sync": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Last Sync"
+        },
+        "email": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Email"
+        }
+      },
+      "title": "IntegrationState",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "fitbit": {
+      "$ref": "#/$defs/IntegrationState"
+    },
+    "google": {
+      "$ref": "#/$defs/IntegrationState"
+    }
+  },
+  "title": "IntegrationStatus",
+  "type": "object"
+}

@@ -1,0 +1,111 @@
+{
+  "$defs": {
+    "VitalsSample": {
+      "properties": {
+        "user_id": {
+          "format": "uuid",
+          "title": "User Id",
+          "type": "string"
+        },
+        "metric": {
+          "enum": [
+            "heart_rate",
+            "resting_heart_rate",
+            "hrv_sdnn",
+            "steps",
+            "active_minutes",
+            "active_energy_kcal",
+            "spo2",
+            "respiratory_rate",
+            "skin_temp_delta",
+            "bp_systolic",
+            "bp_diastolic",
+            "weight_kg",
+            "sleep_total_min",
+            "sleep_deep_min",
+            "sleep_rem_min",
+            "sleep_core_min",
+            "sleep_awake_min",
+            "stress_score",
+            "workout"
+          ],
+          "title": "Metric",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value",
+          "type": "number"
+        },
+        "unit": {
+          "title": "Unit",
+          "type": "string"
+        },
+        "ts": {
+          "format": "date-time",
+          "title": "Ts",
+          "type": "string"
+        },
+        "source": {
+          "enum": [
+            "fitbit",
+            "apple_watch_sim",
+            "presage",
+            "manual",
+            "finchnode"
+          ],
+          "title": "Source",
+          "type": "string"
+        },
+        "meta": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Meta"
+        }
+      },
+      "required": [
+        "user_id",
+        "metric",
+        "value",
+        "unit",
+        "ts",
+        "source"
+      ],
+      "title": "VitalsSample",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "source": {
+      "enum": [
+        "fitbit",
+        "apple_watch_sim",
+        "presage",
+        "manual",
+        "finchnode"
+      ],
+      "title": "Source",
+      "type": "string"
+    },
+    "samples": {
+      "items": {
+        "$ref": "#/$defs/VitalsSample"
+      },
+      "title": "Samples",
+      "type": "array"
+    }
+  },
+  "required": [
+    "source",
+    "samples"
+  ],
+  "title": "IngestBatch",
+  "type": "object"
+}

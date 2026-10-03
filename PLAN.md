@@ -74,7 +74,7 @@ Devpost: tag Photon, FinchNode, Neon, Gemini, Tiger Data, Fetch.ai, ElevenLabs, 
                             ▲ inbound text → POST /agent/inbound → Gemini + tools → reply / approve proposal
                                                                       │ approved CalendarProposal
                                                                       ▼
-                                                   [P] Google Calendar module → events.insert in "Pulse Health" calendar
+                                                   [J] Google Calendar module → events.insert in "Pulse Health" calendar
 ```
 
 Three deployables:
@@ -97,7 +97,7 @@ MHacks26/
 │   ├── app/(app)/onboarding, dashboard, twin, goals, alerts, settings, demo   J
 │   ├── app/api/auth/[...path]/route.ts  (Neon Auth)   J
 │   ├── app/api/agent/[...path]/route.ts (server-side proxy to agent with X-Internal-Token)   J
-│   ├── drizzle/schema/{core,integrations}.ts   core=J, integrations=P (fitbit_connections, calendar_connections, ingest_log)
+│   ├── drizzle/schema/{core,integrations}.ts   core=J, integrations=P (fitbit_connections, ingest_log) + J (calendar_connections, calendar_events_cache)
 │   ├── drizzle/migrations/            generated; whoever changes schema runs `drizzle-kit generate` and commits same PR
 │   ├── lib/contracts.ts               GENERATED from contracts/ — never hand-edit
 │   └── tests/ (vitest), e2e/ (playwright)   J
@@ -109,7 +109,7 @@ MHacks26/
 │   ├── app/vitals/                    P   (/vitals/latest, /vitals/series, /vitals/daily — reads Tiger CAGGs)
 │   ├── app/integrations/fitbit/       P
 │   ├── app/integrations/apple_sim/    P   (simulator personas + scenario switch)
-│   ├── app/integrations/gcal/         P   (/integrations/google/*, /calendar/*)
+│   ├── app/integrations/gcal/         J   (/integrations/google/*, /calendar/*)
 │   ├── app/fetchai/                   P   (uAgent + tools calling our own REST)
 │   ├── app/agents/live.py             J   (on_samples_ingested, evaluate window)
 │   ├── app/agents/compass.py          J   (scheduled jobs)
@@ -185,11 +185,11 @@ goal_progress(goal_id, period_start date, current float, pct float, on_track boo
 daily_summary(user_id, day date, metric, avg,min,max,sum,n, PK(user_id,day,metric))        -- written by P ingest
 alerts(id, user_id, kind, severity 'info'|'nudge'|'warning'|'urgent', title, body, payload jsonb, proposal_id, channels jsonb, created_at, read_at, ack_at)
 calendar_proposals(id, user_id, title, starts_at, ends_at, rationale, status 'pending'|'approved'|'rejected'|'applied'|'failed'|'expired', google_event_id, alert_id, created_at, decided_at, applied_at)
-calendar_events_cache(user_id, event_id, title, starts_at, ends_at, is_important bool, fetched_at, PK(user_id,event_id))   -- P
+calendar_events_cache(user_id, event_id, title, starts_at, ends_at, is_important bool, fetched_at, PK(user_id,event_id))   -- J
 messages(id, user_id, channel, direction 'in'|'out', text, tool_calls jsonb, external_id, created_at)
 channel_links(id, user_id, channel 'imessage'|'asi_one'|'relay', external_id, link_code, status 'pending'|'linked', created_at, linked_at)
 fitbit_connections(user_id PK, fitbit_user_id, access_token_enc, refresh_token_enc, expires_at, scopes, subscription_id, last_sync_at)   -- P
-calendar_connections(user_id PK, google_email, refresh_token_enc, health_calendar_id, sync_token, last_sync_at)   -- P
+calendar_connections(user_id PK, google_email, refresh_token_enc, health_calendar_id, sync_token, last_sync_at)   -- J
 job_runs(id, job_name, user_id, started_at, finished_at, status, detail)   -- idempotency + "agent last seen"
 briefings(user_id, day, text, audio_url, created_at, PK(user_id,day))
 ```
@@ -332,7 +332,7 @@ Mailbox agent (`mailbox=True, publish_agent_details=True`, stable `AGENT_SEED`),
 - Scenarios: `normal`, `workout_now` (HR ramps to 150 for 20 min starting now), `illness_onset` (resting HR +10, HRV −30%, last night sleep 5h, temp +0.6), `great_sleep`, `sedentary_day`, `low_spo2`. `fast_forward_min` emits a compressed history immediately so judges don't wait.
 - Runs on APScheduler every minute: emits the last minute's samples as a **Health Auto Export–shaped JSON** (`{"data":{"metrics":[{"name":"heart_rate","units":"bpm","data":[{"date":"2026-10-03 14:30:00 -0400","Min":65,"Avg":72,"Max":85}]}, …],"workouts":[]}}`) and POSTs to its own `/ingest/hae`. This proves a real iPhone running Health Auto Export could drop in later; parser is case-insensitive on `Avg/avg`, accepts `yyyy-MM-dd HH:mm:ss Z` and ISO-8601.
 
-### 8.3 Google Calendar (`app/integrations/gcal/`)
+### 8.3 Google Calendar (`app/integrations/gcal/`) — owned by J (moved from P on 2026-10-03)
 - Own Google Cloud project, OAuth client (web), consent screen in **Testing** (add every demo Google account as test user; refresh tokens expire after 7 days in Testing → consent within 7 days of judging). Request `access_type=offline&prompt=consent`. Scope: `https://www.googleapis.com/auth/calendar` (single scope keeps it simple; `calendar.events` + `calendar.app.created` is the narrower alternative).
 - On connect: create secondary calendar "Pulse Health" (store id), initial `events.list` for next 7 days on primary → `calendar_events_cache`; refresh every 30 min with `syncToken` (handle 410 → full sync). `is_important` heuristic: title matches `exam|interview|flight|presentation|race|final|midterm|deadline|wedding` or attendees ≥ 3 or user marks it in UI (stretch).
 - `apply` proposal: `freebusy.query` to confirm slot, `events.insert` into "Pulse Health" with description = rationale + "Created by Pulse with your approval". Store `google_event_id`.
@@ -399,7 +399,7 @@ Python (`services/agent/tests`, pytest + pytest-asyncio + httpx + respx):
 - `unit/twin/`: FinchNode import from recorded `patient-demo-001` and `polypharmacy` JSON → expected twin fields/thresholds; baseline computation; defaults when sparse. (J)
 - `unit/chat/`: fast-path regexes; tool dispatch with fake LLM; link-code flow. (J)
 - `unit/ingest/`: HAE parser (official field casing + lowercase variant + both date formats); Fitbit normalizers from recorded API JSON; dedupe. (P)
-- `unit/gcal/`: proposal→event body mapping; importance heuristic; syncToken 410 handling (respx). (P)
+- `unit/gcal/`: proposal→event body mapping; importance heuristic; syncToken 410 handling (respx). (J)
 - `unit/fitbit/`: webhook verify (204/404), POST ack 204 + enqueue, token refresh on 401 (respx). (P)
 - `integration/`: real Postgres via `docker run timescale/timescaledb:latest-pg16` (serves both the Tiger DDL and the Neon tables) — ingest → CAGG read → rules → alert row; Compass job idempotency; proposals state machine. GitHub Actions service container. (P sets up, both add tests)
 - `contract/`: export schemas and diff against `contracts/schemas/`; validate every fixture against its schema. (J writes, P wires in CI)
@@ -421,10 +421,10 @@ Reliability for the unattended window: UptimeRobot (free) on three `/health` URL
 
 | Hour | J (you) | P (partner) | Gate |
 |---|---|---|---|
-| 0–1 | Accounts: Neon project + Auth, Vercel, Photon project (+ test proactive send), Gemini key + check RPD, .tech domain, FinchNode signup. Write `contracts/` Pydantic + export. Notability sketch. | Accounts: Railway, Tiger Cloud, Google Cloud (Calendar API, OAuth client, test users), Fitbit app check (authorize + intraday HR → **go/no-go**), Agentverse/ASI:One promo. Dockerfiles + Railway services + CI skeleton. | Contracts frozen at h2 |
+| 0–1 | Accounts: Neon project + Auth, Vercel, Photon project (+ test proactive send), Gemini key + check RPD, .tech domain, FinchNode signup. Write `contracts/` Pydantic + export. Notability sketch. | Accounts: Railway, Tiger Cloud, Fitbit app check (authorize + intraday HR → **go/no-go**), Agentverse/ASI:One promo. Dockerfiles + Railway services + CI skeleton. | Contracts frozen at h2 |
 | 1–3 | Scaffold `apps/web` (Neon Auth, Drizzle schema incl. P's tables, migrations applied), `services/agent` skeleton (`main.py`, core, scheduler, `/health`), deploy both empty to prod. | `infra/tiger/001_vitals.sql` applied; `app/ingest` + `/ingest/hae` + Tiger writer; simulator persona `normal` emitting every minute to staging. | **h3: samples visible in Tiger via `/vitals/series`** |
 | 3–6 | Rules engine + live agent + notify + fake LLM; gateway deployed and linked to your phone; first "nice workout" iMessage from `/demo/scenario workout_now`. | Fitbit OAuth + backfill + webhook + poll; `/vitals/*` read API; simulator scenarios + `/sim/scenario`. | **h6: thin slice end-to-end live** (sim → rules → iMessage + dashboard row) |
-| 6–10 | Onboarding (7 steps) incl. FinchNode import → twin v1; dashboard v1 with live sparkline, goals, alerts, proposals, demo panel. Real Gemini phrasing. | GCal OAuth + "Pulse Health" calendar + upcoming cache + `apply`; `calendar_events_cache` refresh job. | **h10: demo path 1–4 (section 14) works on prod** |
+| 6–10 | Onboarding (7 steps) incl. FinchNode import → twin v1; dashboard v1 with live sparkline, goals, alerts, proposals, demo panel. Real Gemini phrasing. | (GCal moved to J) | **h10: demo path 1–4 (section 14) works on prod** |
 | 10–14 | Compass jobs (briefing, evening, twin rebuild, proposals sweep); `/agent/inbound` with tools + "yes" approval; settings/quiet hours. | Fetch.ai uAgent deployed, mailbox connected, Agentverse profile + README badges; integration tests + CI green; `smoke.sh`. | h14: ASI:One chat answers "how did I sleep" |
 | 14–17 | ElevenLabs briefing; Figma polish applied; `/twin` page; Playwright e2e. | Tiger CAGGs hierarchical + retention; Neon branch-per-PR; UptimeRobot; Fitbit real data verified on dashboard; fix list. | h17: **feature freeze** |
 | 17–20 | Demo video (3–5 min, also needed for Fetch.ai), Devpost text + screenshots (Notability, Figma), README. | ASI:One Submission Agent; final `smoke.sh`; Google re-consent; Neon plan check; seed demo user; rehearsal. | Submit ≥30 min early |
@@ -463,7 +463,6 @@ Research-only subagents during build (cheap, run when a blocker appears): "Photo
 - `tiger-ingest`: DDL + writer + HAE parser + `/vitals/*` + tests.
 - `apple-sim`: personas + scenarios + scheduler emission.
 - `fitbit`: OAuth, backfill, webhook, poll, normalizers, tests.
-- `gcal`: OAuth, calendar creation, cache, apply, tests.
 - `fetchai-agent`: uAgent + Agentverse registration + README section.
 - `ci-deploy-smoke`: workflows, Dockerfiles, Railway config, `smoke.sh`, UptimeRobot.
 

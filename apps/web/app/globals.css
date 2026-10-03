@@ -1,0 +1,190 @@
+/*
+ * Pulse design tokens. Defined once, here.
+ *
+ * Type pairing
+ *   Heading: Fraunces (serif, optical size). Weight 500. Tight leading.
+ *   Body and UI: Geist (sans). Weights 400 and 500. Weight 600 for card titles only.
+ *   Numbers and codes: Geist Mono.
+ *
+ * Type scale (size / line height)
+ *   text-xs   12 / 16   weight 500   labels, timestamps, eyebrow text
+ *   text-sm   14 / 20   weight 400   secondary text, form hints, nav
+ *   text-base 16 / 24   weight 400   body
+ *   text-xl   20 / 28   weight 600   card title
+ *   text-3xl  30 / 36   weight 500   page heading (Fraunces)
+ *   text-5xl  52 / 54   weight 500   landing heading (Fraunces)
+ *
+ * Spacing scale (4 px base). Use only these steps.
+ *   1 = 4   2 = 8   3 = 12   4 = 16   6 = 24   8 = 32   12 = 48   16 = 64
+ *
+ * Color
+ *   Neutrals carry the whole interface. Their hue is warm (60).
+ *   One accent, ember orange (hue 55), marks the primary action. It has no other job.
+ *   Destructive red marks errors. A red state also carries an icon and text.
+ *   Text on background: foreground 17:1, muted-foreground 7.7:1 (dark theme).
+ *   Primary button: primary-foreground on primary 8.4:1 (dark), 6.2:1 (light).
+ */
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@neondatabase/auth-ui/tailwind";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-fraunces), ui-serif, Georgia, serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1rem;
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.25rem;
+  --text-base: 1rem;
+  --text-base--line-height: 1.5rem;
+  --text-xl: 1.25rem;
+  --text-xl--line-height: 1.75rem;
+  --text-3xl: 1.875rem;
+  --text-3xl--line-height: 2.25rem;
+  --text-5xl: 3.25rem;
+  --text-5xl--line-height: 1.04;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+  --radius: 0.5rem;
+  --background: oklch(0.985 0.004 80);
+  --foreground: oklch(0.19 0.01 60);
+  --card: oklch(1 0.002 80);
+  --card-foreground: oklch(0.19 0.01 60);
+  --popover: oklch(1 0.002 80);
+  --popover-foreground: oklch(0.19 0.01 60);
+  --primary: oklch(0.68 0.16 55);
+  --primary-foreground: oklch(0.18 0.02 55);
+  --secondary: oklch(0.955 0.006 80);
+  --secondary-foreground: oklch(0.25 0.01 60);
+  --muted: oklch(0.955 0.006 80);
+  --muted-foreground: oklch(0.45 0.01 60);
+  --accent: oklch(0.945 0.008 80);
+  --accent-foreground: oklch(0.25 0.01 60);
+  --destructive: oklch(0.52 0.2 27);
+  --border: oklch(0.89 0.008 80);
+  --input: oklch(0.86 0.008 80);
+  --ring: oklch(0.35 0.01 60);
+  --chart-1: oklch(0.68 0.16 55);
+  --chart-2: oklch(0.5 0.01 60);
+  --chart-3: oklch(0.62 0.01 60);
+  --chart-4: oklch(0.72 0.01 60);
+  --chart-5: oklch(0.82 0.01 60);
+  --sidebar: oklch(0.97 0.005 80);
+  --sidebar-foreground: oklch(0.19 0.01 60);
+  --sidebar-primary: oklch(0.25 0.01 60);
+  --sidebar-primary-foreground: oklch(0.985 0.004 80);
+  --sidebar-accent: oklch(0.93 0.008 80);
+  --sidebar-accent-foreground: oklch(0.19 0.01 60);
+  --sidebar-border: oklch(0.89 0.008 80);
+  --sidebar-ring: oklch(0.35 0.01 60);
+}
+
+.dark {
+  --background: oklch(0.165 0.008 60);
+  --foreground: oklch(0.96 0.005 80);
+  --card: oklch(0.2 0.008 60);
+  --card-foreground: oklch(0.96 0.005 80);
+  --popover: oklch(0.22 0.008 60);
+  --popover-foreground: oklch(0.96 0.005 80);
+  --primary: oklch(0.76 0.15 55);
+  --primary-foreground: oklch(0.18 0.02 55);
+  --secondary: oklch(0.26 0.008 60);
+  --secondary-foreground: oklch(0.96 0.005 80);
+  --muted: oklch(0.24 0.008 60);
+  --muted-foreground: oklch(0.72 0.01 70);
+  --accent: oklch(0.27 0.008 60);
+  --accent-foreground: oklch(0.96 0.005 80);
+  --destructive: oklch(0.72 0.18 25);
+  --border: oklch(1 0 0 / 11%);
+  --input: oklch(1 0 0 / 16%);
+  --ring: oklch(0.88 0.01 80);
+  --chart-1: oklch(0.76 0.15 55);
+  --chart-2: oklch(0.8 0.01 80);
+  --chart-3: oklch(0.65 0.01 80);
+  --chart-4: oklch(0.5 0.01 80);
+  --chart-5: oklch(0.38 0.01 80);
+  --sidebar: oklch(0.185 0.008 60);
+  --sidebar-foreground: oklch(0.96 0.005 80);
+  --sidebar-primary: oklch(0.96 0.005 80);
+  --sidebar-primary-foreground: oklch(0.18 0.01 60);
+  --sidebar-accent: oklch(0.26 0.008 60);
+  --sidebar-accent-foreground: oklch(0.96 0.005 80);
+  --sidebar-border: oklch(1 0 0 / 11%);
+  --sidebar-ring: oklch(0.88 0.01 80);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    @apply font-sans;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+  h1,
+  h2 {
+    @apply font-heading font-medium tracking-tight text-balance;
+  }
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}

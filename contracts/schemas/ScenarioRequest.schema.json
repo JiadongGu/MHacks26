@@ -1,0 +1,39 @@
+{
+  "properties": {
+    "user_id": {
+      "format": "uuid",
+      "title": "User Id",
+      "type": "string"
+    },
+    "scenario": {
+      "enum": [
+        "normal",
+        "workout_now",
+        "illness_onset",
+        "great_sleep",
+        "sedentary_day",
+        "low_spo2"
+      ],
+      "title": "Scenario",
+      "type": "string"
+    },
+    "fast_forward_min": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Fast Forward Min"
+    }
+  },
+  "required": [
+    "user_id",
+    "scenario"
+  ],
+  "title": "ScenarioRequest",
+  "type": "object"
+}

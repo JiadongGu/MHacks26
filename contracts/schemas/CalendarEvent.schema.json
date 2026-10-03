@@ -1,0 +1,40 @@
+{
+  "properties": {
+    "event_id": {
+      "title": "Event Id",
+      "type": "string"
+    },
+    "title": {
+      "title": "Title",
+      "type": "string"
+    },
+    "starts_at": {
+      "format": "date-time",
+      "title": "Starts At",
+      "type": "string"
+    },
+    "ends_at": {
+      "format": "date-time",
+      "title": "Ends At",
+      "type": "string"
+    },
+    "is_important": {
+      "default": false,
+      "title": "Is Important",
+      "type": "boolean"
+    },
+    "all_day": {
+      "default": false,
+      "title": "All Day",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "event_id",
+    "title",
+    "starts_at",
+    "ends_at"
+  ],
+  "title": "CalendarEvent",
+  "type": "object"
+}
