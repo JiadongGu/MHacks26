@@ -42,7 +42,13 @@ const retentionTimer = table(
   { scheduled_id: t.u64().primaryKey().autoInc(), scheduled_at: t.scheduleAt() }
 );
 
-const spacetimedb = schema({ admin, sample, minuteAgg, retentionTimer });
+// Admins other than the owner cannot SQL-read private tables, so they read watched users via views.
+const watch = table(
+  { name: 'watch' },
+  { id: t.u64().primaryKey().autoInc(), watcher: t.identity().index('btree'), user_id: t.string() }
+);
+
+const spacetimedb = schema({ admin, sample, minuteAgg, retentionTimer, watch });
 export default spacetimedb;
 
 const SampleIn = t.object('SampleIn', {
@@ -70,6 +76,34 @@ export const remove_admin = spacetimedb.reducer({ identity: t.identity() }, (ctx
   if (identity.equals(ctx.sender)) throw new SenderError('cannot remove yourself');
   ctx.db.admin.identity.delete(identity);
 });
+
+export const watch_user = spacetimedb.reducer({ user_id: t.string() }, (ctx, { user_id }) => {
+  if (!ctx.db.admin.identity.find(ctx.sender)) throw new SenderError('unauthorized');
+  for (const w of ctx.db.watch.watcher.filter(ctx.sender)) if (w.user_id === user_id) return;
+  ctx.db.watch.insert({ id: 0n, watcher: ctx.sender, user_id });
+});
+
+export const unwatch_user = spacetimedb.reducer({ user_id: t.string() }, (ctx, { user_id }) => {
+  for (const w of [...ctx.db.watch.watcher.filter(ctx.sender)]) if (w.user_id === user_id) ctx.db.watch.id.delete(w.id);
+});
+
+export const admin_minute_agg = spacetimedb.view(
+  { name: 'admin_minute_agg', public: true },
+  t.array(minuteAgg.rowType),
+  ctx => {
+    if (!ctx.db.admin.identity.find(ctx.sender)) return [];
+    return [...ctx.db.watch.watcher.filter(ctx.sender)].flatMap(w => [...ctx.db.minuteAgg.user_id.filter(w.user_id)]);
+  }
+);
+
+export const admin_sample = spacetimedb.view(
+  { name: 'admin_sample', public: true },
+  t.array(sample.rowType),
+  ctx => {
+    if (!ctx.db.admin.identity.find(ctx.sender)) return [];
+    return [...ctx.db.watch.watcher.filter(ctx.sender)].flatMap(w => [...ctx.db.sample.user_id.filter(w.user_id)]);
+  }
+);
 
 export const ingest = spacetimedb.reducer({ rows: t.array(SampleIn) }, (ctx, { rows }) => {
   if (!ctx.db.admin.identity.find(ctx.sender)) throw new SenderError('unauthorized');

@@ -18,9 +18,9 @@
 - Dashboard HR sparkline from Spacetime views; Gemini key; ElevenLabs briefing; Figma file for Best Design
 
 ## Next — P (priority order)
-1. **Apple Watch simulator** (`app/integrations/apple_sim/`): personas + scenarios `normal | workout_now | illness_onset | great_sleep | sedentary_day | low_spo2`, `fast_forward_min`, 1-min emission as Health Auto Export JSON → `/ingest/hae`; `POST /sim/scenario` (PLAN §8.2). **The whole live demo depends on this.**
-2. **Shared ingest writer + `/ingest/samples`, `/ingest/hae`** (PLAN §8.4): Spacetime `ingest` + **upsert Neon `daily_summary`** (user's local day) + `on_samples_ingested`. Route Fitbit sync through it — today Fitbit writes Spacetime only, so R2/R5/R7/R8 and goal progress never see Fitbit days
-3. Fitbit: resting HR, sleep (total/deep/REM), active minutes from the Health API
+1. ~~Apple Watch simulator~~ built (PR): personas + 6 scenarios + fast_forward + per-minute tick; tested against the real rules. Needs a run against live Neon + Spacetime
+2. ~~Shared ingest writer + `/ingest/samples`, `/ingest/hae`~~ built (PR): Spacetime `ingest`, idempotent Neon `daily_summary` (point metrics replace; minute metrics recomputed from `minute_agg`), `ingest_log`, `on_samples_ingested`; Fitbit now routes through it
+3. ~~Fitbit: resting HR, sleep, active minutes~~ built (PR) and checked against a real week of Inspire 3 data: also SpO2 and HRV. Daily metrics are fetched by whole civil days (2 per poll, 7 on connect) and replace the day's `daily_summary` row. Fitbit reports RMSSD, stored as `hrv_sdnn` with `meta.measure=rmssd`
 4. Fetch.ai uAgent: mailbox agent, chat protocol, tools → `/agent/inbound`, `/proposals`; Agentverse profile + README badges; ASI:One submission (PLAN §7.6)
 5. Deploy: Dockerfiles, Railway services (`agent-api`, `agent-fetchai`, `gateway`), CI (ruff, pytest, contracts `--check`, web build), `scripts/smoke.sh`, UptimeRobot
 6. **FinchNode (P)**: live-verified for all 6 scenarios; offline fixtures now cover all 6; twin also carries `immunizations`, `encounters` and richer provenance (additive keys). Not done: show provenance on `/twin` (J's page); authenticated `/api/v1` mode (needs a key from finchnode.com); FHIR bundle endpoints. Dropped: seeding FinchNode vitals into the live pool (record dates are months to years old, Spacetime keeps 48h)
@@ -28,3 +28,4 @@
 
 ## Known bugs
 - Gateway stream-restart after end unverified on live Photon line
+- **Spacetime reads fail with the shared token** (found 2026-10-03): the token in P's `.env` is an *admin* identity, not the database *owner*. `ingest` works (verified live: 1,013 simulator samples in 0.6 s, malformed rows rejected with 400), but `/sql` on the private tables returns 400 "no such table ... may be marked private". So `live._series`, the ingest writer's minute-metric `daily_summary`, and `/vitals/*` get nothing until the agent runs with the owner token, or J adds an admin-only view the agent can query
