@@ -1,5 +1,4 @@
 import json
-import os
 import secrets
 import time
 
@@ -7,7 +6,9 @@ from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import Flow
 
-from .store import TokenStore, fernet
+from app.core.config import settings
+
+from .store import fernet
 
 SCOPES = ["https://www.googleapis.com/auth/calendar"]
 STATE_TTL = 600
@@ -16,14 +17,14 @@ STATE_TTL = 600
 def _flow(state: str | None = None, code_verifier: str | None = None) -> Flow:
     cfg = {
         "web": {
-            "client_id": os.environ["GOOGLE_CLIENT_ID"],
-            "client_secret": os.environ["GOOGLE_CLIENT_SECRET"],
+            "client_id": settings().google_client_id,
+            "client_secret": settings().google_client_secret,
             "auth_uri": "https://accounts.google.com/o/oauth2/auth",
             "token_uri": "https://oauth2.googleapis.com/token",
         }
     }
     flow = Flow.from_client_config(cfg, scopes=SCOPES, state=state)
-    flow.redirect_uri = os.environ["GOOGLE_REDIRECT_URI"]
+    flow.redirect_uri = settings().google_redirect_uri
     flow.code_verifier = code_verifier
     return flow
 
@@ -39,7 +40,8 @@ def authorization_url(user_id: str) -> str:
     return url
 
 
-def complete(code: str, state: str, store: TokenStore) -> str:
+def complete(code: str, state: str) -> tuple[str, str]:
+    """Returns (user_id, refresh_token)."""
     payload = json.loads(fernet().decrypt(state.encode()))
     if time.time() - payload["t"] > STATE_TTL:
         raise ValueError("state expired")
@@ -48,20 +50,16 @@ def complete(code: str, state: str, store: TokenStore) -> str:
     creds = flow.credentials
     if not creds.refresh_token:
         raise ValueError("no refresh token returned")
-    store.save(payload["u"], {"refresh_token": creds.refresh_token, "scopes": list(creds.scopes or [])})
-    return payload["u"]
+    return payload["u"], creds.refresh_token
 
 
-def credentials_for(user_id: str, store: TokenStore) -> Credentials | None:
-    row = store.load(user_id)
-    if not row:
-        return None
+def credentials_for(refresh_token: str) -> Credentials:
     creds = Credentials(
         None,
-        refresh_token=row["refresh_token"],
+        refresh_token=refresh_token,
         token_uri="https://oauth2.googleapis.com/token",
-        client_id=os.environ["GOOGLE_CLIENT_ID"],
-        client_secret=os.environ["GOOGLE_CLIENT_SECRET"],
+        client_id=settings().google_client_id,
+        client_secret=settings().google_client_secret,
         scopes=SCOPES,
     )
     creds.refresh(Request())
