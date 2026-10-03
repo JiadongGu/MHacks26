@@ -58,21 +58,24 @@ def _count_call() -> None:
     _calls[today] = _calls.get(today, 0) + 1
 
 
+RETRY_NEXT_MODEL = {429, 500, 503}
+
+
 def models_to_try(primary: str) -> list[str]:
     extra = [m.strip() for m in settings().gemini_fallback_models.split(",") if m.strip()]
     return [primary] + [m for m in extra if m != primary]
 
 
 async def generate_with_fallback(client: Any, primary: str, **kwargs: Any) -> Any:
-    """generate_content on the primary model; on 429 (quota) move to the next model. Other errors raise."""
+    """generate_content on the primary model; on 429 (quota) or 500/503 (overloaded) try the next model."""
     last: Exception | None = None
     for model in models_to_try(primary):
         try:
             return await client.aio.models.generate_content(model=model, **kwargs)
         except genai_errors.APIError as exc:
-            if getattr(exc, "code", None) != 429:
+            if getattr(exc, "code", None) not in RETRY_NEXT_MODEL:
                 raise
-            log.warning("llm.quota model=%s; trying next", model)
+            log.warning("llm.model_unavailable model=%s code=%s; trying next", model, exc.code)
             last = exc
     raise last or RuntimeError("no model available")
 

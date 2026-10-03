@@ -155,3 +155,32 @@ async def test_generate_with_fallback_moves_on_429_only(monkeypatch):
     monkeypatch.setattr(llm, "models_to_try", lambda primary: ["m1", "m2", "m3"])
     assert await llm.generate_with_fallback(client, "m1", contents="x") == "ok:m2"
     assert tried == ["m1", "m2"]
+
+
+async def test_generate_with_fallback_skips_overloaded_but_raises_on_bad_request(monkeypatch):
+    import pytest
+    from google.genai import errors as genai_errors
+
+    import app.llm as llm
+
+    def err(code):
+        body = {"error": {"code": code, "message": "x", "status": "x"}}
+        return (genai_errors.ServerError if code >= 500 else genai_errors.ClientError)(code, body)
+
+    class Models:
+        def __init__(self, codes):
+            self.codes = codes
+
+        async def generate_content(self, model, **kw):
+            code = self.codes.get(model)
+            if code:
+                raise err(code)
+            return model
+
+    def client(codes):
+        return type("C", (), {"aio": type("A", (), {"models": Models(codes)})()})()
+
+    monkeypatch.setattr(llm, "models_to_try", lambda primary: ["a", "b"])
+    assert await llm.generate_with_fallback(client({"a": 503}), "a", contents="x") == "b"
+    with pytest.raises(genai_errors.ClientError):
+        await llm.generate_with_fallback(client({"a": 400}), "a", contents="x")
