@@ -1,0 +1,775 @@
+{
+    "id": "record_patient-demo-messy-coding",
+    "object": "demo_record",
+    "synthetic": true,
+    "scenario": "messy-coding",
+    "patientId": "patient-demo-messy-coding",
+    "source": "northstar-health",
+    "categories": [
+        "demographics",
+        "medications",
+        "conditions",
+        "labs",
+        "vitals",
+        "allergies",
+        "immunizations",
+        "encounters"
+    ],
+    "record": {
+        "demographics": [
+            {
+                "resourceType": "Patient",
+                "id": "patient-demo-messy-coding",
+                "meta": {
+                    "lastUpdated": "2026-09-01T00:00:00Z"
+                },
+                "identifier": [
+                    {
+                        "system": "https://northstar.example.test/mrn",
+                        "value": "SYN-60363"
+                    }
+                ],
+                "name": [
+                    {
+                        "use": "official",
+                        "family": "Marchetti",
+                        "given": [
+                            "Dolores"
+                        ],
+                        "text": "Dolores Marchetti (synthetic)"
+                    }
+                ],
+                "gender": "female",
+                "birthDate": "1963-07-30",
+                "address": [
+                    {
+                        "city": "Demo City",
+                        "state": "CA",
+                        "postalCode": "00000",
+                        "country": "US"
+                    }
+                ]
+            }
+        ],
+        "medications": [
+            {
+                "resourceType": "MedicationRequest",
+                "id": "messy-coding-demo-medication-1",
+                "status": "active",
+                "intent": "order",
+                "medicationCodeableConcept": {
+                    "text": "blood pressure pill, 1 daily"
+                },
+                "subject": {
+                    "reference": "Patient/patient-demo-messy-coding"
+                },
+                "encounter": {
+                    "reference": "Encounter/messy-coding-demo-encounter-2"
+                },
+                "authoredOn": "2026-05-12",
+                "requester": {
+                    "reference": "Practitioner/messy-coding-demo-practitioner-1"
+                }
+            },
+            {
+                "resourceType": "MedicationRequest",
+                "id": "messy-coding-demo-medication-2",
+                "status": "active",
+                "intent": "order",
+                "medicationCodeableConcept": {
+                    "coding": [
+                        {
+                            "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+                            "code": "197361",
+                            "display": "amlodipine 5 MG Oral Tablet"
+                        }
+                    ],
+                    "text": "amlodipine 5 MG Oral Tablet"
+                },
+                "subject": {
+                    "reference": "Patient/patient-demo-messy-coding"
+                },
+                "encounter": {
+                    "reference": "Encounter/messy-coding-demo-encounter-2"
+                },
+                "authoredOn": "2026-05-12",
+                "requester": {
+                    "reference": "Practitioner/messy-coding-demo-practitioner-1"
+                },
+                "dosageInstruction": [
+                    {
+                        "text": "as directed"
+                    }
+                ]
+            },
+            {
+                "resourceType": "MedicationRequest",
+                "id": "messy-coding-demo-medication-3",
+                "status": "active",
+                "intent": "order",
+                "medicationCodeableConcept": {
+                    "coding": [
+                        {
+                            "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+                            "code": "866924",
+                            "display": "metoprolol tartrate 25 MG Oral Tablet"
+                        }
+                    ],
+                    "text": "metoprolol tartrate 25 MG Oral Tablet"
+                },
+                "subject": {
+                    "reference": "Patient/patient-demo-messy-coding"
+                },
+                "encounter": {
+                    "reference": "Encounter/messy-coding-demo-encounter-2"
+                },
+                "authoredOn": "2026-05-12",
+                "requester": {
+                    "reference": "Practitioner/messy-coding-demo-practitioner-1"
+                },
+                "dosageInstruction": [
+                    {
+                        "doseAndRate": [
+                            {
+                                "doseQuantity": {
+                                    "value": 1
+                                }
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "resourceType": "MedicationRequest",
+                "id": "messy-coding-demo-medication-4",
+                "status": "unknown",
+                "intent": "order",
+                "medicationCodeableConcept": {
+                    "coding": [
+                        {
+                            "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+                            "code": "312961",
+                            "display": "simvastatin 20 MG Oral Tablet"
+                        }
+                    ],
+                    "text": "simvastatin 20 MG Oral Tablet"
+                },
+                "subject": {
+                    "reference": "Patient/patient-demo-messy-coding"
+                },
+                "requester": {
+                    "reference": "Practitioner/messy-coding-demo-practitioner-1"
+                },
+                "dosageInstruction": [
+                    {
+                        "text": "Take 1 tablet by mouth at bedtime"
+                    }
+                ]
+            },
+            {
+                "resourceType": "MedicationRequest",
+                "id": "messy-coding-demo-medication-5",
+                "status": "active",
+                "intent": "order",
+                "medicationCodeableConcept": {
+                    "coding": [
+                        {
+                            "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+                            "code": "861007",
+                            "display": "metformin hydrochloride 500 MG Oral Tablet"
+                        }
+                    ],
+                    "text": "metformin hydrochloride 500 MG Oral Tablet"
+                },
+                "subject": {
+                    "reference": "Patient/patient-demo-messy-coding"
+                },
+                "encounter": {
+                    "reference": "Encounter/messy-coding-demo-encounter-2"
+                },
+                "authoredOn": "2026-05-12",
+                "requester": {
+                    "reference": "Practitioner/messy-coding-demo-practitioner-1"
+                },
+                "dosageInstruction": [
+                    {
+                        "text": "Take 1 tablet by mouth twice daily with meals"
+                    }
+                ]
+            }
+        ],
+        "conditions": [
+            {
+                "resourceType": "Condition",
+                "id": "messy-coding-demo-condition-1",
+                "clinicalStatus": {
+                    "coding": [
+                        {
+                            "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+                            "code": "active",
+                            "display": "active"
+                        }
+                    ]
+                },
+                "code": {
+                    "text": "high cholesterol"
+                },
+                "subject": {
+                    "reference": "Patient/patient-demo-messy-coding"
+                },
+                "recordedDate": "2026-05-12"
+            },
+            {
+                "resourceType": "Condition",
+                "id": "messy-coding-demo-condition-2",
+                "code": {
+                    "coding": [
+                        {
+                            "system": "http://snomed.info/sct",
+                            "code": "59621000",
+                            "display": "Essential hypertension"
+                        }
+                    ],
+                    "text": "Essential hypertension"
+                },
+                "subject": {
+                    "reference": "Patient/patient-demo-messy-coding"
+                },
+                "onsetDateTime": "2016-03-01",
+                "recordedDate": "2016-03-01"
+            },
+            {
+                "resourceType": "Condition",
+                "id": "messy-coding-demo-condition-3",
+                "clinicalStatus": {
+                    "coding": [
+                        {
+                            "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+                            "code": "active",
+                            "display": "active"
+                        }
+                    ]
+                },
+                "code": {
+                    "coding": [
+                        {
+                            "system": "http://hl7.org/fhir/sid/icd-10-cm",
+                            "code": "E11.9",
+                            "display": "Type 2 diabetes mellitus without complications"
+                        }
+                    ],
+                    "text": "Type 2 diabetes mellitus without complications"
+                },
+                "subject": {
+                    "reference": "Patient/patient-demo-messy-coding"
+                },
+                "onsetDateTime": "2019-08-01",
+                "recordedDate": "2019-08-01"
+            }
+        ],
+        "labs": [
+            {
+                "resourceType": "Observation",
+                "id": "messy-coding-demo-lab-1",
+                "status": "final",
+                "category": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                                "code": "laboratory",
+                                "display": "Laboratory"
+                            }
+                        ]
+                    }
+                ],
+                "code": {
+                    "coding": [
+                        {
+                            "system": "http://loinc.org",
+                            "code": "14749-6",
+                            "display": "Glucose [Moles/volume] in Serum or Plasma"
+                        }
+                    ],
+                    "text": "Glucose [Moles/volume] in Serum or Plasma"
+                },
+                "subject": {
+                    "reference": "Patient/patient-demo-messy-coding"
+                },
+                "encounter": {
+                    "reference": "Encounter/messy-coding-demo-encounter-2"
+                },
+                "effectiveDateTime": "2026-05-12T10:15:00Z",
+                "valueQuantity": {
+                    "value": 6.1,
+                    "unit": "mmol/L",
+                    "system": "http://unitsofmeasure.org",
+                    "code": "mmol/L"
+                },
+                "referenceRange": [
+                    {
+                        "low": {
+                            "value": 3.9,
+                            "unit": "mmol/L",
+                            "system": "http://unitsofmeasure.org",
+                            "code": "mmol/L"
+                        },
+                        "high": {
+                            "value": 5.6,
+                            "unit": "mmol/L",
+                            "system": "http://unitsofmeasure.org",
+                            "code": "mmol/L"
+                        },
+                        "text": "3.9 - 5.6 mmol/L"
+                    }
+                ]
+            },
+            {
+                "resourceType": "Observation",
+                "id": "messy-coding-demo-lab-2",
+                "status": "final",
+                "category": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                                "code": "laboratory",
+                                "display": "Laboratory"
+                            }
+                        ]
+                    }
+                ],
+                "code": {
+                    "coding": [
+                        {
+                            "system": "http://loinc.org",
+                            "code": "718-7",
+                            "display": "Hemoglobin [Mass/volume] in Blood"
+                        }
+                    ],
+                    "text": "Hemoglobin [Mass/volume] in Blood"
+                },
+                "subject": {
+                    "reference": "Patient/patient-demo-messy-coding"
+                },
+                "encounter": {
+                    "reference": "Encounter/messy-coding-demo-encounter-2"
+                },
+                "effectiveDateTime": "2026-05-12T10:15:00Z",
+                "valueQuantity": {
+                    "value": 13.2,
+                    "unit": "g/dL",
+                    "system": "http://unitsofmeasure.org",
+                    "code": "g/dL"
+                },
+                "referenceRange": [
+                    {
+                        "low": {
+                            "value": 0,
+                            "unit": "g/dL",
+                            "system": "http://unitsofmeasure.org",
+                            "code": "g/dL"
+                        },
+                        "high": {
+                            "value": 17.5,
+                            "unit": "g/dL",
+                            "system": "http://unitsofmeasure.org",
+                            "code": "g/dL"
+                        },
+                        "text": "0 - 17.5 g/dL"
+                    }
+                ]
+            },
+            {
+                "resourceType": "Observation",
+                "id": "messy-coding-demo-lab-3",
+                "status": "final",
+                "category": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                                "code": "laboratory",
+                                "display": "Laboratory"
+                            }
+                        ]
+                    }
+                ],
+                "code": {
+                    "coding": [
+                        {
+                            "system": "http://loinc.org",
+                            "code": "2887-8",
+                            "display": "Protein [Presence] in Urine"
+                        }
+                    ],
+                    "text": "Protein [Presence] in Urine"
+                },
+                "subject": {
+                    "reference": "Patient/patient-demo-messy-coding"
+                },
+                "encounter": {
+                    "reference": "Encounter/messy-coding-demo-encounter-2"
+                },
+                "effectiveDateTime": "2026-05-12T10:15:00Z",
+                "valueCodeableConcept": {
+                    "coding": [
+                        {
+                            "system": "http://snomed.info/sct",
+                            "code": "260385009",
+                            "display": "Negative"
+                        }
+                    ]
+                }
+            },
+            {
+                "resourceType": "Observation",
+                "id": "messy-coding-demo-lab-4",
+                "status": "cancelled",
+                "category": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                                "code": "laboratory",
+                                "display": "Laboratory"
+                            }
+                        ]
+                    }
+                ],
+                "code": {
+                    "coding": [
+                        {
+                            "system": "http://loinc.org",
+                            "code": "2160-0",
+                            "display": "Creatinine [Mass/volume] in Serum or Plasma"
+                        }
+                    ],
+                    "text": "Creatinine [Mass/volume] in Serum or Plasma"
+                },
+                "subject": {
+                    "reference": "Patient/patient-demo-messy-coding"
+                },
+                "encounter": {
+                    "reference": "Encounter/messy-coding-demo-encounter-2"
+                },
+                "effectiveDateTime": "2026-05-12T10:15:00Z"
+            },
+            {
+                "resourceType": "Observation",
+                "id": "messy-coding-demo-lab-5",
+                "status": "final",
+                "category": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                                "code": "laboratory",
+                                "display": "Laboratory"
+                            }
+                        ]
+                    }
+                ],
+                "code": {
+                    "coding": [
+                        {
+                            "system": "http://loinc.org",
+                            "code": "11502-2",
+                            "display": "Laboratory report"
+                        }
+                    ],
+                    "text": "Laboratory report"
+                },
+                "subject": {
+                    "reference": "Patient/patient-demo-messy-coding"
+                },
+                "encounter": {
+                    "reference": "Encounter/messy-coding-demo-encounter-2"
+                },
+                "effectiveDateTime": "2026-05-12T10:15:00Z",
+                "valueString": "See report"
+            }
+        ],
+        "vitals": [
+            {
+                "resourceType": "Observation",
+                "id": "messy-coding-demo-vital-1",
+                "status": "final",
+                "category": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                                "code": "vital-signs",
+                                "display": "Vital Signs"
+                            }
+                        ]
+                    }
+                ],
+                "code": {
+                    "coding": [
+                        {
+                            "system": "http://loinc.org",
+                            "code": "85354-9",
+                            "display": "Blood pressure panel with all children optional"
+                        }
+                    ],
+                    "text": "Blood pressure panel with all children optional"
+                },
+                "subject": {
+                    "reference": "Patient/patient-demo-messy-coding"
+                },
+                "encounter": {
+                    "reference": "Encounter/messy-coding-demo-encounter-2"
+                },
+                "effectiveDateTime": "2026-05-12T10:05:00Z",
+                "component": [
+                    {
+                        "code": {
+                            "coding": [
+                                {
+                                    "system": "http://loinc.org",
+                                    "code": "8480-6",
+                                    "display": "Systolic blood pressure"
+                                }
+                            ],
+                            "text": "Systolic blood pressure"
+                        },
+                        "valueQuantity": {
+                            "value": 142,
+                            "unit": "mm[Hg]",
+                            "system": "http://unitsofmeasure.org",
+                            "code": "mm[Hg]"
+                        }
+                    }
+                ]
+            },
+            {
+                "resourceType": "Observation",
+                "id": "messy-coding-demo-vital-2",
+                "status": "final",
+                "category": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                                "code": "vital-signs",
+                                "display": "Vital Signs"
+                            }
+                        ]
+                    }
+                ],
+                "code": {
+                    "coding": [
+                        {
+                            "system": "http://loinc.org",
+                            "code": "8867-4",
+                            "display": "Heart rate"
+                        }
+                    ],
+                    "text": "Heart rate"
+                },
+                "subject": {
+                    "reference": "Patient/patient-demo-messy-coding"
+                },
+                "encounter": {
+                    "reference": "Encounter/messy-coding-demo-encounter-2"
+                },
+                "issued": "2026-05-12T10:00:00Z",
+                "valueQuantity": {
+                    "value": 72,
+                    "unit": "/min",
+                    "system": "http://unitsofmeasure.org",
+                    "code": "/min"
+                }
+            },
+            {
+                "resourceType": "Observation",
+                "id": "messy-coding-demo-vital-3",
+                "status": "final",
+                "category": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                                "code": "vital-signs",
+                                "display": "Vital Signs"
+                            }
+                        ]
+                    }
+                ],
+                "code": {
+                    "coding": [
+                        {
+                            "system": "http://loinc.org",
+                            "code": "29463-7",
+                            "display": "Body weight"
+                        }
+                    ],
+                    "text": "Body weight"
+                },
+                "subject": {
+                    "reference": "Patient/patient-demo-messy-coding"
+                },
+                "encounter": {
+                    "reference": "Encounter/messy-coding-demo-encounter-2"
+                },
+                "effectiveDateTime": "2026-05-12T10:05:00Z",
+                "valueQuantity": {
+                    "value": 168,
+                    "unit": "[lb_av]",
+                    "system": "http://unitsofmeasure.org",
+                    "code": "[lb_av]"
+                }
+            }
+        ],
+        "allergies": [
+            {
+                "resourceType": "AllergyIntolerance",
+                "id": "messy-coding-demo-allergy-1",
+                "clinicalStatus": {
+                    "coding": [
+                        {
+                            "system": "http://terminology.hl7.org/CodeSystem/allergyintolerance-clinical",
+                            "code": "active",
+                            "display": "active"
+                        }
+                    ]
+                },
+                "code": {
+                    "text": "seasonal"
+                },
+                "patient": {
+                    "reference": "Patient/patient-demo-messy-coding"
+                },
+                "recordedDate": "2026-05-12"
+            },
+            {
+                "resourceType": "AllergyIntolerance",
+                "id": "messy-coding-demo-allergy-2",
+                "clinicalStatus": {
+                    "coding": [
+                        {
+                            "system": "http://terminology.hl7.org/CodeSystem/allergyintolerance-clinical",
+                            "code": "active",
+                            "display": "active"
+                        }
+                    ]
+                },
+                "code": {
+                    "coding": [
+                        {
+                            "system": "http://snomed.info/sct",
+                            "code": "294505008",
+                            "display": "Amoxicillin allergy"
+                        }
+                    ],
+                    "text": "Amoxicillin allergy"
+                },
+                "patient": {
+                    "reference": "Patient/patient-demo-messy-coding"
+                },
+                "recordedDate": "2008-04-22"
+            }
+        ],
+        "immunizations": [
+            {
+                "resourceType": "Immunization",
+                "id": "messy-coding-demo-immunization-1",
+                "status": "completed",
+                "vaccineCode": {
+                    "coding": [
+                        {
+                            "system": "http://hl7.org/fhir/sid/cvx",
+                            "code": "140",
+                            "display": "Influenza, seasonal, injectable, preservative free"
+                        }
+                    ],
+                    "text": "Influenza, seasonal, injectable, preservative free"
+                },
+                "patient": {
+                    "reference": "Patient/patient-demo-messy-coding"
+                },
+                "occurrenceDateTime": "2025-10-20"
+            },
+            {
+                "resourceType": "Immunization",
+                "id": "messy-coding-demo-immunization-2",
+                "status": "completed",
+                "vaccineCode": {
+                    "text": "flu shot"
+                },
+                "patient": {
+                    "reference": "Patient/patient-demo-messy-coding"
+                },
+                "occurrenceString": "fall 2024"
+            }
+        ],
+        "encounters": [
+            {
+                "resourceType": "Encounter",
+                "id": "messy-coding-demo-encounter-1",
+                "status": "finished",
+                "class": {
+                    "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+                    "code": "AMB",
+                    "display": "ambulatory"
+                },
+                "type": [
+                    {
+                        "text": "Office visit"
+                    }
+                ],
+                "subject": {
+                    "reference": "Patient/patient-demo-messy-coding"
+                },
+                "participant": [
+                    {
+                        "individual": {
+                            "reference": "Practitioner/messy-coding-demo-practitioner-1"
+                        }
+                    }
+                ],
+                "serviceProvider": {
+                    "reference": "Organization/organization-demo-001"
+                }
+            },
+            {
+                "resourceType": "Encounter",
+                "id": "messy-coding-demo-encounter-2",
+                "status": "finished",
+                "class": {
+                    "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+                    "code": "AMB",
+                    "display": "ambulatory"
+                },
+                "type": [
+                    {
+                        "text": "Primary care follow-up"
+                    }
+                ],
+                "subject": {
+                    "reference": "Patient/patient-demo-messy-coding"
+                },
+                "participant": [
+                    {
+                        "individual": {
+                            "reference": "Practitioner/messy-coding-demo-practitioner-1"
+                        }
+                    }
+                ],
+                "period": {
+                    "start": "2026-05-12T10:00:00Z",
+                    "end": "2026-05-12T10:30:00Z"
+                },
+                "serviceProvider": {
+                    "reference": "Organization/organization-demo-001"
+                }
+            }
+        ]
+    },
+    "links": {
+        "patient": "https://api.finchnode.com/demo/v1/patients/patient-demo-messy-coding",
+        "fhirBundle": "https://api.finchnode.com/demo/v1/fhir/Bundle/finchnode-scenario-messy-coding"
+    }
+}

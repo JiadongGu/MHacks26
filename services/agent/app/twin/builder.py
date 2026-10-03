@@ -393,6 +393,46 @@ def _labs(items: list[Any]) -> list[dict[str, Any]]:
     return rows
 
 
+SKIP_IMMUNIZATION_STATUSES = {"not-done", "entered-in-error"}
+SKIP_ENCOUNTER_STATUSES = {"cancelled", "entered-in-error", "planned"}
+RECENT_ENCOUNTERS = 5
+
+
+def _immunizations(items: list[Any]) -> list[dict[str, Any]]:
+    """Latest dose per vaccine, newest first."""
+    latest: dict[str, dict[str, Any]] = {}
+    for r in items:
+        r = _dict(r)
+        if str(r.get("status", "")).lower() in SKIP_IMMUNIZATION_STATUSES:
+            continue
+        concept = _dict(r.get("vaccineCode"))
+        display = _label(concept)
+        if display is None:
+            continue
+        when = _clean(r.get("occurrenceDateTime"))
+        code = _clean(_coding(concept).get("code"))
+        entry = {"display": display, "code": code, "date": when[:10] if when else None}
+        key = (entry["code"] or display).lower()
+        if key not in latest or (entry["date"] or "") >= (latest[key]["date"] or ""):
+            latest[key] = entry
+    return sorted(latest.values(), key=lambda e: (e["date"] or "", e["display"]), reverse=True)
+
+
+def _encounters(items: list[Any]) -> list[dict[str, Any]]:
+    """The most recent visits, newest first."""
+    out: list[dict[str, Any]] = []
+    for r in items:
+        r = _dict(r)
+        if str(r.get("status", "")).lower() in SKIP_ENCOUNTER_STATUSES:
+            continue
+        start = _clean(_dict(r.get("period")).get("start"))
+        kind = _label(next(iter(_list(r.get("type"))), None)) or _clean(_dict(r.get("class")).get("display"))
+        if start is None or kind is None:
+            continue
+        out.append({"type": kind, "class": _clean(_dict(r.get("class")).get("display")), "date": start[:10]})
+    return sorted(out, key=lambda e: e["date"], reverse=True)[:RECENT_ENCOUNTERS]
+
+
 def risk_flags_for(twin: Mapping[str, Any]) -> list[str]:
     flags: list[str] = []
     for c in _list(twin.get("conditions")):
@@ -452,10 +492,15 @@ def from_finchnode(records: Mapping[str, Any], *, today: date | None = None) -> 
         "allergies": _allergies(_list(rec.get("allergies"))),
         "family_history": [],
         "labs": _labs(_list(rec.get("labs"))),
+        "immunizations": _immunizations(_list(rec.get("immunizations"))),
+        "encounters": _encounters(_list(rec.get("encounters"))),
         "baselines": baselines,
         "provenance": {
             "finchnode_scenario": envelope.get("scenario"),
             "finchnode_patient_id": envelope.get("patientId"),
+            "finchnode_system": envelope.get("source"),
+            "finchnode_synthetic": envelope.get("synthetic"),
+            "finchnode_categories": {k: len(v) for k, v in rec.items() if isinstance(v, list)},
         },
     }
     twin["risk_flags"] = risk_flags_for(twin)
@@ -470,6 +515,8 @@ def empty_twin(timezone: str = DEFAULT_TIMEZONE) -> dict[str, Any]:
         "allergies": [],
         "family_history": [],
         "labs": [],
+        "immunizations": [],
+        "encounters": [],
         "baselines": {},
         "provenance": {},
     }

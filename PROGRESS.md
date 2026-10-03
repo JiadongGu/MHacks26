@@ -23,7 +23,7 @@
 3. Fitbit: resting HR, sleep (total/deep/REM), active minutes from the Health API
 4. Fetch.ai uAgent: mailbox agent, chat protocol, tools → `/agent/inbound`, `/proposals`; Agentverse profile + README badges; ASI:One submission (PLAN §7.6)
 5. Deploy: Dockerfiles, Railway services (`agent-api`, `agent-fetchai`, `gateway`), CI (ruff, pytest, contracts `--check`, web build), `scripts/smoke.sh`, UptimeRobot
-6. **FinchNode (moved to P)**: owns the client, `from_finchnode()` mapping, `/twin/import`, `/twin/finchnode/patients`, fixtures. Ideas for the sponsor track: use the authenticated `/api/v1` with a `ck_test_` key, import more categories (immunizations, encounters), FHIR endpoints, provenance shown in `/twin`. Keep `DigitalTwin.model` keys stable — rules read them
+6. **FinchNode (P)**: live-verified for all 6 scenarios; offline fixtures now cover all 6; twin also carries `immunizations`, `encounters` and richer provenance (additive keys). Not done: show provenance on `/twin` (J's page); authenticated `/api/v1` mode (needs a key from finchnode.com); FHIR bundle endpoints. Dropped: seeding FinchNode vitals into the live pool (record dates are months to years old, Spacetime keeps 48h)
 7. Google OAuth consent screen: rename "Rest Recommender" → "Pulse", publish to "In production" (Testing-mode refresh tokens expire in 7 days), add prod redirect URIs once deployed
 
 ## Known bugs

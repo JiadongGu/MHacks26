@@ -100,3 +100,9 @@ async def test_fetch_records_live_origin_and_no_fixture_means_error():
     respx.get(f"{BASE}/patients/patient-demo-unrecorded/records").respond(500)
     with pytest.raises(finchnode.FinchNodeError):
         await finchnode.fetch_records("patient-demo-unrecorded")
+
+
+def test_every_known_scenario_has_an_offline_fixture():
+    for patient_id in finchnode.SCENARIO_PATIENTS.values():
+        assert finchnode.load_fixture(patient_id) is not None, patient_id
+    assert {p["id"] for p in finchnode.STATIC_PATIENTS} == set(finchnode.SCENARIO_PATIENTS.values())
