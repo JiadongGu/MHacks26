@@ -32,6 +32,7 @@ class Settings(BaseSettings):
     elevenlabs_api_key: str = ""
     elevenlabs_voice_id: str = ""
     agent_seed: str = ""
+    agent_handle: str = "pulse-health"  # the Agentverse handle, so ASI:One users can find the agent by name
     public_web_url: str = "http://localhost:3000"
     public_agent_url: str = "http://localhost:8000"
     photon_number_display: str = ""

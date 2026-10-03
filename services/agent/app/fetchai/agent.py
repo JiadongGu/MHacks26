@@ -55,6 +55,7 @@ def build_agent(seed: str | None = None) -> Agent:
         name=NAME,
         seed=seed or settings().agent_seed,
         port=PORT,
+        handle=settings().agent_handle or None,
         mailbox=True,
         publish_agent_details=True,
         description="Personal health agent: wearable vitals, digital twin, approval-gated calendar actions.",
