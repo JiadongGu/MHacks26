@@ -27,19 +27,20 @@ describe("buildAgentPath me segment", () => {
 });
 
 describe("generateLinkCode", () => {
-  it("matches PULSE-XXXX", () => {
+  it("matches PULSE-XXXXXX", () => {
     for (let i = 0; i < 200; i++) expect(isLinkCode(generateLinkCode())).toBe(true);
   });
   it("uses the random source and stays inside the alphabet", () => {
-    expect(generateLinkCode(() => 0)).toBe(`PULSE-${LINK_CODE_ALPHABET[0].repeat(4)}`);
+    expect(generateLinkCode(() => 0)).toBe(`PULSE-${LINK_CODE_ALPHABET[0].repeat(6)}`);
     const last = LINK_CODE_ALPHABET[LINK_CODE_ALPHABET.length - 1];
-    expect(generateLinkCode(() => 0.999999999)).toBe(`PULSE-${last.repeat(4)}`);
-    expect(generateLinkCode(() => 1)).toBe(`PULSE-${last.repeat(4)}`);
+    expect(generateLinkCode(() => 0.999999999)).toBe(`PULSE-${last.repeat(6)}`);
+    expect(generateLinkCode(() => 1)).toBe(`PULSE-${last.repeat(6)}`);
   });
   it("rejects bad codes", () => {
-    expect(isLinkCode("PULSE-abcd")).toBe(false);
+    expect(isLinkCode("PULSE-abcdef")).toBe(false);
+    expect(isLinkCode("PULSE-ABCD")).toBe(false);
     expect(isLinkCode("PULSE-ABC")).toBe(false);
-    expect(isLinkCode("pulse-ABCD")).toBe(false);
+    expect(isLinkCode("pulse-ABCDEF")).toBe(false);
   });
 });
 

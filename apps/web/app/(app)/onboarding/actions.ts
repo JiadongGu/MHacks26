@@ -1,9 +1,9 @@
 "use server";
 
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, gt, lte, sql } from "drizzle-orm";
 import { getSessionUser } from "@/lib/auth/server";
 import { db, schema } from "@/lib/db";
-import { generateLinkCode } from "@/lib/link-code";
+import { LINK_CODE_TTL_MS, generateLinkCode, isLinkChannel, type LinkChannel } from "@/lib/link-code";
 import {
   cleanPhone,
   validateProfile,
@@ -80,30 +80,34 @@ export async function advanceStepAction(step: number): Promise<ActionResult> {
   return { ok: true };
 }
 
-/** Step 6. Returns the pending iMessage link code for the user. It makes one when none exists. */
-export async function createLinkCodeAction(): Promise<ActionResult<{ code: string }>> {
+/** Step 6. Returns the user's unexpired pending link code for a channel. It makes one when none exists. */
+export async function createLinkCodeAction(
+  channel: LinkChannel = "imessage",
+): Promise<ActionResult<{ code: string }>> {
   const user = await getSessionUser();
   if (!user) return { ok: false, error: "Not signed in." };
+  if (!isLinkChannel(channel)) return { ok: false, error: "Unknown channel." };
   try {
+    const cutoff = new Date(Date.now() - LINK_CODE_TTL_MS);
+    const mine = and(
+      eq(schema.channel_links.user_id, user.id),
+      eq(schema.channel_links.channel, channel),
+      eq(schema.channel_links.status, "pending"),
+    );
     const existing = await db
       .select({ code: schema.channel_links.link_code })
       .from(schema.channel_links)
-      .where(
-        and(
-          eq(schema.channel_links.user_id, user.id),
-          eq(schema.channel_links.channel, "imessage"),
-          eq(schema.channel_links.status, "pending"),
-        ),
-      )
+      .where(and(mine, gt(schema.channel_links.created_at, cutoff)))
       .limit(1);
     if (existing[0]?.code) return { ok: true, code: existing[0].code };
+    await db.delete(schema.channel_links).where(and(mine, lte(schema.channel_links.created_at, cutoff)));
 
     // The unique index on link_code can reject a code. Try a few new ones.
     for (let attempt = 0; attempt < 5; attempt++) {
       const code = generateLinkCode();
       const rows = await db
         .insert(schema.channel_links)
-        .values({ user_id: user.id, channel: "imessage", link_code: code, status: "pending" })
+        .values({ user_id: user.id, channel, link_code: code, status: "pending" })
         .onConflictDoNothing()
         .returning({ code: schema.channel_links.link_code });
       if (rows[0]?.code) return { ok: true, code: rows[0].code };
