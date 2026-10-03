@@ -1,0 +1,17 @@
+[project]
+name = "pulse-agent"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi",
+    "uvicorn[standard]",
+    "google-api-python-client",
+    "google-auth-oauthlib",
+    "cryptography",
+]
+
+[dependency-groups]
+dev = ["pytest", "respx"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
