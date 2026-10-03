@@ -1,43 +1,28 @@
-"""Demo controls. Forward scenarios to the simulator and force Compass jobs."""
+"""Demo controls. Drive the simulator and force Compass jobs."""
 
 import logging
 from typing import Any
 from uuid import UUID
 
-import httpx
 from fastapi import APIRouter, Depends, HTTPException
 
 from app.agents import compass
 from app.contracts import ScenarioRequest
 from app.core.auth import require_internal
-from app.core.config import settings
+from app.integrations.apple_sim import engine
 
 log = logging.getLogger("pulse.demo")
 
 router = APIRouter(prefix="/demo", tags=["demo"], dependencies=[Depends(require_internal)])
 
-FORWARD_TIMEOUT_S = 15.0
-
-
 async def forward_scenario(body: ScenarioRequest) -> dict[str, Any]:
-    """POST the scenario to the simulator. A 404 means the simulator is not deployed yet."""
-    s = settings()
-    url = f"{s.public_agent_url.rstrip('/')}/sim/scenario"
+    """Switch the in-process Apple Watch simulator (P's `apple_sim.engine`)."""
     try:
-        async with httpx.AsyncClient(timeout=FORWARD_TIMEOUT_S) as client:
-            r = await client.post(url, json=body.model_dump(mode="json"),
-                                  headers={"X-Internal-Token": s.internal_token})
-    except httpx.HTTPError as exc:
-        raise HTTPException(502, f"simulator unreachable ({type(exc).__name__})") from exc
-    if r.status_code == 404:
-        return {"forwarded": False}
-    if r.is_error:
-        raise HTTPException(502, f"simulator returned {r.status_code}")
-    try:
-        upstream: Any = r.json()
-    except ValueError:
-        upstream = None
-    return {"forwarded": True, "upstream": upstream}
+        n = await engine.activate(body.user_id, body.scenario, body.fast_forward_min)
+    except Exception as exc:
+        log.exception("demo.scenario_failed user=%s scenario=%s", body.user_id, body.scenario)
+        raise HTTPException(502, f"simulator failed ({type(exc).__name__})") from exc
+    return {"forwarded": True, "upstream": {"scenario": body.scenario, "emitted": n}}
 
 
 @router.post("/scenario")

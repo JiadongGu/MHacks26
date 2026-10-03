@@ -1,8 +1,7 @@
 from uuid import UUID
 
-import httpx
 import pytest
-import respx
+from fastapi import HTTPException
 from fastapi.testclient import TestClient
 
 from app.agents import compass
@@ -12,7 +11,6 @@ from app.main import app
 
 USER = UUID("00000000-0000-0000-0000-000000000001")
 HEADERS = {"X-Internal-Token": "dev-internal-token"}
-SIM = "http://agent.test/sim/scenario"
 
 
 @pytest.fixture(autouse=True)
@@ -35,54 +33,41 @@ def briefing_calls(monkeypatch):
     return calls
 
 
-@respx.mock
-async def test_forward_sends_token_and_body():
-    route = respx.post(SIM).mock(return_value=httpx.Response(200, json={"ok": True}))
+@pytest.fixture
+def sim_calls(monkeypatch):
+    calls = []
+
+    async def activate(user_id, scenario, fast_forward_min=None):
+        calls.append((user_id, scenario, fast_forward_min))
+        return 30
+
+    monkeypatch.setattr(demo.engine, "activate", activate)
+    return calls
+
+
+async def test_scenario_calls_simulator_in_process(sim_calls):
     body = demo.ScenarioRequest(user_id=USER, scenario="illness_onset", fast_forward_min=30)
     out = await demo.forward_scenario(body)
-    assert out == {"forwarded": True, "upstream": {"ok": True}}
-    req = route.calls[0].request
-    assert req.headers["x-internal-token"] == "dev-internal-token"
-    assert b'"illness_onset"' in req.content and b'"fast_forward_min":30' in req.content.replace(b" ", b"")
+    assert out == {"forwarded": True, "upstream": {"scenario": "illness_onset", "emitted": 30}}
+    assert sim_calls == [(USER, "illness_onset", 30)]
 
 
-@respx.mock
-async def test_forward_tolerates_404():
-    respx.post(SIM).mock(return_value=httpx.Response(404))
-    body = demo.ScenarioRequest(user_id=USER, scenario="normal")
-    assert await demo.forward_scenario(body) == {"forwarded": False}
-
-
-@respx.mock
-async def test_great_sleep_forces_briefing(briefing_calls):
-    respx.post(SIM).mock(return_value=httpx.Response(200, json={}))
+async def test_great_sleep_forces_briefing(sim_calls, briefing_calls):
     out = await demo.scenario(demo.ScenarioRequest(user_id=USER, scenario="great_sleep"))
-    assert out["forwarded"] is True and out["briefing"] is True
-    assert briefing_calls == [(USER, True)]
+    assert out["forwarded"] is True and out["briefing"] is True and briefing_calls == [(USER, True)]
 
 
-@respx.mock
-async def test_other_scenarios_do_not_force_briefing(briefing_calls):
-    respx.post(SIM).mock(return_value=httpx.Response(200, json={}))
-    await demo.scenario(demo.ScenarioRequest(user_id=USER, scenario="low_spo2"))
-    assert briefing_calls == []
+async def test_other_scenarios_do_not_force_briefing(sim_calls, briefing_calls):
+    out = await demo.scenario(demo.ScenarioRequest(user_id=USER, scenario="workout_now"))
+    assert "briefing" not in out and briefing_calls == []
 
 
-@respx.mock
-async def test_great_sleep_still_briefs_when_simulator_missing(briefing_calls):
-    respx.post(SIM).mock(return_value=httpx.Response(404))
-    out = await demo.scenario(demo.ScenarioRequest(user_id=USER, scenario="great_sleep"))
-    assert out["forwarded"] is False and briefing_calls == [(USER, True)]
+async def test_simulator_errors_become_502(monkeypatch):
+    async def boom(*_a, **_k):
+        raise RuntimeError("down")
 
-
-@respx.mock
-async def test_simulator_errors_become_502():
-    respx.post(SIM).mock(return_value=httpx.Response(500))
-    with pytest.raises(demo.HTTPException) as e:
-        await demo.forward_scenario(demo.ScenarioRequest(user_id=USER, scenario="normal"))
-    assert e.value.status_code == 502
-    respx.post(SIM).mock(side_effect=httpx.ConnectError("down"))
-    with pytest.raises(demo.HTTPException) as e:
+    monkeypatch.setattr(demo.engine, "activate", boom)
+    with pytest.raises(HTTPException) as e:
         await demo.forward_scenario(demo.ScenarioRequest(user_id=USER, scenario="normal"))
     assert e.value.status_code == 502
 

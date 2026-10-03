@@ -34,9 +34,9 @@ Source = fitbit | apple_watch_sim | presage | manual | finchnode
 | Endpoint | Purpose |
 |---|---|
 | `POST /ingest/samples` (IngestBatch) | write Spacetime (`ingest` reducer) + daily_summary, then call `live.on_samples_ingested` |
-| `POST /ingest/hae` (Health Auto Export JSON) | parse -> IngestBatch -> same path; simulator posts here |
-| `GET /vitals/latest?user_id&metrics=a,b` | latest value per metric |
-| `GET /vitals/series?user_id&metric&from&to&bucket=raw\|1m\|1h\|1d` | from continuous aggregates |
+| `POST /ingest/hae?user_id=` (Health Auto Export JSON body) | parse -> IngestBatch -> same path; the simulator runs the same parser in-process |
+| `GET /vitals/latest?user_id&metrics=a,b` | latest value per metric from the last 24 h: `{metric: {ts, value}}`; default `heart_rate,steps,spo2`; unknown metric 422 |
+| `GET /vitals/series?user_id&metric&from&to&bucket=raw\|1m\|1h\|1d` | `[{ts, value}]` oldest first (the web `VitalPoint`); value is the average, or the sum for `steps`/`active_*`; default window the last 3 h, max 48 h (422 beyond); `[]` when Spacetime is unconfigured, 503 when it fails; buckets align to UTC |
 | `GET /vitals/daily?user_id&days=7` | DailySummary[] |
 | `GET /integrations/fitbit/authorize?user_id` -> 302 · `GET /integrations/fitbit/callback` · `GET/POST /integrations/fitbit/webhook` · `POST /integrations/fitbit/sync?user_id` | Fitbit |
 | `GET /integrations/google/authorize?user_id` -> 302 · `GET /integrations/google/callback` · `GET /integrations/status?user_id` -> `{fitbit:{connected,last_sync}, google:{connected,email}}` | Google Calendar connect |
@@ -44,7 +44,7 @@ Source = fitbit | apple_watch_sim | presage | manual | finchnode
 | `GET /calendar/freebusy?user_id&from&to` | pick a proposal slot |
 | `POST /calendar/proposals/{id}/apply` -> `{google_event_id}` | insert into "Pulse Health" calendar; sets `failed` on error |
 | `DELETE /calendar/proposals/{id}/event` | remove event if later rejected |
-| `POST /sim/scenario` (ScenarioRequest) | simulator mode switch |
+| `POST /sim/scenario` (ScenarioRequest), also served as `POST /demo/scenario` (the web demo panel's path) | simulator mode switch; first call for a user also backfills 4h of minutes and 7 days of daily values. Omitted `fast_forward_min` defaults to 14 (`workout_now`), 3 (`low_spo2`), 190 (`sedentary_day`), else 0. `workout_now` is clamped to 12-18 and `sedentary_day` raised to at least 190, because the web panel always sends 30 and the rules would not fire |
 | py `apple_sim.set_scenario(user_id, scenario, fast_forward_min)` · `apple_sim.emit_now(user_id)` | in-process |
 
 ## Endpoints J implements, P consumes
