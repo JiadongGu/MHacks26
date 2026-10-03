@@ -81,8 +81,21 @@ def tomorrow_bounds(local: datetime) -> tuple[datetime, datetime]:
 
 
 def goal_line(g: dict[str, Any]) -> str:
-    sign = ">=" if g["direction"] == "at_least" else "<="
-    return f"{chat.metric_label(g['metric'])} {sign} {chat.num(g['target'])}/{g['period']}"
+    """Goal in words ('8,000 steps a day', '7.5 h of sleep a night'); the briefing is read aloud."""
+    m, t, per = g["metric"], g["target"], g["period"]
+    when = "night" if m.startswith("sleep") and per == "day" else per
+    if m.startswith("sleep") and m.endswith("_min"):
+        what = f"{t / 60:g} h of sleep"
+    elif m == "steps":
+        what = f"{chat.num(t)} steps"
+    elif m == "active_minutes":
+        what = f"{chat.num(t)} active minutes"
+    elif m == "workout":
+        what = f"{chat.num(t)} workouts"
+    else:
+        sign = ">=" if g["direction"] == "at_least" else "<="
+        return f"{chat.metric_label(m)} {sign} {chat.num(t)}/{per}"
+    return f"{'at most ' if g['direction'] == 'at_most' else ''}{what} a {when}"
 
 
 def recommend(facts: dict[str, Any]) -> str:
