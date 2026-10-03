@@ -160,3 +160,31 @@ async def test_daily_failure_does_not_block_hook(rec, monkeypatch):
     monkeypatch.setattr(writer, "_upsert_daily", boom)
     await writer.ingest_batch(IngestBatch(source="fitbit", samples=[sample("heart_rate", 70)]))
     assert len(rec.calls) == 1 and rec.hooks == [(U1, ["heart_rate"])]
+
+
+async def test_admin_token_reads_the_view_after_watching_the_user(rec, monkeypatch):
+    from app.core import spacetime
+    from app.core.config import settings
+
+    monkeypatch.setenv("SPACETIME_ADMIN_VIEWS", "1")
+    settings.cache_clear()
+    spacetime._watched.clear()
+    order = []
+
+    async def call(reducer, args):
+        order.append(reducer)
+
+    async def sql(query):
+        order.append("sql")
+        rec.sql_queries.append(query)
+        return [{"sum": 10.0, "min": 1, "max": 5, "n": 2}]
+
+    monkeypatch.setattr(writer.spacetime, "call", call)
+    monkeypatch.setattr(writer.spacetime, "sql", sql)
+    try:
+        await writer.ingest_batch(IngestBatch(source="fitbit", samples=[sample("steps", 3, source="fitbit")]))
+    finally:
+        settings.cache_clear()
+        spacetime._watched.clear()
+    assert order == ["ingest", "watch_user", "sql"]
+    assert "FROM admin_minute_agg" in rec.sql_queries[0]

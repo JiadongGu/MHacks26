@@ -181,3 +181,27 @@ def test_daily_endpoint_reads_neon(client, monkeypatch):
     assert r.json()[0]["metric"] == "steps" and r.json()[0]["sum"] == 9000.0
     assert str(seen[-1][1][0]) == UID and isinstance(seen[-1][1][1], date)
     assert c.get("/vitals/daily", params={"user_id": UID, "days": 0}).status_code == 422
+
+
+def test_admin_token_series_reads_the_view_after_watching(client, monkeypatch):
+    from app.core import spacetime
+    from app.core.config import settings
+
+    c, fake = client
+    watched = []
+
+    async def call(reducer, args):
+        watched.append((reducer, args))
+
+    monkeypatch.setattr(vr.spacetime, "call", call)
+    monkeypatch.setenv("SPACETIME_ADMIN_VIEWS", "1")
+    settings.cache_clear()
+    spacetime._watched.clear()
+    try:
+        assert c.get("/vitals/series", params={"user_id": UID, "metric": "heart_rate"}).status_code == 200
+    finally:
+        settings.cache_clear()
+        spacetime._watched.clear()
+    assert watched == [("watch_user", [UID])]
+    assert "FROM admin_minute_agg" in fake.queries[0]
+

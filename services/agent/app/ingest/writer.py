@@ -57,8 +57,10 @@ async def _minute_aggregate(user_id: UUID, metric: str, day: date, tz: str) -> d
     if not spacetime.configured():
         return None
     start, end = day_bounds_ms(day, tz)
+    await spacetime.ensure_watching(user_id)
     rows = await spacetime.sql(
-        f"SELECT * FROM minute_agg WHERE user_id = '{UUID(str(user_id))}' AND metric = '{metric}' "
+        f"SELECT * FROM {spacetime.table('minute_agg')} "
+        f"WHERE user_id = '{UUID(str(user_id))}' AND metric = '{metric}' "
         f"AND minute_ms >= {start} AND minute_ms < {end}"
     )
     return aggregate_minutes(rows)

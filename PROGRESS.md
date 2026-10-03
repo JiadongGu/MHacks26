@@ -28,4 +28,4 @@
 
 ## Known bugs
 - Gateway stream-restart after end unverified on live Photon line
-- **Spacetime reads fail with the shared token** (found 2026-10-03): the token in P's `.env` is an *admin* identity, not the database *owner*. `ingest` works (verified live: 1,013 simulator samples in 0.6 s, malformed rows rejected with 400), but `/sql` on the private tables returns 400 "no such table ... may be marked private". So `live._series`, the ingest writer's minute-metric `daily_summary`, and `/vitals/*` get nothing until the agent runs with the owner token, or J adds an admin-only view the agent can query
+- Spacetime reads with a non-owner admin token: fixed by J's #27 views; the agent switches with `SPACETIME_ADMIN_VIEWS=1` (writer and `/vitals/*` read `admin_minute_agg` after `watch_user`; live-verified: simulator to Spacetime to `/vitals/series|latest`, resend leaves n unchanged). J's `live._series` and `sweep_all` still read `minute_agg` directly, so they need the owner token (deployed) or `spacetime.table()`
