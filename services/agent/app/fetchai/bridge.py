@@ -14,7 +14,8 @@ MAX_REPLY = 4000
 FALLBACK = "Sorry, I could not reach Pulse just now. Please try again in a minute."
 GREETING = (
     "Hi, I am Pulse, your personal health agent. Ask me how you slept, how your steps look this week, "
-    "or to block sleep on your calendar. New here? Send your PULSE-XXXXXX code from the ASI:One step of onboarding."
+    "or to block sleep on your calendar. "
+    "New here? Send your PULSE-XXXXXX code from the ASI:One step of onboarding."
 )
 
 
