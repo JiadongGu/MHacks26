@@ -17,7 +17,7 @@
 - Gemini key once rules are verified with templates
 
 ## Next — P
-- PLAN.md §13 hour 0–1: Railway, Tiger, Agentverse. Fitbit go/no-go PASSED on Google Health API (live HR ~1300 samples/3h + steps; account must be linked to Google Health); missing resting HR, sleep, active minutes; remove `/integrations/fitbit/raw` before prod
+- PLAN.md §13 hour 0–1: Railway, Agentverse. Fitbit: live-verified on Google Health API; wired (Neon token store, 5-min poll → Spacetime `ingest` → `on_samples_ingested`, PR). Blocked on P's Spacetime module (`infra/spacetime`, idempotent `ingest`) for an end-to-end run. Missing metrics: resting HR, sleep, active minutes
 - `neon link --project-id wispy-wind-94465979 --branch production -y` for env
 - Confirm: `steps` samples are per-interval deltas (not cumulative); `daily_summary.day` is the user's local day
 

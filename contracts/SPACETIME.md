@@ -27,7 +27,7 @@ user_map    (private)  identity pk, user_id string btree        -- browser ident
 `metric`, `source`, `unit` use the values in `contracts/README.md` (Metric, Source enums).
 
 Reducers:
-- `ingest(rows: SampleIn[])`, `SampleIn = {user_id, metric, value, unit, source, ts_ms, meta_json}`. Owner-only (reject other `ctx.sender`). Upserts `minute_agg` for touched minutes in the same transaction, so reads are fresh without waiting for the schedule.
+- `ingest(rows: SampleIn[])`, `SampleIn = {user_id, metric, value, unit, source, ts_ms, meta_json}`. Owner-only (reject other `ctx.sender`). Upserts `minute_agg` for touched minutes in the same transaction, so reads are fresh without waiting for the schedule. **Must be idempotent on `(user_id, metric, source, ts_ms)`**: the Fitbit poller re-sends an overlapping 30-minute window every 5 minutes, so a repeated row replaces the stored one and `minute_agg` is recomputed from `sample`, never incremented.
 - `rollup` scheduled every 60s: retention deletes (and any catch-up).
 - `link_identity(user_id, proof)`: J will define with the web step; not needed for step 3.
 

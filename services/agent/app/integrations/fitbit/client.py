@@ -1,67 +1,59 @@
 import time
-from datetime import date, datetime, timedelta
+from datetime import UTC, datetime
+from typing import Any
 
 import httpx
-
-from app.integrations.fitbit.store import TokenStore
 
 from . import oauth
 
 API = "https://health.googleapis.com/v4/users/me"
 
 
+def _z(dt: datetime) -> str:
+    return dt.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
 class HealthClient:
-    def __init__(self, user_id: str, store: TokenStore):
-        self.user_id = user_id
-        self.store = store
+    """Synchronous; run in a thread. If `refreshed` is set afterwards, persist `row`."""
 
-    def _row(self) -> dict:
-        row = self.store.load(self.user_id)
-        if not row:
-            raise LookupError("fitbit not connected")
-        if row["expires_at"] - time.time() < 60:
-            row = oauth.refresh(self.user_id, self.store)
-        return row
+    def __init__(self, row: dict[str, Any]):
+        self.row = row
+        self.refreshed = False
 
-    def _request(self, method: str, path: str, **kw) -> dict:
-        row = self._row()
-        r = httpx.request(
-            method, API + path, headers={"Authorization": f"Bearer {row['access_token']}"}, timeout=15, **kw
-        )
-        if r.status_code == 401:
-            row = oauth.refresh(self.user_id, self.store)
-            r = httpx.request(
-                method,
-                API + path,
-                headers={"Authorization": f"Bearer {row['access_token']}"},
-                timeout=15,
-                **kw,
+    def _refresh(self) -> None:
+        self.row = oauth.refresh(self.row)
+        self.refreshed = True
+
+    def _request(self, path: str, params: dict[str, Any]) -> dict[str, Any]:
+        if self.row["expires_at"] - time.time() < 60:
+            self._refresh()
+        for attempt in (1, 2):
+            r = httpx.get(
+                API + path, params=params, timeout=15,
+                headers={"Authorization": f"Bearer {self.row['access_token']}"},
             )
-        r.raise_for_status()
-        return r.json()
+            if r.status_code == 401 and attempt == 1:
+                self._refresh()
+                continue
+            r.raise_for_status()
+            return r.json()
+        raise AssertionError("unreachable")
 
-    def list_points(self, data_type: str, filter_expr: str) -> list[dict]:
-        out, token = [], None
+    def list_points(self, data_type: str, filter_expr: str) -> list[dict[str, Any]]:
+        out: list[dict[str, Any]] = []
+        token = None
         while True:
             params = {"filter": filter_expr, "pageSize": 10000, **({"pageToken": token} if token else {})}
-            resp = self._request("GET", f"/dataTypes/{data_type}/dataPoints", params=params)
+            resp = self._request(f"/dataTypes/{data_type}/dataPoints", params)
             out += resp.get("dataPoints", [])
             token = resp.get("nextPageToken")
             if not token:
                 return out
 
-    def heart_rate(self, start: datetime, end: datetime) -> list[dict]:
-        field = "heart_rate.sample_time.physical_time"
-        return self.list_points(
-            "heart-rate", f'{field} >= "{start.isoformat()}" AND {field} < "{end.isoformat()}"'
-        )
+    def heart_rate(self, start: datetime, end: datetime) -> list[dict[str, Any]]:
+        f = "heart_rate.sample_time.physical_time"
+        return self.list_points("heart-rate", f'{f} >= "{_z(start)}" AND {f} < "{_z(end)}"')
 
-    def daily_rollup(self, data_type: str, day: date) -> dict:
-        def civil(d: date) -> dict:
-            return {
-                "date": {"year": d.year, "month": d.month, "day": d.day},
-                "time": {"hours": 0, "minutes": 0},
-            }
-
-        body = {"range": {"start": civil(day), "end": civil(day + timedelta(days=1))}, "windowSizeDays": 1}
-        return self._request("POST", f"/dataTypes/{data_type}/dataPoints:dailyRollUp", json=body)
+    def steps(self, start: datetime, end: datetime) -> list[dict[str, Any]]:
+        f = "steps.interval.start_time"
+        return self.list_points("steps", f'{f} >= "{_z(start)}" AND {f} < "{_z(end)}"')

@@ -1,55 +1,52 @@
-import os
-from datetime import UTC, date, datetime, timedelta
+import asyncio
+from uuid import UUID
 
-from fastapi import APIRouter, HTTPException
+from cryptography.fernet import InvalidToken
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import RedirectResponse
 
-from . import normalize, oauth
-from .client import HealthClient
-from .store import FileTokenStore, TokenStore
+from app.core.auth import require_internal
+from app.core.config import settings
+from app.core.logging import log
 
-router = APIRouter()
-store: TokenStore = FileTokenStore(".data/fitbit_tokens.json")
+from . import oauth, store, sync
 
-
-def sync_recent(user_id: str, minutes: int = 60, tz: str | None = None) -> dict:
-    tz = tz or os.environ.get("TIME_ZONE", "UTC")
-    client = HealthClient(user_id, store)
-    end = datetime.now(UTC)
-    samples = normalize.heart_rate_samples(user_id, client.heart_rate(end - timedelta(minutes=minutes), end))
-    samples += normalize.steps_samples(user_id, client.daily_rollup("steps", date.today()), tz)
-    return normalize.to_batch(samples)
+public = APIRouter()
+router = APIRouter(dependencies=[Depends(require_internal)])
 
 
 @router.get("/integrations/fitbit/authorize")
-def authorize(user_id: str):
-    return RedirectResponse(oauth.authorization_url(user_id))
+async def authorize(user_id: UUID):
+    return RedirectResponse(oauth.authorization_url(str(user_id)))
 
 
-@router.get("/integrations/fitbit/callback")
-def callback(code: str | None = None, state: str | None = None, error: str | None = None):
-    web = os.environ.get("PUBLIC_WEB_URL", "")
+@public.get("/integrations/fitbit/callback")
+async def callback(code: str | None = None, state: str | None = None, error: str | None = None):
+    web = settings().public_web_url
     if error or not code or not state:
         return RedirectResponse(f"{web}/settings?fitbit=denied")
     try:
-        oauth.complete(code, state, store)
-    except ValueError:
+        user_id, row = await asyncio.to_thread(oauth.complete, code, state)
+        await store.save(UUID(user_id), row)
+    except (ValueError, InvalidToken, KeyError) as e:
+        log.warning("event=fitbit_callback_failed err=%s", e)
         return RedirectResponse(f"{web}/settings?fitbit=error")
+    try:
+        await sync.sync_user(UUID(user_id), sync.BACKFILL_MIN)
+    except Exception as e:  # a failed backfill must not undo the connection
+        log.warning("event=fitbit_backfill_failed user=%s err=%s", user_id, e)
     return RedirectResponse(f"{web}/settings?fitbit=connected")
 
 
+@router.get("/integrations/fitbit/status")
+async def status(user_id: UUID):
+    row = await store.load(user_id)
+    return {"connected": bool(row), "last_sync": row["last_sync_at"] if row else None}
+
+
 @router.post("/integrations/fitbit/sync")
-def sync(user_id: str, minutes: int = 60):
+async def sync_now(user_id: UUID, minutes: int = sync.LOOKBACK_MIN):
     try:
-        return sync_recent(user_id, minutes)
+        return {"n": await sync.sync_user(user_id, minutes)}
     except LookupError:
         raise HTTPException(404, "fitbit not connected") from None
-
-
-@router.get("/integrations/fitbit/raw")
-def raw(user_id: str, data_type: str = "heart-rate", minutes: int = 30):
-    end = datetime.now(UTC)
-    client = HealthClient(user_id, store)
-    if data_type == "heart-rate":
-        return client.heart_rate(end - timedelta(minutes=minutes), end)[:20]
-    return client.daily_rollup(data_type, date.today())
