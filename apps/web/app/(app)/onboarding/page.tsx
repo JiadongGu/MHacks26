@@ -1,26 +1,42 @@
 import type { Metadata } from "next";
-import { PageHeader } from "@/components/page-header";
-import { TodoCard } from "@/components/todo-card";
+import { OnboardingFlow } from "@/components/onboarding/flow";
+import { LAST_STEP } from "@/components/onboarding/types";
+import type { ProfileInput } from "@/lib/profile";
+import { getProfile, hasLinkedChannel } from "@/lib/queries";
+import { requireUser } from "@/lib/session";
 
 export const metadata: Metadata = { title: "Setup" };
+export const dynamic = "force-dynamic";
 
-export default function OnboardingPage() {
+export default async function OnboardingPage() {
+  const user = await requireUser();
+  const [profile, imessageLinked] = await Promise.all([
+    getProfile(user.id),
+    hasLinkedChannel(user.id),
+  ]);
+
+  const stored = profile?.onboarding_step ?? 0;
+  const complete = stored >= LAST_STEP;
+  const seed: ProfileInput = {
+    display_name: profile?.display_name ?? user.name ?? "",
+    dob: profile?.dob ?? "",
+    sex: profile?.sex ?? "",
+    height_cm: profile?.height_cm ?? null,
+    weight_kg: profile?.weight_kg ?? null,
+    timezone: profile?.timezone ?? "",
+    wake_time: profile?.wake_time?.slice(0, 5) ?? "07:00",
+    bed_time: profile?.bed_time?.slice(0, 5) ?? "23:00",
+    phone_e164: profile?.phone_e164 ?? "",
+  };
+
   return (
-    <>
-      <PageHeader eyebrow="Setup" title="Set up Pulse">
-        Seven short steps. You can leave and come back at any step.
-      </PageHeader>
-      <TodoCard
-        items={[
-          "Profile: name, date of birth, height, weight, timezone, wake and bed time, phone.",
-          "Health history: import records with FinchNode, then edit.",
-          "Devices: connect Fitbit or simulate an Apple Watch.",
-          "Google Calendar: connect, or skip.",
-          "Goals: pick presets and edit them.",
-          "iMessage: show the Photon number and the PULSE link code.",
-          "Done: build twin v1 and open the dashboard.",
-        ]}
-      />
-    </>
+    <OnboardingFlow
+      initialStep={complete ? 1 : Math.max(1, stored)}
+      highestStep={complete ? LAST_STEP : Math.max(1, stored)}
+      complete={complete}
+      profile={seed}
+      photonNumber={process.env.PHOTON_NUMBER_DISPLAY?.trim() || null}
+      imessageLinked={imessageLinked}
+    />
   );
 }

@@ -1,16 +1,19 @@
 import type { ReactNode } from "react";
+import { cn } from "@/lib/utils";
 
 export function PageHeader({
   eyebrow,
   title,
   children,
+  className,
 }: {
   eyebrow: string;
   title: string;
   children?: ReactNode;
+  className?: string;
 }) {
   return (
-    <header className="mb-12 max-w-[60ch]">
+    <header className={cn("mb-12 max-w-[60ch]", className)}>
       <p className="mb-2 text-xs font-medium uppercase tracking-widest text-muted-foreground">
         {eyebrow}
       </p>
