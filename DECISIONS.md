@@ -16,3 +16,4 @@ One line each: choice, reason.
 - Scheduling: APScheduler in the agent process, idempotent jobs tracked in `job_runs`.
 - Contracts: Pydantic is the source of truth; JSON Schema exported; TS types generated; CI fails on drift. Frozen at hour 2, additive only after.
 - Skipped: Presage (Node sidecar, 4-6h), Relay, Spacetime, Nessie, Solana, SpaceXAI, Free-WILi.
+- Google Calendar integration owned by J (moved from P, 2026-10-03): it closes J's approval loop (proposal -> apply) without a cross-owner dependency.
