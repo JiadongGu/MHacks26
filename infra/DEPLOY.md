@@ -2,7 +2,7 @@
 
 Three Railway services run the backend; the web app is a separate Vercel project (J). Vercel cannot host the agent or gateway: they are long-running processes.
 
-| Service | What | Railway settings |
+| Service | What | Railway settings (the `.toml` files apply only to GitHub deploys; the CLI deploys below use variables instead) |
 |---|---|---|
 | `agent-api` | FastAPI agent (`/health`, rules, ingest, chat, vitals) | Root Directory: repo root. Config file: `/infra/railway.agent-api.toml`. Env `SERVICE=api` (default). Public domain on |
 | `agent-fetchai` | Fetch.ai uAgent (ASI:One) | Root Directory: repo root. Config file: `/infra/railway.agent-fetchai.toml`. Env `SERVICE=fetchai`. No public domain needed |
@@ -42,3 +42,17 @@ Set on each service. Secrets are never committed. `INTERNAL_TOKEN` must be the s
 - `https://<agent-api>/health` (keyword `"ok":true`)
 - `https://<gateway>/health` if it has a public domain, otherwise rely on the agent's `gateway` field in `/health`
 - the Vercel app root URL
+
+## Deployed state (2026-10-03, Railway project `pulse-mhacks`, deployed from a local checkout with the CLI)
+- `agent-api`: https://agent-api-production-4666.up.railway.app. Variables beyond the table: `SERVICE=api`, `RAILWAY_DOCKERFILE_PATH=infra/Dockerfile.agent`, `PORT=8000`, `HOST=0.0.0.0`, `SCHEDULER_ENABLED=true`
+- `agent-fetchai`: variables `SERVICE=fetchai`, `RAILWAY_DOCKERFILE_PATH=infra/Dockerfile.agent`, `AGENT_SEED`, `INTERNAL_TOKEN`, `PUBLIC_AGENT_URL` (the public agent URL). Public domain `agent-fetchai-production.up.railway.app` (port 8001) only for the Agentverse Inspector
+- `gateway`: deployed from `services/gateway`, `AGENT_URL` is the public agent URL
+
+Redeploy: `railway up --service agent-api --ci` and `railway up --service agent-fetchai --ci` from the repo root; the gateway from `services/gateway` with `railway up --service gateway --project <id> --environment production --ci`. A deploy is manual: pushing to `main` does not redeploy until the Railway GitHub app is installed on the repo (J, as the repo owner).
+
+## Things that bit us
+- **Bind to `0.0.0.0`, not `::`.** With `--host ::` the app ran but the public URL answered 502 and no request reached the app; the edge connects over IPv4. `infra/entrypoint.sh` now defaults to `0.0.0.0`.
+- **Set the domain's target port.** A generated domain had no port (`railway domain list` shows `-`); set it with `railway domain update <domain> --port 8000 --service agent-api`.
+- **Private networking is one-way verified.** `agent-api` reaches `gateway.railway.internal:8789`. The reverse (an IPv4-only app reached from the gateway) was not verified, so the gateway and the uAgent call the agent through its public URL, which still requires `X-Internal-Token`.
+- Production `SECRET_KEY` and `INTERNAL_TOKEN` come from J, not from a local `.env`: the key decrypts the stored Calendar tokens, and the token must match Vercel.
+
