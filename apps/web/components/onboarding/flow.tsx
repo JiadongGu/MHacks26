@@ -10,7 +10,8 @@ import { GoogleStatusCard } from "./google-status";
 import { StepDevices } from "./step-devices";
 import { StepDone } from "./step-done";
 import { StepGoals } from "./step-goals";
-import { EMPTY_HISTORY, StepHistory, type HistoryState } from "./step-history";
+import { EMPTY_HISTORY, type HistoryState } from "./history-seed";
+import { StepHistory } from "./step-history";
 import { StepImessage } from "./step-imessage";
 import { StepProfile } from "./step-profile";
 import { LAST_STEP, STEPS, type ProfileInput } from "./types";
@@ -31,16 +32,26 @@ type Props = {
   highestStep: number;
   complete: boolean;
   profile: ProfileInput;
+  /** Saved health history, so a returning user does not start step 2 from empty. */
+  initialHistory?: HistoryState;
   photonNumber: string | null;
   imessageLinked: boolean;
 };
 
-export function OnboardingFlow({ initialStep, highestStep, complete, profile, photonNumber, imessageLinked }: Props) {
+export function OnboardingFlow({
+  initialStep,
+  highestStep,
+  complete,
+  profile,
+  initialHistory = EMPTY_HISTORY,
+  photonNumber,
+  imessageLinked,
+}: Props) {
   const [step, setStep] = useState(initialStep);
   const [highest, setHighest] = useState(highestStep);
   const [saving, setSaving] = useState(false);
   const [profileState, setProfileState] = useState<ProfileInput>(profile);
-  const [history, setHistory] = useState<HistoryState>(EMPTY_HISTORY);
+  const [history, setHistory] = useState<HistoryState>(initialHistory);
   const [simulate, setSimulate] = useState(false);
   const [linked, setLinked] = useState(imessageLinked);
   const headingRef = useRef<HTMLHeadingElement>(null);

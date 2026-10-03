@@ -11,7 +11,7 @@ import {
   listUpcomingImportant,
 } from "@/lib/queries";
 import { STATUS_LABEL, readTwin } from "@/lib/twin";
-import { getSeries } from "@/lib/vitals";
+import { getVitalsPanel } from "@/lib/vitals";
 import { AlertsFeed } from "./alerts-feed";
 import { HrSparkline } from "./hr-sparkline";
 import { ProposalsPanel } from "./proposals-panel";
@@ -69,14 +69,12 @@ export async function StatusHero({ userId }: { userId: string }) {
 }
 
 export async function HrPanel({ userId }: { userId: string }) {
-  let series;
-  try {
-    series = await getSeries(userId, { metric: "heart_rate", windowMin: 180, bucketMin: 1 });
-  } catch (err) {
+  // When the first read fails, the client panel loads on mount and shows its own error note.
+  const initial = await getVitalsPanel(userId).catch((err) => {
     console.error("HrPanel failed", err);
-    return <ErrorNote>Could not load heart rate. Reload the page to try again.</ErrorNote>;
-  }
-  return <HrSparkline series={series} />;
+    return undefined;
+  });
+  return <HrSparkline initial={initial} />;
 }
 
 export async function ProposalsSection({ userId }: { userId: string }) {

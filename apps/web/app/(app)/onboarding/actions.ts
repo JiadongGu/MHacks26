@@ -4,8 +4,10 @@ import { and, eq, gt, lte, sql } from "drizzle-orm";
 import { getSessionUser } from "@/lib/auth/server";
 import { db, schema } from "@/lib/db";
 import { LINK_CODE_TTL_MS, generateLinkCode, isLinkChannel, type LinkChannel } from "@/lib/link-code";
+import { getProfile } from "@/lib/queries";
 import {
   cleanPhone,
+  profileSeed,
   validateProfile,
   type FieldErrors,
   type ProfileInput,
@@ -20,6 +22,22 @@ const LAST_STEP = 7;
 /** Raises onboarding_step to `step`. The stored step never goes down. */
 function raiseStep(step: number) {
   return sql`greatest(${schema.profiles.onboarding_step}, ${step})`;
+}
+
+/**
+ * Step 1. Reads the saved profile fresh. The form calls it on mount, so a page that came from the
+ * browser cache (the back button) still shows the saved values. It returns null when no row exists.
+ */
+export async function loadProfileAction(): Promise<ActionResult<{ profile: ProfileInput | null }>> {
+  const user = await getSessionUser();
+  if (!user) return { ok: false, error: "Not signed in." };
+  try {
+    const row = await getProfile(user.id);
+    return { ok: true, profile: row ? profileSeed(row, user.name ?? "") : null };
+  } catch (err) {
+    console.error("loadProfileAction failed", err);
+    return { ok: false, error: "Could not read your profile." };
+  }
 }
 
 /** Step 1. Validates the profile, upserts the profiles row, and moves the stepper to step 2. */

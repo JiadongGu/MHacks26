@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { toast } from "sonner";
-import { saveProfileAction } from "@/app/(app)/onboarding/actions";
+import { loadProfileAction, saveProfileAction } from "@/app/(app)/onboarding/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
@@ -33,9 +33,26 @@ export function StepProfile({ initial, onSaved }: Props) {
   const [errors, setErrors] = useState<FieldErrors>({});
   const [busy, setBusy] = useState(false);
 
+  const touched = useRef(false);
+
+  useEffect(() => {
+    // The page can come from the browser cache. Read the saved profile again and use it
+    // unless the user has already started to type.
+    let live = true;
+    void loadProfileAction().then((res) => {
+      if (live && res.ok && res.profile && !touched.current) setDraft(res.profile);
+    });
+    return () => {
+      live = false;
+    };
+  }, []);
+
+  // A saved zone wins. The browser zone fills in only when none is saved.
   const value: ProfileInput = { ...draft, timezone: draft.timezone || detected };
-  const set = <K extends keyof ProfileInput>(key: K, v: ProfileInput[K]) =>
+  const set = <K extends keyof ProfileInput>(key: K, v: ProfileInput[K]) => {
+    touched.current = true;
     setDraft((d) => ({ ...d, [key]: v }));
+  };
   const num = (raw: string) => (raw.trim() === "" ? null : Number(raw));
 
   async function submit(e: React.FormEvent) {
