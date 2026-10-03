@@ -13,11 +13,13 @@ async def _heartbeat() -> None:
 
 def start() -> None:
     from app.agents.live import sweep_all
+    from app.integrations.fitbit.sync import sync_all as fitbit_sync
     from app.integrations.gcal.sync import refresh_all as gcal_refresh
 
     scheduler.add_job(_heartbeat, "interval", minutes=1, id="heartbeat", next_run_time=datetime.now(UTC))
     scheduler.add_job(sweep_all, "interval", minutes=1, id="live_sweep", max_instances=1)
     scheduler.add_job(gcal_refresh, "interval", minutes=30, id="gcal_refresh", max_instances=1)
+    scheduler.add_job(fitbit_sync, "interval", minutes=5, id="fitbit_sync", max_instances=1)
     scheduler.start()
 
 

@@ -55,3 +55,8 @@ app.include_router(gcal_router)
 from app.proposals.api import router as proposals_router  # noqa: E402
 
 app.include_router(proposals_router)
+from app.integrations.fitbit.router import public as fitbit_public  # noqa: E402
+from app.integrations.fitbit.router import router as fitbit_router  # noqa: E402
+
+app.include_router(fitbit_public)
+app.include_router(fitbit_router)
