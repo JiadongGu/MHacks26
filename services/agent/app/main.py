@@ -60,3 +60,8 @@ from app.integrations.fitbit.router import router as fitbit_router  # noqa: E402
 
 app.include_router(fitbit_public)
 app.include_router(fitbit_router)
+from app.ingest.router import router as ingest_router  # noqa: E402
+from app.integrations.apple_sim.router import router as sim_router  # noqa: E402
+
+app.include_router(ingest_router)
+app.include_router(sim_router)

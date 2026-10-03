@@ -34,7 +34,7 @@ Source = fitbit | apple_watch_sim | presage | manual | finchnode
 | Endpoint | Purpose |
 |---|---|
 | `POST /ingest/samples` (IngestBatch) | write Spacetime (`ingest` reducer) + daily_summary, then call `live.on_samples_ingested` |
-| `POST /ingest/hae` (Health Auto Export JSON) | parse -> IngestBatch -> same path; simulator posts here |
+| `POST /ingest/hae?user_id=` (Health Auto Export JSON body) | parse -> IngestBatch -> same path; the simulator runs the same parser in-process |
 | `GET /vitals/latest?user_id&metrics=a,b` | latest value per metric |
 | `GET /vitals/series?user_id&metric&from&to&bucket=raw\|1m\|1h\|1d` | from continuous aggregates |
 | `GET /vitals/daily?user_id&days=7` | DailySummary[] |
@@ -44,7 +44,7 @@ Source = fitbit | apple_watch_sim | presage | manual | finchnode
 | `GET /calendar/freebusy?user_id&from&to` | pick a proposal slot |
 | `POST /calendar/proposals/{id}/apply` -> `{google_event_id}` | insert into "Pulse Health" calendar; sets `failed` on error |
 | `DELETE /calendar/proposals/{id}/event` | remove event if later rejected |
-| `POST /sim/scenario` (ScenarioRequest) | simulator mode switch |
+| `POST /sim/scenario` (ScenarioRequest) | simulator mode switch; first call for a user also backfills 4h of minutes and 7 days of daily values. Omitted `fast_forward_min` defaults to 14 (`workout_now`), 3 (`low_spo2`), 190 (`sedentary_day`), else 0 |
 | py `apple_sim.set_scenario(user_id, scenario, fast_forward_min)` · `apple_sim.emit_now(user_id)` | in-process |
 
 ## Endpoints J implements, P consumes

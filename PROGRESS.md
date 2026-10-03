@@ -17,8 +17,8 @@
 - Dashboard HR sparkline from Spacetime views; Gemini key; ElevenLabs briefing; Figma file for Best Design
 
 ## Next — P (priority order)
-1. **Apple Watch simulator** (`app/integrations/apple_sim/`): personas + scenarios `normal | workout_now | illness_onset | great_sleep | sedentary_day | low_spo2`, `fast_forward_min`, 1-min emission as Health Auto Export JSON → `/ingest/hae`; `POST /sim/scenario` (PLAN §8.2). **The whole live demo depends on this.**
-2. **Shared ingest writer + `/ingest/samples`, `/ingest/hae`** (PLAN §8.4): Spacetime `ingest` + **upsert Neon `daily_summary`** (user's local day) + `on_samples_ingested`. Route Fitbit sync through it — today Fitbit writes Spacetime only, so R2/R5/R7/R8 and goal progress never see Fitbit days
+1. ~~Apple Watch simulator~~ built (PR): personas + 6 scenarios + fast_forward + per-minute tick; tested against the real rules. Needs a run against live Neon + Spacetime
+2. ~~Shared ingest writer + `/ingest/samples`, `/ingest/hae`~~ built (PR): Spacetime `ingest`, idempotent Neon `daily_summary` (point metrics replace; minute metrics recomputed from `minute_agg`), `ingest_log`, `on_samples_ingested`; Fitbit now routes through it
 3. Fitbit: resting HR, sleep (total/deep/REM), active minutes from the Health API
 4. Fetch.ai uAgent: mailbox agent, chat protocol, tools → `/agent/inbound`, `/proposals`; Agentverse profile + README badges; ASI:One submission (PLAN §7.6)
 5. Deploy: Dockerfiles, Railway services (`agent-api`, `agent-fetchai`, `gateway`), CI (ruff, pytest, contracts `--check`, web build), `scripts/smoke.sh`, UptimeRobot

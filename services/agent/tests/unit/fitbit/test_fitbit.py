@@ -35,15 +35,6 @@ def test_normalizers():
     assert (st.metric, st.value, st.ts.isoformat()) == ("steps", 8.0, "2026-10-03T18:23:00+00:00")
 
 
-def test_spacetime_rows_use_epoch_ms():
-    batch = IngestBatch(source="fitbit", samples=normalize.heart_rate_samples(UID, [HR]))
-    (row,) = sync.spacetime_rows(batch)
-    assert row == {
-        "user_id": str(UID), "metric": "heart_rate", "value": 72.0, "unit": "bpm",
-        "source": "fitbit", "ts_ms": 1791028800000, "meta_json": "",
-    }
-
-
 def test_authorize_url_is_google_offline_with_chooser(monkeypatch):
     url = oauth.authorization_url(str(UID))
     assert url.startswith("https://accounts.google.com/")
@@ -77,11 +68,9 @@ class Recorder:
     async def mark_synced(self, _):
         self.calls.append(("mark_synced",))
 
-    async def call(self, reducer, args):
-        self.calls.append(("call", reducer, args))
-
-    async def hook(self, uid, metrics):
-        self.calls.append(("hook", metrics))
+    async def ingest(self, batch):
+        self.calls.append(("ingest", batch.source, len(batch.samples)))
+        return len(batch.samples)
 
     def fetch(self, row, uid, minutes):
         return IngestBatch(source="fitbit", samples=self.samples), self.new_row
@@ -91,27 +80,22 @@ def _wire(monkeypatch, rec):
     monkeypatch.setattr(sync.store, "load", rec.load)
     monkeypatch.setattr(sync.store, "save", rec.save)
     monkeypatch.setattr(sync.store, "mark_synced", rec.mark_synced)
-    monkeypatch.setattr(sync.spacetime, "call", rec.call)
-    monkeypatch.setattr(sync, "on_samples_ingested", rec.hook)
+    monkeypatch.setattr(sync, "ingest_batch", rec.ingest)
     monkeypatch.setattr(sync, "_fetch", rec.fetch)
 
 
-async def test_sync_user_ingests_marks_and_notifies(monkeypatch):
+async def test_sync_user_saves_refreshed_token_then_ingests_then_marks_synced(monkeypatch):
     rec = Recorder(row={"x": 1}, new_row={"refreshed": True})
     _wire(monkeypatch, rec)
     assert await sync.sync_user(UID) == 1
-    kinds = [c[0] for c in rec.calls]
-    assert kinds == ["save", "call", "mark_synced", "hook"]
-    assert rec.calls[0][1] == {"refreshed": True}
-    assert rec.calls[1][1] == "ingest" and len(rec.calls[1][2][0]) == 1
-    assert rec.calls[3] == ("hook", ["heart_rate"])
+    assert rec.calls == [("save", {"refreshed": True}), ("ingest", "fitbit", 1), ("mark_synced",)]
 
 
-async def test_sync_user_with_no_samples_skips_ingest_and_hook(monkeypatch):
+async def test_sync_user_with_no_samples_still_marks_synced(monkeypatch):
     rec = Recorder(row={"x": 1}, samples=[])
     _wire(monkeypatch, rec)
     assert await sync.sync_user(UID) == 0
-    assert rec.calls == [("mark_synced",)]
+    assert rec.calls == [("ingest", "fitbit", 0), ("mark_synced",)]
 
 
 async def test_sync_user_not_connected(monkeypatch):

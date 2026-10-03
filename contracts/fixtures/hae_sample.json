@@ -1,0 +1,54 @@
+{
+  "data": {
+    "metrics": [
+      {
+        "name": "heart_rate",
+        "units": "count/min",
+        "data": [
+          {"date": "2026-10-03 14:30:00 -0400", "Min": 65, "Avg": 72, "Max": 85},
+          {"date": "2026-10-03 14:31:00 -0400", "Min": 66, "Avg": 74, "Max": 88}
+        ]
+      },
+      {
+        "name": "step_count",
+        "units": "count",
+        "data": [{"date": "2026-10-03 14:30:00 -0400", "qty": 18}]
+      },
+      {
+        "name": "blood_oxygen_saturation",
+        "units": "%",
+        "data": [{"date": "2026-10-03T14:30:00-04:00", "qty": 0.97}]
+      },
+      {
+        "name": "heart_rate_variability",
+        "units": "ms",
+        "data": [{"date": "2026-10-03 07:00:00 -0400", "qty": 52.4}]
+      },
+      {
+        "name": "sleep_analysis",
+        "units": "hr",
+        "data": [
+          {
+            "date": "2026-10-03 06:45:00 -0400",
+            "sleepEnd": "2026-10-03 06:45:00 -0400",
+            "totalSleep": 7.5,
+            "deep": 1.3,
+            "rem": 1.7,
+            "core": 4.5,
+            "awake": 0.4
+          }
+        ]
+      },
+      {"name": "unknown_metric", "units": "x", "data": [{"date": "2026-10-03 14:30:00 -0400", "qty": 1}]}
+    ],
+    "workouts": [
+      {
+        "name": "Running",
+        "start": "2026-10-03 13:00:00 -0400",
+        "end": "2026-10-03 13:30:00 -0400",
+        "duration": 1800,
+        "activeEnergyBurned": {"qty": 320, "units": "kcal"}
+      }
+    ]
+  }
+}
