@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { FitbitStatusCard } from "@/components/onboarding/fitbit-status";
 import { GoogleStatusCard } from "@/components/onboarding/google-status";
 import { PageHeader } from "@/components/page-header";
 import { ReturnToast } from "@/components/settings/return-toast";
@@ -52,8 +53,10 @@ export default async function SettingsPage({ searchParams }: { searchParams: Par
         <Section title="Connections" headingId="s-connections">
           <h3 className="mb-2 text-sm font-medium">Google Calendar</h3>
           <GoogleStatusCard />
+          <h3 className="mb-2 mt-8 text-sm font-medium">Fitbit</h3>
+          <FitbitStatusCard />
           <p className="mt-6 text-sm text-muted-foreground">
-            Fitbit, the Apple Watch simulator, and iMessage are in{" "}
+            The Apple Watch simulator and iMessage are in{" "}
             <Link href="/onboarding" className="underline underline-offset-4 hover:text-foreground">
               setup
             </Link>

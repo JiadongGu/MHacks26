@@ -1,0 +1,99 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { Watch } from "lucide-react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ErrorNote } from "@/components/ui-bits";
+import { agent, errorText, isEndpointMissing } from "@/lib/api-client";
+import { timeAgo } from "@/lib/format";
+
+type FitbitStatus = { connected: boolean; last_sync: string | null };
+
+/** Shows the Fitbit connection and the connect link. Used in onboarding step 3 and in settings. */
+export function FitbitStatusCard() {
+  const [status, setStatus] = useState<FitbitStatus | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [missing, setMissing] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [attempt, setAttempt] = useState(0);
+
+  useEffect(() => {
+    let live = true;
+    agent<FitbitStatus>("/integrations/fitbit/status")
+      .then((res) => {
+        if (!live) return;
+        setStatus(res);
+        setError(null);
+        setLoading(false);
+      })
+      .catch((err) => {
+        if (!live) return;
+        if (isEndpointMissing(err)) setMissing(true);
+        else {
+          const text = errorText(err);
+          setError(text);
+          toast.error(`Fitbit status: ${text}`);
+        }
+        setLoading(false);
+      });
+    return () => {
+      live = false;
+    };
+  }, [attempt]);
+
+  if (loading) return <Skeleton role="status" aria-label="Loading Fitbit status" className="h-16 max-w-xl" />;
+  if (missing) {
+    return (
+      <p className="max-w-xl border-y border-border py-5 text-sm text-muted-foreground">
+        The Fitbit connection is not deployed yet.
+      </p>
+    );
+  }
+  if (error && !status) {
+    return (
+      <ErrorNote
+        className="max-w-xl"
+        action={
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setError(null);
+              setLoading(true);
+              setAttempt((n) => n + 1);
+            }}
+          >
+            Try again
+          </Button>
+        }
+      >
+        Could not read the connection status. {error}
+      </ErrorNote>
+    );
+  }
+
+  return (
+    <div className="flex max-w-xl flex-wrap items-center justify-between gap-4 border-y border-border py-5">
+      <div className="min-w-0">
+        <p className="flex items-center gap-2 text-base font-semibold">
+          <Watch className="size-4" aria-hidden="true" />
+          {status?.connected ? "Connected" : "Not connected"}
+        </p>
+        <p className="mt-1 max-w-[50ch] text-sm text-muted-foreground">
+          {status?.connected
+            ? status.last_sync
+              ? `Synced ${timeAgo(status.last_sync)}.`
+              : "Connected. Waiting for the first sync."
+            : "Heart rate, steps, sleep, and more. Sign in with the Google account your Fitbit uses and approve read access."}
+        </p>
+      </div>
+      <Button asChild variant={status?.connected ? "outline" : "default"}>
+        {/* A full page navigation. The proxy passes the 302 to Google through. */}
+        {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+        <a href="/api/agent/integrations/fitbit/authorize">{status?.connected ? "Reconnect" : "Connect Fitbit"}</a>
+      </Button>
+    </div>
+  );
+}

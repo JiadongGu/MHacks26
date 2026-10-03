@@ -8,6 +8,7 @@ import { formatDate, formatDateTime, humanize, timeAgo } from "@/lib/format";
 import { formatMinutes } from "@/lib/goals";
 import { getLatestTwin, listTwinVersions } from "@/lib/queries";
 import { requireUser } from "@/lib/session";
+import { formatHeight, formatWeight } from "@/lib/units";
 import {
   BASELINE_LABEL,
   STATUS_LABEL,
@@ -86,8 +87,8 @@ function TwinBody({ view }: { view: TwinView }) {
             rows={[
               ["Age", show(p.age)],
               ["Sex", show(p.sex)],
-              ["Height", p.height_cm ? `${show(p.height_cm)} cm` : "Not set"],
-              ["Weight", p.weight_kg ? `${show(p.weight_kg)} kg` : "Not set"],
+              ["Height", p.height_cm ? formatHeight(Number(p.height_cm)) : "Not set"],
+              ["Weight", p.weight_kg ? formatWeight(Number(p.weight_kg)) : "Not set"],
               ["Time zone", show(p.timezone)],
             ]}
           />
