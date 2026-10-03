@@ -90,12 +90,39 @@ def test_briefing_without_data():
     assert text.startswith("Good morning.") and "no sleep data" in text
 
 
-def test_evening_text_reports_goal_results():
+def test_evening_text_is_kind_about_goals_and_shows_no_targets():
     text = compass.compose_evening(FACTS)
-    assert "steps 8,200/8,000 (met)" in text
-    assert "sleep 312/450 (not met)" in text
+    assert "steps goal reached" in text
+    assert "sleep 5.2 h so far" in text
+    assert "not met" not in text and "8,000" not in text and "/450" not in text
     assert "Tomorrow: Board presentation" in text
     assert "Lights out by 22:30" in text
+
+
+def test_evening_text_uses_the_plan_and_tonights_bedtime_when_there_is_one():
+    facts = {**FACTS, "plan_text": "Tomorrow is a busy one with few gaps. Plan: 12:40 pm walk.",
+             "tonight_bed": "10:15 pm", "tonight_reason": "You start at 8:00 am tomorrow."}
+    text = compass.compose_evening(facts)
+    assert "Plan: 12:40 pm walk." in text
+    assert "Aim for lights out by 10:15 pm. You start at 8:00 am tomorrow." in text
+    assert "Lights out by 22:30" not in text
+
+
+def test_briefing_names_the_focus_instead_of_numbers_and_uses_the_plan():
+    facts = {**FACTS, "focus": ["sleep better", "move more"],
+             "plan_text": "Today looks open. Plan: 12:30 pm walk; 2:00 pm study block."}
+    text = compass.compose_briefing(facts)
+    assert "Your focus: sleep better, move more." in text
+    assert "Plan: 12:30 pm walk; 2:00 pm study block." in text
+    assert "8,000" not in text and "Today's goals" not in text
+    assert "Take it easy" not in text  # the plan replaces the generic tip
+    assert len(text) <= compass.MAX_BRIEFING_CHARS
+
+
+def test_briefing_without_a_plan_keeps_the_generic_tip_and_no_goal_numbers():
+    text = compass.compose_briefing({**FACTS, "status": "normal", "sleep_min": 480.0})
+    assert "easy way to add steps" in text
+    assert "8,000" not in text
 
 
 def test_wants_sleep_block_only_when_ill_and_nothing_pending():

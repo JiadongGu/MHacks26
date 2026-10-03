@@ -81,3 +81,6 @@ app.include_router(voice_router)
 from app.focus.api import router as focus_router  # noqa: E402
 
 app.include_router(focus_router)
+from app.planner.api import router as plan_router  # noqa: E402
+
+app.include_router(plan_router)

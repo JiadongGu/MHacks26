@@ -15,6 +15,13 @@
       "when": 1791069032185,
       "tag": "0001_focus_areas",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791069837514,
+      "tag": "0002_daily_plans",
+      "breakpoints": true
     }
   ]
 }
