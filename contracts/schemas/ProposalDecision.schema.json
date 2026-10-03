@@ -1,0 +1,28 @@
+{
+  "properties": {
+    "decision": {
+      "enum": [
+        "approved",
+        "rejected"
+      ],
+      "title": "Decision",
+      "type": "string"
+    },
+    "via": {
+      "enum": [
+        "imessage",
+        "web",
+        "asi_one",
+        "relay"
+      ],
+      "title": "Via",
+      "type": "string"
+    }
+  },
+  "required": [
+    "decision",
+    "via"
+  ],
+  "title": "ProposalDecision",
+  "type": "object"
+}

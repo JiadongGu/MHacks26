@@ -1,0 +1,34 @@
+{
+  "properties": {
+    "channel": {
+      "enum": [
+        "imessage",
+        "web",
+        "asi_one",
+        "relay"
+      ],
+      "title": "Channel",
+      "type": "string"
+    },
+    "external_id": {
+      "title": "External Id",
+      "type": "string"
+    },
+    "text": {
+      "title": "Text",
+      "type": "string"
+    },
+    "message_id": {
+      "title": "Message Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "channel",
+    "external_id",
+    "text",
+    "message_id"
+  ],
+  "title": "InboundMessage",
+  "type": "object"
+}
