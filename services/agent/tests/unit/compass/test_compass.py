@@ -315,3 +315,15 @@ async def test_evening_body_proposes_sleep_block_when_ill(bodies):
     await compass._evening_body(A, utc("2026-10-14T01:05:00+00:00"))
     kind, _, proposal = bodies["alerts"][0]
     assert kind == "evening_check" and proposal["title"] == "Sleep block (Pulse)"
+
+
+def test_goal_line_reads_naturally():
+    from app.agents.compass import goal_line
+
+    def g(metric, target, period, direction="at_least"):
+        return {"metric": metric, "target": target, "period": period, "direction": direction}
+
+    assert goal_line(g("steps", 8000, "day")) == "8,000 steps a day"
+    assert goal_line(g("sleep_total_min", 450, "day")) == "7.5 h of sleep a night"
+    assert goal_line(g("active_minutes", 150, "week")) == "150 active minutes a week"
+    assert goal_line(g("workout", 3, "week")) == "3 workouts a week"
