@@ -17,6 +17,8 @@ Database: **`pulse-live-t8ng8`** on maincloud (names are global; dashboard https
 
 Publish: `cd infra/spacetime && spacetime publish pulse-live-t8ng8` (confirm the maincloud prompt).
 
+Add a writer (e.g. P's local dev): they run `spacetime login` then `spacetime login show` and send their identity; an existing admin runs `spacetime call pulse-live-t8ng8 add_admin '"0x<identity>"'` (remove with `remove_admin`). Admins can call `ingest` with their own token but cannot SQL-read private tables (owner only) — the deployed agent uses the owner token.
+
 ```
 sample      (private)  id u64 pk autoinc, user_id string btree, metric string, value f64,
                        unit string, source string, ts_ms u64 btree, meta_json string

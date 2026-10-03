@@ -11,7 +11,7 @@
 - Photon gateway built on a worktree branch (9 tests); not live yet
 
 ## Next — J
-- Spacetime: per-user views for the dashboard (+ identity linking); give P the `SPACETIME_TOKEN` privately
+- Spacetime: per-user views for the dashboard (+ identity linking); add P as admin once P sends their identity
 - Run web locally with real sign-in → onboarding → Google connect; then Vercel + .tech domain
 - `/agent/inbound` chat handler (fast paths YES/NO, Gemini tools), link codes, Compass jobs (briefing, evening, twin rebuild, proposal sweep)
 - Photon gateway live (needs SPECTRUM_PROJECT_ID/SECRET + demo phones registered as Photon users)
