@@ -51,6 +51,8 @@ for (;;) {
   try {
     for await (const [space, message] of stream()) {
       backoff = 1000;
+      const m = message as unknown as { id?: string; direction?: string; content?: { type?: string }; sender?: { id?: string } };
+      log("message_received", { id: m.id, direction: m.direction, type: m.content?.type, has_sender: Boolean(m.sender?.id) });
       try {
         const reply = await handleInbound(agent, message, isDuplicate);
         if (reply) await space.responding(async () => { await message.reply(reply); });
