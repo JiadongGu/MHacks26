@@ -13,7 +13,9 @@ Owners (changed 2026-10-03): **J** owns the module (`infra/spacetime/`, tables, 
 - Free maincloud pauses idle databases (resume in seconds). Warm before demo.
 
 ## Names (snake_case so SQL is plain)
-Database: `pulse-live` (maincloud). Env: `SPACETIME_HOST=https://maincloud.spacetimedb.com`, `SPACETIME_DB=pulse-live`, `SPACETIME_TOKEN` (owner token, server-side only).
+Database: **`pulse-live-t8ng8`** on maincloud (names are global; dashboard https://spacetimedb.com/pulse-live-t8ng8). Module source: `infra/spacetime/spacetimedb/src/index.ts`. Env: `SPACETIME_HOST=https://maincloud.spacetimedb.com`, `SPACETIME_DB=pulse-live-t8ng8`, `SPACETIME_TOKEN` = the **owner** token (only the owner can SQL-read private tables; `ingest` only accepts identities in `admin`, seeded with the publisher). Share it privately, never commit. Get it with `spacetime login show --token`.
+
+Publish: `cd infra/spacetime && spacetime publish pulse-live-t8ng8` (confirm the maincloud prompt).
 
 ```
 sample      (private)  id u64 pk autoinc, user_id string btree, metric string, value f64,
@@ -41,7 +43,8 @@ await spacetime.call("ingest", [rows])
 ```
 `uid` must be a validated UUID before interpolation (no parameter binding over HTTP). Sort in Python.
 
-## To verify in the first spike
-- Owner token can SELECT private tables over HTTP.
-- Range filter/delete on a `u64` btree index from TS.
-- Row JSON shape returned by `/sql` (`[{schema, rows}]`) for our columns.
+## Verified live (2026-10-03)
+- Owner token SELECTs private tables; anonymous identity gets "no such table" for `sample` and `ingest` is rejected.
+- `/sql` returns `[{schema:{elements:[{name:{some}}]}, rows}]`; `app/core/spacetime.py` parses it.
+- `ingest` is idempotent on `(user_id, metric, source, ts_ms)`: resend leaves `n` unchanged; a corrected value adjusts `sum`/`avg` (`min`/`max` only widen).
+- Retention: scheduled `retention` every 10 min (u64 range delete builds; not yet observed firing).
