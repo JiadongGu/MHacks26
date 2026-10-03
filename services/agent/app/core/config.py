@@ -8,6 +8,9 @@ class Settings(BaseSettings):
 
     database_url: str = ""
     tiger_database_url: str = ""
+    spacetime_host: str = "https://maincloud.spacetimedb.com"
+    spacetime_db: str = "pulse-live"
+    spacetime_token: str = ""
     internal_token: str = "dev-internal-token"
     gateway_url: str = ""
     gateway_secret: str = "dev-gateway-secret"

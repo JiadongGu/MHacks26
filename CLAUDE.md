@@ -6,7 +6,7 @@ Personal AI health agent: wearable vitals -> two data pools -> rules + Gemini ag
 - Web: Next.js 15 App Router, TypeScript, Tailwind, shadcn/ui, Drizzle, Neon Auth. Vercel.
 - Agent: Python 3.12, FastAPI, uv, APScheduler, google-genai, psycopg, uagents. Railway.
 - Gateway: Bun/Node TypeScript, spectrum-ts (Photon iMessage). Railway.
-- Data: Neon Postgres (long-term pool, auth), Tiger Data (live vitals hypertable).
+- Data: Neon Postgres (long-term pool, auth), SpacetimeDB on maincloud (live vitals pool; contract in contracts/SPACETIME.md).
 
 ## Commands
 - Install: `cd apps/web && npm i` / `cd services/agent && uv sync` / `cd services/gateway && bun i`
@@ -17,7 +17,7 @@ Personal AI health agent: wearable vitals -> two data pools -> rules + Gemini ag
 
 ## Layout
 - `apps/web` web app (J) · `services/agent` FastAPI agents + integrations (split by package) · `services/gateway` Photon (J)
-- `contracts/` shared schemas + fixtures, frozen after hour 2 · `infra/` Tiger DDL, Dockerfiles, Railway (P) · `scripts/` export, seed, smoke
+- `contracts/` shared schemas + fixtures, frozen after hour 2 · `infra/` Spacetime module, Dockerfiles, Railway (P) · `scripts/` export, seed, smoke
 - Ownership table and merge rules: PLAN.md §4. Endpoint contracts: PLAN.md §6 / contracts/README.md.
 
 ## Context files

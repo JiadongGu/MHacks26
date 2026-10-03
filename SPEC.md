@@ -6,7 +6,7 @@ Pulse is a personal health agent that lives in your iMessage and on the web. It 
 Full detail: PLAN.md.
 
 ## Core features (must have for demo)
-1. Live processing: wearable samples -> Tiger hypertable -> rules engine -> Gemini-phrased alert -> iMessage (Photon) + dashboard, within 60s.
+1. Live processing: wearable samples -> Spacetime live pool -> rules engine -> Gemini-phrased alert -> iMessage (Photon) + dashboard, within 60s.
 2. Digital twin: onboarding + FinchNode record import -> conditions, meds, labs, baselines, twin-aware thresholds; rebuilt nightly, versioned.
 3. Approval-gated action: illness signal + important event within 48h -> proposed sleep block -> user replies YES (iMessage or web) -> event written to Google Calendar.
 
@@ -22,12 +22,12 @@ Also required: sign-up + 7-step onboarding, goals with progress, morning briefin
 
 ## Stretch goals
 - ElevenLabs spoken briefing (P2)
-- Tiger hierarchical continuous aggregates + retention polish
+- Spacetime live views driving the dashboard (HR sparkline, alerts, proposal approve sync)
 - Neon branch-per-PR, pgvector memory
 - Presage webcam check-in, Relay channel (only if everything else is done)
 
 ## Out of scope
 - Twilio SMS (verification takes days; Photon has SMS fallback)
 - Native iOS app / real Apple Watch (simulated via Health Auto Export JSON format)
-- Spacetime, Nessie, Solana, SpaceXAI, Free-WILi, non-AI tracks
+- Tiger, Nessie, Solana, SpaceXAI, Free-WILi, non-AI tracks
 - Medical diagnosis; everything is wellness guidance with a disclaimer

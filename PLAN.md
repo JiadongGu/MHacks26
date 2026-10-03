@@ -153,7 +153,9 @@ MHacks26/
 
 ## 5. Data model
 
-### 5.1 Tiger (short-term live pool) — `infra/tiger/001_vitals.sql` (P)
+### 5.1 ~~Tiger~~ → **SpacetimeDB** (short-term live pool) (P)
+**Superseded 2026-10-03: the live pool is SpacetimeDB. Contract: `contracts/SPACETIME.md`. The Tiger DDL below is kept for reference only.**
+
 ```sql
 CREATE EXTENSION IF NOT EXISTS timescaledb;
 CREATE TABLE vitals_raw (
