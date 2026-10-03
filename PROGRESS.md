@@ -6,11 +6,12 @@
 - Rules R1–R8 + live agent + notify + Gemini phrasing (template fallback). Verified on Neon: illness onset + exam tomorrow → warning alert + pending "Sleep block (Pulse)" 22:00–06:30 local, twin `possibly_ill`, cooldown holds
 - Google Calendar (J): OAuth (account chooser), Neon token store, "Pulse Health" calendar, 30-min event cache, proposals API, approve → event inserted, reject → event cancelled. **Live-verified** with Google
 - Web: onboarding (7 steps), dashboard, twin, goals, alerts, settings, `/demo`; builds/lints/tests. Not yet run with real sign-in
+- Spacetime module (J) published as `pulse-live-t8ng8`: idempotent admin-only `ingest`, `minute_agg`, retention; live-verified incl. access control and the rules reader
 - Fitbit (P): Google Health API, live-verified on an Inspire 3 (HR + per-minute steps), Neon token store, 5-min poll → Spacetime `ingest` → `on_samples_ingested`
 - Photon gateway built on a worktree branch (9 tests); not live yet
 
 ## Next — J
-- **Spacetime module (moved to J)**: `infra/spacetime` TS module per contracts/SPACETIME.md, idempotent `ingest` on (user_id, metric, source, ts_ms), `minute_agg`, retention, per-user views; publish `pulse-live` on maincloud; give P the `SPACETIME_TOKEN`
+- Spacetime: per-user views for the dashboard (+ identity linking); give P the `SPACETIME_TOKEN` privately
 - Run web locally with real sign-in → onboarding → Google connect; then Vercel + .tech domain
 - `/agent/inbound` chat handler (fast paths YES/NO, Gemini tools), link codes, Compass jobs (briefing, evening, twin rebuild, proposal sweep)
 - Photon gateway live (needs SPECTRUM_PROJECT_ID/SECRET + demo phones registered as Photon users)
@@ -27,4 +28,3 @@
 
 ## Known bugs
 - Gateway stream-restart after end unverified on live Photon line
-- Spacetime `/sql` response parsing is unit-tested against the documented shape only; verify once `pulse-live` exists
