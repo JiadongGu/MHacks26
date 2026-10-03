@@ -37,10 +37,7 @@ Agent persona name: **Pulse**. Working .tech domain candidates: `getpulse.tech`,
 | **ElevenLabs** | Spoken morning briefing on dashboard (TTS, cached per day) | 1.5h | P2 | J |
 | **Figma (Best Design)** | J designs in Figma via MCP on another account; dashboard follows it | parallel | P1 | J |
 | **.Tech domain (MLH)** | `*.tech` pointed at Vercel | 0.5h | P0 | J |
-| **Notability** | Architecture + wireframe sketches during hour 0–1; 2 screenshots in Devpost | 0.3h | P0 | both |
-| **Presage (MLH)** | Webcam vitals check-in (Node sidecar, 4–6h) | 5h | **Stretch only** | — |
 | Relay | Second text channel via webhook | 2h | Stretch only | — |
-| Twilio SMS | **Skip** — A2P/toll-free verification takes days; Photon free tier includes RCS/SMS fallback | — | Skip | — |
 | Spacetime, Nessie, Solana, SpaceXAI, Free-WILi, Sustainability/FinTech/Hardware tracks | Don't fit; skip | — | Skip | — |
 
 Devpost: tag Photon, FinchNode, Neon, Gemini, Tiger Data, Fetch.ai, ElevenLabs, Figma, Notability, .Tech.
