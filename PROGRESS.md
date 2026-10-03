@@ -22,7 +22,7 @@
 2. ~~Shared ingest writer + `/ingest/samples`, `/ingest/hae`~~ merged (#28), live-verified on Neon (see Done)
 3. ~~Fitbit: resting HR, sleep, active minutes, HRV, SpO2~~ merged (#26), live-verified. Fitbit reports RMSSD, stored as `hrv_sdnn` with `meta.measure=rmssd`
 4. Fetch.ai uAgent: merged (#31); mailbox connected; ASI:One linking merged (#32, 6-char codes, 15 min expiry). Address `agent1qw9glwdgrmg9tmd7fj9u6wst50d38hwcaat09nck0aml3jvdkrrf6n7pxcv` comes from `AGENT_SEED` (the deployed service must use the same seed). Left: end-to-end test in ASI:One (needs a signed-in user to create a code on onboarding step 6 and the agent on Neon), Agentverse profile, repo README with badges + address, MHacks submission agent, promo codes
-5. Deploy: Dockerfiles, Railway services (`agent-api`, `agent-fetchai`, `gateway`), CI (ruff, pytest, contracts `--check`, web build), `scripts/smoke.sh`, UptimeRobot
+5. Deploy: files written (PR): `infra/Dockerfile.agent` (one image; `SERVICE=api|fetchai`), `infra/entrypoint.sh`, `infra/railway.*.toml`, `.dockerignore`, `.github/workflows/ci.yml` (agent, gateway, web), `scripts/smoke.sh`, `infra/DEPLOY.md` (services, env table, post-deploy steps, monitors). Checked by replaying the image steps natively (no-dev install, imports, fixture path, entrypoint) and by running every CI command locally; Docker itself was not available, so the first Railway build is untested. Left: create the Railway project and services, set env vars, add the deployed OAuth callbacks, connect the deployed uAgent mailbox, UptimeRobot
 6. **FinchNode (P)**: live-verified for all 6 scenarios; offline fixtures now cover all 6; twin also carries `immunizations`, `encounters` and richer provenance (additive keys). Not done: show provenance on `/twin` (J's page); authenticated `/api/v1` mode (needs a key from finchnode.com); FHIR bundle endpoints. Dropped: seeding FinchNode vitals into the live pool (record dates are months to years old, Spacetime keeps 48h)
 7. Google OAuth consent screen: rename "Rest Recommender" → "Pulse", publish to "In production" (Testing-mode refresh tokens expire in 7 days), add prod redirect URIs once deployed
 
@@ -37,4 +37,3 @@
 - `.env` values can contain `&` (Neon URLs), so do not `source` it in a shell; `app.core.config.settings()` reads it directly
 - Spacetime: P's token is an admin, not the owner. Set `SPACETIME_ADMIN_VIEWS=1` locally; the deployed agent uses the owner token with it unset
 - Local `.env` leaks into tests (`Settings` reads it). Run `INTERNAL_TOKEN=dev-internal-token uv run pytest` if the twin tests fail
-
