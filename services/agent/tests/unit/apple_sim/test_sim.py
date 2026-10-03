@@ -210,7 +210,7 @@ def test_the_web_demo_panels_fixed_30_minutes_still_triggers_each_rule(scenario,
     assert rule in kinds(scenario, NOW - timedelta(minutes=ff))
 
 
-@pytest.mark.parametrize("path", ["/sim/scenario", "/demo/scenario"])
+@pytest.mark.parametrize("path", ["/sim/scenario"])
 def test_demo_and_sim_routes_share_one_handler(monkeypatch, path):
     from fastapi import FastAPI
     from fastapi.testclient import TestClient

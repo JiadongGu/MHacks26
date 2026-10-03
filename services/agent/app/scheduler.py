@@ -12,6 +12,8 @@ async def _heartbeat() -> None:
 
 
 def start() -> None:
+    from app.agents.compass import sweep_proposals
+    from app.agents.compass import tick as compass_tick
     from app.agents.live import sweep_all
     from app.integrations.apple_sim.engine import tick as sim_tick
     from app.integrations.fitbit.sync import sync_all as fitbit_sync
@@ -22,6 +24,8 @@ def start() -> None:
     scheduler.add_job(gcal_refresh, "interval", minutes=30, id="gcal_refresh", max_instances=1)
     scheduler.add_job(fitbit_sync, "interval", minutes=5, id="fitbit_sync", max_instances=1)
     scheduler.add_job(sim_tick, "interval", minutes=1, id="sim_tick", max_instances=1)
+    scheduler.add_job(compass_tick, "interval", minutes=5, id="compass_tick", max_instances=1)
+    scheduler.add_job(sweep_proposals, "interval", minutes=15, id="proposal_sweep", max_instances=1)
     scheduler.start()
 
 
