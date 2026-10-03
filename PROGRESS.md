@@ -20,7 +20,7 @@
 ## Next — P (priority order)
 1. ~~Apple Watch simulator~~ built (PR): personas + 6 scenarios + fast_forward + per-minute tick; tested against the real rules. Needs a run against live Neon + Spacetime
 2. ~~Shared ingest writer + `/ingest/samples`, `/ingest/hae`~~ built (PR): Spacetime `ingest`, idempotent Neon `daily_summary` (point metrics replace; minute metrics recomputed from `minute_agg`), `ingest_log`, `on_samples_ingested`; Fitbit now routes through it
-3. Fitbit: resting HR, sleep (total/deep/REM), active minutes from the Health API
+3. ~~Fitbit: resting HR, sleep, active minutes~~ built (PR) and checked against a real week of Inspire 3 data: also SpO2 and HRV. Daily metrics are fetched by whole civil days (2 per poll, 7 on connect) and replace the day's `daily_summary` row. Fitbit reports RMSSD, stored as `hrv_sdnn` with `meta.measure=rmssd`
 4. Fetch.ai uAgent: mailbox agent, chat protocol, tools → `/agent/inbound`, `/proposals`; Agentverse profile + README badges; ASI:One submission (PLAN §7.6)
 5. Deploy: Dockerfiles, Railway services (`agent-api`, `agent-fetchai`, `gateway`), CI (ruff, pytest, contracts `--check`, web build), `scripts/smoke.sh`, UptimeRobot
 6. **FinchNode (moved to P)**: owns the client, `from_finchnode()` mapping, `/twin/import`, `/twin/finchnode/patients`, fixtures. Ideas for the sponsor track: use the authenticated `/api/v1` with a `ck_test_` key, import more categories (immunizations, encounters), FHIR endpoints, provenance shown in `/twin`. Keep `DigitalTwin.model` keys stable — rules read them

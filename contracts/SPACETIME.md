@@ -17,7 +17,9 @@ Database: **`pulse-live-t8ng8`** on maincloud (names are global; dashboard https
 
 Publish: `cd infra/spacetime && spacetime publish pulse-live-t8ng8` (confirm the maincloud prompt).
 
-Add a writer (e.g. P's local dev): they run `spacetime login` then `spacetime login show` and send their identity; an existing admin runs `spacetime call pulse-live-t8ng8 add_admin '"0x<identity>"'` (remove with `remove_admin`). Admins can call `ingest` with their own token but cannot SQL-read private tables (owner only) — the deployed agent uses the owner token.
+Add a writer (e.g. P's local dev): they run `spacetime login` then `spacetime login show` and send their identity; an existing admin runs `spacetime call pulse-live-t8ng8 add_admin '"0x<identity>"'` (remove with `remove_admin`). Admins can call `ingest` with their own token but cannot SQL-read private tables (owner only). The deployed agent uses the owner token.
+
+**Admin reads (non-owner):** call `watch_user(user_id)` once per user you need (admin-only; `unwatch_user` to drop), then query the views with your own token: `SELECT * FROM admin_minute_agg WHERE user_id = '<uuid>' AND minute_ms >= <ms>` and `SELECT * FROM admin_sample WHERE user_id = '<uuid>' AND ts_ms >= <ms>`. Same columns as the tables. Non-admins get 0 rows. `app/core/spacetime.py` callers can switch table names by config when not using the owner token.
 
 ```
 sample      (private)  id u64 pk autoinc, user_id string btree, metric string, value f64,
@@ -49,4 +51,5 @@ await spacetime.call("ingest", [rows])
 - Owner token SELECTs private tables; anonymous identity gets "no such table" for `sample` and `ingest` is rejected.
 - `/sql` returns `[{schema:{elements:[{name:{some}}]}, rows}]`; `app/core/spacetime.py` parses it.
 - `ingest` is idempotent on `(user_id, metric, source, ts_ms)`: resend leaves `n` unchanged; a corrected value adjusts `sum`/`avg` (`min`/`max` only widen).
-- Retention: scheduled `retention` every 10 min (u64 range delete builds; not yet observed firing).
+- Retention fires: a sample stamped 12 days old was deleted within one 10-min tick; its `minute_agg` row (within 30 d) was kept.
+- Admin views: stand-in admin after `watch_user` reads 1 row each from `admin_minute_agg` / `admin_sample` with a time filter; a non-admin reads 0.

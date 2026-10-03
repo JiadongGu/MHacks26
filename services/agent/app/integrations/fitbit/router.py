@@ -32,7 +32,7 @@ async def callback(code: str | None = None, state: str | None = None, error: str
         log.warning("event=fitbit_callback_failed err=%s", e)
         return RedirectResponse(f"{web}/settings?fitbit=error")
     try:
-        await sync.sync_user(UUID(user_id), sync.BACKFILL_MIN)
+        await sync.sync_user(UUID(user_id), sync.BACKFILL_MIN, sync.BACKFILL_DAYS)
     except Exception as e:  # a failed backfill must not undo the connection
         log.warning("event=fitbit_backfill_failed user=%s err=%s", user_id, e)
     return RedirectResponse(f"{web}/settings?fitbit=connected")
@@ -45,8 +45,8 @@ async def status(user_id: UUID):
 
 
 @router.post("/integrations/fitbit/sync")
-async def sync_now(user_id: UUID, minutes: int = sync.LOOKBACK_MIN):
+async def sync_now(user_id: UUID, minutes: int = sync.LOOKBACK_MIN, days: int = sync.DAILY_LOOKBACK_DAYS):
     try:
-        return {"n": await sync.sync_user(user_id, minutes)}
+        return {"n": await sync.sync_user(user_id, minutes, days)}
     except LookupError:
         raise HTTPException(404, "fitbit not connected") from None

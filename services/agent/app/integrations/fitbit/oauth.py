@@ -34,17 +34,23 @@ def authorization_url(user_id: str) -> str:
     challenge = base64.urlsafe_b64encode(hashlib.sha256(verifier.encode()).digest()).rstrip(b"=").decode()
     payload = {"u": user_id, "v": verifier, "t": int(time.time())}
     state = fernet().encrypt(json.dumps(payload).encode()).decode()
-    return AUTH_URL + "?" + urlencode({
-        "response_type": "code",
-        "client_id": settings().fitbit_client_id,
-        "redirect_uri": redirect_uri(),
-        "scope": SCOPES,
-        "access_type": "offline",
-        "prompt": "consent select_account",
-        "state": state,
-        "code_challenge": challenge,
-        "code_challenge_method": "S256",
-    })
+    return (
+        AUTH_URL
+        + "?"
+        + urlencode(
+            {
+                "response_type": "code",
+                "client_id": settings().fitbit_client_id,
+                "redirect_uri": redirect_uri(),
+                "scope": SCOPES,
+                "access_type": "offline",
+                "prompt": "consent select_account",
+                "state": state,
+                "code_challenge": challenge,
+                "code_challenge_method": "S256",
+            }
+        )
+    )
 
 
 def _token_row(resp: dict[str, Any]) -> dict[str, Any]:

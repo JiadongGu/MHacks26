@@ -15,6 +15,8 @@ def test_schemas_not_stale():
 
 def test_health(monkeypatch):
     monkeypatch.setenv("SCHEDULER_ENABLED", "false")
+    for k in ("DATABASE_URL", "TIGER_DATABASE_URL", "GATEWAY_URL"):
+        monkeypatch.setenv(k, "")
     from app.core.config import settings
     settings.cache_clear()
     from app.main import app

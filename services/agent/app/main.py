@@ -68,3 +68,10 @@ app.include_router(sim_router)
 from app.vitals.router import router as vitals_router  # noqa: E402
 
 app.include_router(vitals_router)
+from app.agents.chat import router as chat_router  # noqa: E402
+from app.channels.router import router as channels_router  # noqa: E402
+from app.demo.router import router as demo_router  # noqa: E402
+
+app.include_router(chat_router)
+app.include_router(channels_router)
+app.include_router(demo_router)
