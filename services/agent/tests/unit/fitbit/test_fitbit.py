@@ -212,3 +212,91 @@ def test_client_asks_for_whole_civil_days_for_daily_types_and_sleep():
         'sleep.interval.civil_end_time >= "2026-10-02T00:00:00" '
         'AND sleep.interval.civil_end_time < "2026-10-04T00:00:00"'
     )
+
+
+NOT_LINKED = {
+    "error": {
+        "code": 400,
+        "message": "The account is not linked to Google Health.",
+        "status": "FAILED_PRECONDITION",
+        "details": [{"reason": "ACCOUNT_NOT_LINKED", "domain": "health.googleapis.com"}],
+    }
+}
+
+
+def _client():
+    return HealthClient({"access_token": "t", "refresh_token": "r", "expires_at": time.time() + 3600})
+
+
+@respx.mock
+def test_unlinked_google_account_raises_a_typed_error():
+    from app.integrations.fitbit.client import AccountNotLinked
+
+    respx.get(API + "/dataTypes/heart-rate/dataPoints").mock(
+        return_value=httpx.Response(400, json=NOT_LINKED)
+    )
+    with pytest.raises(AccountNotLinked):
+        _client().list_points("heart-rate", "f")
+
+
+@respx.mock
+def test_other_client_errors_still_raise_http_status_error():
+    other = {"error": {"message": "bad filter", "details": [{"reason": "INVALID_DATA_POINT_FILTER"}]}}
+    respx.get(API + "/dataTypes/heart-rate/dataPoints").mock(return_value=httpx.Response(400, json=other))
+    with pytest.raises(httpx.HTTPStatusError):
+        _client().list_points("heart-rate", "f")
+
+
+class CallbackFakes:
+    def __init__(self, backfill_error=None):
+        self.backfill_error, self.deleted, self.saved = backfill_error, [], []
+
+    def complete(self, code, state):
+        return str(UID), {"access_token": "a", "refresh_token": "r", "expires_at": 0, "scopes": []}
+
+    async def save(self, user_id, row):
+        self.saved.append(user_id)
+
+    async def delete(self, user_id):
+        self.deleted.append(user_id)
+
+    async def sync_user(self, user_id, minutes, days):
+        if self.backfill_error:
+            raise self.backfill_error
+        return 3
+
+
+def _callback(monkeypatch, fakes):
+    from fastapi import FastAPI
+    from fastapi.testclient import TestClient
+
+    from app.integrations.fitbit import router as fr
+
+    monkeypatch.setattr(fr.oauth, "complete", fakes.complete)
+    monkeypatch.setattr(fr.store, "save", fakes.save)
+    monkeypatch.setattr(fr.store, "delete", fakes.delete)
+    monkeypatch.setattr(fr.sync, "sync_user", fakes.sync_user)
+    app = FastAPI()
+    app.include_router(fr.public)
+    r = TestClient(app).get("/integrations/fitbit/callback?code=c&state=s", follow_redirects=False)
+    return r.headers["location"].split("/settings")[1]
+
+
+def test_callback_reports_an_unlinked_account_and_removes_the_unusable_connection(monkeypatch):
+    from app.integrations.fitbit.client import AccountNotLinked
+
+    fakes = CallbackFakes(AccountNotLinked("x"))
+    assert _callback(monkeypatch, fakes) == "?fitbit=notlinked"
+    assert fakes.deleted == [UID]
+
+
+def test_callback_keeps_the_connection_when_the_backfill_fails_for_another_reason(monkeypatch):
+    fakes = CallbackFakes(RuntimeError("boom"))
+    assert _callback(monkeypatch, fakes) == "?fitbit=connected"
+    assert fakes.deleted == []
+
+
+def test_callback_success(monkeypatch):
+    fakes = CallbackFakes()
+    assert _callback(monkeypatch, fakes) == "?fitbit=connected"
+    assert fakes.saved == [UID] and fakes.deleted == []

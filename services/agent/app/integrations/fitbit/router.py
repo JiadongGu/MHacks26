@@ -10,6 +10,7 @@ from app.core.config import settings
 from app.core.logging import log
 
 from . import oauth, store, sync
+from .client import AccountNotLinked
 
 public = APIRouter()
 router = APIRouter(dependencies=[Depends(require_internal)])
@@ -33,7 +34,11 @@ async def callback(code: str | None = None, state: str | None = None, error: str
         return RedirectResponse(f"{web}/settings?fitbit=error")
     try:
         await sync.sync_user(UUID(user_id), sync.BACKFILL_MIN, sync.BACKFILL_DAYS)
-    except Exception as e:  # a failed backfill must not undo the connection
+    except AccountNotLinked:
+        log.warning("event=fitbit_account_not_linked user=%s", user_id)
+        await store.delete(UUID(user_id))
+        return RedirectResponse(f"{web}/settings?fitbit=notlinked")
+    except Exception as e:  # any other backfill failure must not undo the connection
         log.warning("event=fitbit_backfill_failed user=%s err=%s", user_id, e)
     return RedirectResponse(f"{web}/settings?fitbit=connected")
 
