@@ -159,6 +159,63 @@ def test_classify_medication():
     assert builder.classify_medication("nystatin cream") is None
 
 
+def test_immunizations_latest_dose_per_vaccine_newest_first(harriet):
+    items = builder.from_finchnode(harriet, today=TODAY)["immunizations"]
+    assert len(items) == 3  # four doses, but the high-dose flu shot appears twice
+    assert next(i for i in items if i["code"] == "135")["date"] == "2025-10-14"
+    assert [i["date"] for i in items] == sorted((i["date"] for i in items), reverse=True)
+    assert {"display", "code", "date"} == set(items[0])
+
+
+def test_immunizations_skip_not_done_and_keep_newest_dose():
+    def shot(code, day, status="completed"):
+        return {
+            "status": status,
+            "vaccineCode": {"coding": [{"code": code, "display": "Flu"}]},
+            "occurrenceDateTime": day,
+        }
+
+    doses = [shot("88", "2023-10-01"), shot("88", "2024-10-02"), shot("21", "2025-01-01", "not-done")]
+    rec = {"immunizations": doses}
+    assert builder.from_finchnode(rec, today=TODAY)["immunizations"] == [
+        {"display": "Flu", "code": "88", "date": "2024-10-02"}
+    ]
+
+
+def test_encounters_are_the_five_most_recent(harriet):
+    items = builder.from_finchnode(harriet, today=TODAY)["encounters"]
+    assert len(items) == 5  # the record has 10
+    assert [e["date"] for e in items] == sorted((e["date"] for e in items), reverse=True)
+    assert {"type", "class", "date"} == set(items[0])
+
+
+def test_encounter_without_date_or_cancelled_is_dropped():
+    rec = {
+        "encounters": [
+            {"status": "finished", "type": [{"text": "Visit"}]},
+            {"status": "cancelled", "type": [{"text": "V"}], "period": {"start": "2025-01-01T10:00:00Z"}},
+            {"status": "finished","type": [{"text": "Checkup"}], "period": {"start": "2025-02-01T10:00:00Z"}},
+        ]
+    }
+    assert [e["type"] for e in builder.from_finchnode(rec, today=TODAY)["encounters"]] == ["Checkup"]
+
+
+def test_provenance_records_source_system_and_category_counts(morgan, jonah):
+    prov = builder.from_finchnode(morgan, today=TODAY)["provenance"]
+    assert prov["finchnode_system"] == "northstar-health"
+    assert prov["finchnode_synthetic"] is True
+    assert prov["finchnode_categories"]["medications"] == 6
+    sparse = builder.from_finchnode(jonah, today=TODAY)
+    assert sparse["immunizations"] == [] and sparse["encounters"][0]["date"]
+
+
+def test_new_keys_survive_onboarding_merge_and_empty_twin_has_them(morgan):
+    merged = builder.merge_onboarding(build(morgan), {}, [], {})
+    assert merged["immunizations"] and merged["encounters"]
+    empty = builder.empty_twin()
+    assert empty["immunizations"] == [] and empty["encounters"] == []
+
+
 def test_merge_onboarding(morgan):
     base = build(morgan)
     now = datetime(2026, 10, 3, 12, tzinfo=UTC)
