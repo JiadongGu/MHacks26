@@ -32,18 +32,15 @@ Agent persona name: **Pulse**. Working .tech domain candidates: `getpulse.tech`,
 | **FinchNode** | Onboarding "Import medical records" → seeds digital twin (conditions, meds, labs, vitals baseline, allergies); twin-aware thresholds | 2h | P0 | P (integration, since 2026-10-03); J (twin model) |
 | **Neon** | Postgres (long-term pool), **Neon Auth** (managed Better Auth) for sign-up/login, Drizzle, branch-per-PR in CI, pgvector (stretch) | 3h | P0 | J (schema), P (CI branch) |
 | **Gemini (MLH)** | All LLM calls: message phrasing (structured output), inbound chat with function calling, twin insights, briefing | — | P0 | J |
-| **Tiger Data (MLH)** | `vitals_raw` hypertable + continuous aggregates (1m/1h/1d) + retention policy = the short-term pool | 3h timeboxed | P1 | P |
+| **Spacetime** | Live pool: `sample` + `minute_agg` + retention, admin-only `ingest`; per-user views drive the live dashboard (replaced Tiger 2026-10-03) | — | P0 | J (module), P (writes) |
 | **Fetch.ai / ASI:One** | Mailbox uAgent implementing chat protocol with 3 visible tools (`get_status`, `get_sleep_summary`, `propose_sleep_block`); registered on Agentverse; separate submission via Submission Agent | 2.5h | P1 | P |
 | **ElevenLabs** | Spoken morning briefing on dashboard (TTS, cached per day) | 1.5h | P2 | J |
 | **Figma (Best Design)** | J designs in Figma via MCP on another account; dashboard follows it | parallel | P1 | J |
 | **.Tech domain (MLH)** | `*.tech` pointed at Vercel | 0.5h | P0 | J |
-| **Notability** | Architecture + wireframe sketches during hour 0–1; 2 screenshots in Devpost | 0.3h | P0 | both |
-| **Presage (MLH)** | Webcam vitals check-in (Node sidecar, 4–6h) | 5h | **Stretch only** | — |
 | Relay | Second text channel via webhook | 2h | Stretch only | — |
-| Twilio SMS | **Skip** — A2P/toll-free verification takes days; Photon free tier includes RCS/SMS fallback | — | Skip | — |
-| Spacetime, Nessie, Solana, SpaceXAI, Free-WILi, Sustainability/FinTech/Hardware tracks | Don't fit; skip | — | Skip | — |
+| Tiger Data, Notability, Presage, Twilio, Nessie, Solana, SpaceXAI, Free-WILi, Sustainability/FinTech/Hardware tracks | Skip | — | Skip | — |
 
-Devpost: tag Photon, FinchNode, Neon, Gemini, Tiger Data, Fetch.ai, ElevenLabs, Figma, Notability, .Tech.
+Devpost: tag Photon, FinchNode, Neon, Spacetime, Gemini, Fetch.ai, ElevenLabs, Figma, .Tech.
 
 ---
 
@@ -105,8 +102,8 @@ MHacks26/
 │   ├── app/main.py                    SHARED (append-only router registration; one line per router)
 │   ├── app/core/{config,db,auth,logging}.py   SHARED, frozen after hour 2
 │   ├── app/contracts/*.py             SHARED, frozen after hour 2 (Pydantic source of truth)
-│   ├── app/ingest/                    P   (/ingest/samples, /ingest/hae, Tiger writer, daily_summary upsert)
-│   ├── app/vitals/                    P   (/vitals/latest, /vitals/series, /vitals/daily — reads Tiger CAGGs)
+│   ├── app/ingest/                    P   (/ingest/samples, /ingest/hae, Spacetime `ingest` writer, daily_summary upsert)
+│   ├── app/vitals/                    P   (/vitals/latest, /vitals/series, /vitals/daily — reads Spacetime `minute_agg` + Neon `daily_summary`)
 │   ├── app/integrations/fitbit/       P
 │   ├── app/integrations/apple_sim/    P   (simulator personas + scenario switch)
 │   ├── app/integrations/gcal/         J   (/integrations/google/*, /calendar/*)
@@ -243,7 +240,7 @@ ScenarioRequest {user_id, scenario: 'normal'|'workout_now'|'illness_onset'|'grea
 **P implements, J consumes**
 | Endpoint | Purpose |
 |---|---|
-| `POST /ingest/samples` (IngestBatch) | write to Tiger + daily_summary; then call `live.on_samples_ingested` |
+| `POST /ingest/samples` (IngestBatch) | write to Spacetime + daily_summary; then call `live.on_samples_ingested` |
 | `POST /ingest/hae` (Health Auto Export JSON) | parse → IngestBatch → same path; simulator posts here |
 | `GET /vitals/latest?user_id&metrics=a,b` | latest value per metric |
 | `GET /vitals/series?user_id&metric&from&to&bucket=raw\|1m\|1h\|1d` | from CAGGs |
@@ -341,7 +338,7 @@ Mailbox agent (`mailbox=True, publish_agent_details=True`, stable `AGENT_SEED`),
 - `apply` proposal: `freebusy.query` to confirm slot, `events.insert` into "Pulse Health" with description = rationale + "Created by Pulse with your approval". Store `google_event_id`.
 - Libraries: `google-api-python-client google-auth-oauthlib`.
 
-### 8.4 Ingest + Tiger (`app/ingest/`, `app/vitals/`)
+### 8.4 Ingest + Spacetime (`app/ingest/`, `app/vitals/`) — Tiger details below are superseded by contracts/SPACETIME.md
 - Writer: `executemany` with `ON CONFLICT DO NOTHING`; upsert `daily_summary` (Neon) for affected (user, day, metric); then `await live.on_samples_ingested(user_id, metrics)` wrapped in try/except.
 - Reads: `vitals_1m/1h/1d` views; `latest` from `vitals_raw` with `ORDER BY ts DESC LIMIT 1` per metric (use `DISTINCT ON`).
 
@@ -429,8 +426,8 @@ Reliability for the unattended window: UptimeRobot (free) on three `/health` URL
 | 3–6 | Rules engine + live agent + notify + fake LLM; gateway deployed and linked to your phone; first "nice workout" iMessage from `/demo/scenario workout_now`. | Fitbit OAuth + backfill + webhook + poll; `/vitals/*` read API; simulator scenarios + `/sim/scenario`. | **h6: thin slice end-to-end live** (sim → rules → iMessage + dashboard row) |
 | 6–10 | Onboarding (7 steps) incl. FinchNode import → twin v1; dashboard v1 with live sparkline, goals, alerts, proposals, demo panel. Real Gemini phrasing. | (GCal moved to J) | **h10: demo path 1–4 (section 14) works on prod** |
 | 10–14 | Compass jobs (briefing, evening, twin rebuild, proposals sweep); `/agent/inbound` with tools + "yes" approval; settings/quiet hours. | Fetch.ai uAgent deployed, mailbox connected, Agentverse profile + README badges; integration tests + CI green; `smoke.sh`. | h14: ASI:One chat answers "how did I sleep" |
-| 14–17 | ElevenLabs briefing; Figma polish applied; `/twin` page; Playwright e2e. | Tiger CAGGs hierarchical + retention; Neon branch-per-PR; UptimeRobot; Fitbit real data verified on dashboard; fix list. | h17: **feature freeze** |
-| 17–20 | Demo video (3–5 min, also needed for Fetch.ai), Devpost text + screenshots (Notability, Figma), README. | ASI:One Submission Agent; final `smoke.sh`; Google re-consent; Neon plan check; seed demo user; rehearsal. | Submit ≥30 min early |
+| 14–17 | ElevenLabs briefing; Figma polish applied; `/twin` page; Playwright e2e. | Neon branch-per-PR; UptimeRobot; Fitbit real data verified on dashboard; fix list. | h17: **feature freeze** |
+| 17–20 | Demo video (3–5 min, also needed for Fetch.ai), Devpost text + screenshots (Figma), README. | ASI:One Submission Agent; final `smoke.sh`; Google re-consent; Neon plan check; seed demo user; rehearsal. | Submit ≥30 min early |
 
 Cut order if behind (first to go): Presage/Relay (already out) → Tiger CAGG polish (fallback to Neon views) → ElevenLabs → Fetch.ai tools beyond forwarding → `/twin` page → weekly review job → evening check.
 
@@ -443,7 +440,7 @@ Cut order if behind (first to go): Presage/Relay (already out) → Tiger CAGG po
 3. **Autonomy (60s):** press "Simulate illness onset" (+ an "Exam" event already on the calendar tomorrow) → iMessage: "Resting HR 71 vs your usual 62, 5h sleep, HRV down 30%. With your exam Thursday I'd protect tonight: block 10pm–6am for sleep? Reply YES." Reply YES → event appears in Google Calendar ("Pulse Health") → confirmation text; dashboard status → "possibly ill".
 4. **Conversation (30s):** text "how am I doing on steps this week?" → tool-backed answer; ask the same on ASI:One.
 5. **Briefing (20s):** press "Run morning briefing" → card on dashboard, play ElevenLabs audio.
-6. **Architecture slide (30s):** two pools (Tiger live / Neon long-term), two agents, FinchNode twin, Photon, Fetch.ai, Gemini.
+6. **Architecture slide (30s):** two pools (Spacetime live / Neon long-term), two agents, FinchNode twin, Photon, Fetch.ai, Gemini.
 
 ---
 
@@ -480,7 +477,7 @@ Subagent prompt template: paste section 4 (ownership), section 6 (contracts), th
 | Fitbit legacy app can't authorize / intraday denied | medium | h1 go/no-go; fallback = Fitbit persona in simulator with `source=fitbit`; still show the integration code |
 | Photon free line can't message first | medium | user texts link code first (designed in); SMS fallback is built into Photon |
 | Gemini free RPD exhausted | medium | deterministic rules + templates; `LLM_FAKE` fallback; enable billing with $15 cap |
-| Tiger free tier CAGGs unsupported / pauses | medium | portable DDL; `TIGER_DATABASE_URL` unset → Neon views; decide at h5 |
+| Spacetime free maincloud pauses idle DBs | medium | resumes in seconds on access; warm it before the demo; the 1-min live sweep keeps it active |
 | Neon free CU-hours run out mid-judging | low-medium | monitor usage; upgrade to Launch (~$8) |
 | Google Testing-mode refresh token expiry (7 days) | low | consent on day of submission; token error → alert in `job_runs` + dashboard banner |
 | Railway/scheduler dies overnight | low | UptimeRobot alerts to both phones; restart policy; idempotent jobs |
