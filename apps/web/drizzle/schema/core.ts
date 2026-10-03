@@ -72,6 +72,24 @@ export const focus_areas = pgTable(
   (t) => [primaryKey({ columns: [t.user_id, t.key] })],
 );
 
+// One plan per person per local day: the load of the day, the timed items, and the bedtime. Written by services/agent/app/planner.
+export const daily_plans = pgTable(
+  "daily_plans",
+  {
+    user_id: uuid("user_id").notNull(),
+    day: date("day").notNull(),
+    load: text("load", { enum: ["light", "normal", "packed"] }).notNull(),
+    headline: text("headline").notNull(),
+    bed_time: text("bed_time"),
+    wake_time: text("wake_time"),
+    items: jsonb("items")
+      .notNull()
+      .default(sql`'[]'::jsonb`),
+    created_at: tz("created_at").notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.user_id, t.day] })],
+);
+
 export const goals = pgTable(
   "goals",
   {
