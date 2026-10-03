@@ -42,12 +42,49 @@
                 "birthDate": "1988-04-17",
                 "address": [
                     {
+                        "use": "home",
+                        "line": [
+                            "104 Example Lane",
+                            "Unit 2"
+                        ],
                         "city": "Demo City",
                         "state": "CA",
                         "postalCode": "00000",
                         "country": "US"
                     }
-                ]
+                ],
+                "active": true,
+                "telecom": [
+                    {
+                        "system": "phone",
+                        "value": "+1-202-555-0142",
+                        "use": "mobile"
+                    },
+                    {
+                        "system": "email",
+                        "value": "morgan.rivera@example.test",
+                        "use": "home"
+                    }
+                ],
+                "communication": [
+                    {
+                        "language": {
+                            "coding": [
+                                {
+                                    "system": "urn:ietf:bcp:47",
+                                    "code": "en-US",
+                                    "display": "English (United States)"
+                                }
+                            ],
+                            "text": "English (United States)"
+                        },
+                        "preferred": true
+                    }
+                ],
+                "managingOrganization": {
+                    "reference": "Organization/organization-demo-001",
+                    "display": "Northstar Health System (Synthetic)"
+                }
             }
         ],
         "medications": [
@@ -71,13 +108,89 @@
                 },
                 "authoredOn": "2026-07-18",
                 "requester": {
-                    "reference": "Practitioner/practitioner-demo-001"
+                    "reference": "Practitioner/practitioner-demo-001",
+                    "display": "Dr. Avery Demo"
                 },
                 "dosageInstruction": [
                     {
-                        "text": "Take one synthetic tablet twice daily with meals."
+                        "text": "Take one synthetic tablet twice daily with meals.",
+                        "timing": {
+                            "code": {
+                                "coding": [
+                                    {
+                                        "system": "http://terminology.hl7.org/CodeSystem/v3-GTSAbbreviation",
+                                        "code": "BID",
+                                        "display": "Twice daily"
+                                    }
+                                ],
+                                "text": "Twice daily"
+                            },
+                            "repeat": {
+                                "frequency": 2,
+                                "period": 1,
+                                "periodUnit": "d",
+                                "boundsPeriod": {
+                                    "start": "2026-07-18"
+                                }
+                            }
+                        },
+                        "route": {
+                            "coding": [
+                                {
+                                    "system": "http://snomed.info/sct",
+                                    "code": "26643006",
+                                    "display": "Oral route"
+                                }
+                            ],
+                            "text": "Oral route"
+                        },
+                        "doseAndRate": [
+                            {
+                                "doseQuantity": {
+                                    "value": 1,
+                                    "unit": "tablet",
+                                    "code": "{tablet}",
+                                    "system": "http://unitsofmeasure.org"
+                                }
+                            }
+                        ]
                     }
-                ]
+                ],
+                "reasonCode": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://snomed.info/sct",
+                                "code": "44054006",
+                                "display": "Type 2 diabetes mellitus"
+                            }
+                        ],
+                        "text": "Type 2 diabetes mellitus"
+                    }
+                ],
+                "dispenseRequest": {
+                    "numberOfRepeatsAllowed": 2,
+                    "quantity": {
+                        "value": 60,
+                        "unit": "tablet",
+                        "code": "{tablet}",
+                        "system": "http://unitsofmeasure.org"
+                    },
+                    "expectedSupplyDuration": {
+                        "value": 30,
+                        "unit": "days",
+                        "code": "d",
+                        "system": "http://unitsofmeasure.org"
+                    }
+                },
+                "note": [
+                    {
+                        "text": "Synthetic example. Medication reconciliation completed; sample instructions are for UI testing only."
+                    }
+                ],
+                "meta": {
+                    "lastUpdated": "2026-08-25T16:58:00Z"
+                }
             },
             {
                 "resourceType": "MedicationRequest",
@@ -99,13 +212,525 @@
                 },
                 "authoredOn": "2026-07-18",
                 "requester": {
-                    "reference": "Practitioner/practitioner-demo-001"
+                    "reference": "Practitioner/practitioner-demo-001",
+                    "display": "Dr. Avery Demo"
                 },
                 "dosageInstruction": [
                     {
-                        "text": "Take one synthetic tablet daily."
+                        "text": "Take one synthetic tablet daily.",
+                        "timing": {
+                            "code": {
+                                "coding": [
+                                    {
+                                        "system": "http://terminology.hl7.org/CodeSystem/v3-GTSAbbreviation",
+                                        "code": "QD",
+                                        "display": "Daily"
+                                    }
+                                ],
+                                "text": "Daily"
+                            },
+                            "repeat": {
+                                "frequency": 1,
+                                "period": 1,
+                                "periodUnit": "d",
+                                "boundsPeriod": {
+                                    "start": "2026-07-18"
+                                }
+                            }
+                        },
+                        "route": {
+                            "coding": [
+                                {
+                                    "system": "http://snomed.info/sct",
+                                    "code": "26643006",
+                                    "display": "Oral route"
+                                }
+                            ],
+                            "text": "Oral route"
+                        },
+                        "doseAndRate": [
+                            {
+                                "doseQuantity": {
+                                    "value": 1,
+                                    "unit": "tablet",
+                                    "code": "{tablet}",
+                                    "system": "http://unitsofmeasure.org"
+                                }
+                            }
+                        ]
                     }
-                ]
+                ],
+                "reasonCode": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://snomed.info/sct",
+                                "code": "38341003",
+                                "display": "Hypertensive disorder"
+                            }
+                        ],
+                        "text": "Hypertension"
+                    }
+                ],
+                "dispenseRequest": {
+                    "numberOfRepeatsAllowed": 2,
+                    "quantity": {
+                        "value": 30,
+                        "unit": "tablet",
+                        "code": "{tablet}",
+                        "system": "http://unitsofmeasure.org"
+                    },
+                    "expectedSupplyDuration": {
+                        "value": 30,
+                        "unit": "days",
+                        "code": "d",
+                        "system": "http://unitsofmeasure.org"
+                    }
+                },
+                "note": [
+                    {
+                        "text": "Synthetic example. Medication reconciliation completed; sample instructions are for UI testing only."
+                    }
+                ],
+                "meta": {
+                    "lastUpdated": "2026-08-25T16:58:00Z"
+                }
+            },
+            {
+                "resourceType": "MedicationRequest",
+                "id": "medication-demo-completed",
+                "status": "completed",
+                "intent": "order",
+                "medicationCodeableConcept": {
+                    "coding": [
+                        {
+                            "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+                            "code": "861007",
+                            "display": "Metformin 500 MG Oral Tablet"
+                        }
+                    ],
+                    "text": "Metformin 500 mg tablet"
+                },
+                "subject": {
+                    "reference": "Patient/patient-demo-001"
+                },
+                "authoredOn": "2026-01-18",
+                "requester": {
+                    "reference": "Practitioner/practitioner-demo-001",
+                    "display": "Dr. Avery Demo"
+                },
+                "dosageInstruction": [
+                    {
+                        "text": "Previous synthetic regimen: one tablet daily.",
+                        "timing": {
+                            "code": {
+                                "coding": [
+                                    {
+                                        "system": "http://terminology.hl7.org/CodeSystem/v3-GTSAbbreviation",
+                                        "code": "QD",
+                                        "display": "Daily"
+                                    }
+                                ],
+                                "text": "Daily"
+                            },
+                            "repeat": {
+                                "frequency": 1,
+                                "period": 1,
+                                "periodUnit": "d",
+                                "boundsPeriod": {
+                                    "start": "2026-01-18",
+                                    "end": "2026-07-17"
+                                }
+                            }
+                        },
+                        "route": {
+                            "coding": [
+                                {
+                                    "system": "http://snomed.info/sct",
+                                    "code": "26643006",
+                                    "display": "Oral route"
+                                }
+                            ],
+                            "text": "Oral route"
+                        },
+                        "doseAndRate": [
+                            {
+                                "doseQuantity": {
+                                    "value": 1,
+                                    "unit": "tablet",
+                                    "code": "{tablet}",
+                                    "system": "http://unitsofmeasure.org"
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "reasonCode": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://snomed.info/sct",
+                                "code": "44054006",
+                                "display": "Type 2 diabetes mellitus"
+                            }
+                        ],
+                        "text": "Type 2 diabetes mellitus"
+                    }
+                ],
+                "dispenseRequest": {
+                    "numberOfRepeatsAllowed": 2,
+                    "quantity": {
+                        "value": 30,
+                        "unit": "tablet",
+                        "code": "{tablet}",
+                        "system": "http://unitsofmeasure.org"
+                    },
+                    "expectedSupplyDuration": {
+                        "value": 30,
+                        "unit": "days",
+                        "code": "d",
+                        "system": "http://unitsofmeasure.org"
+                    }
+                },
+                "note": [
+                    {
+                        "text": "Synthetic example. Medication reconciliation completed; sample instructions are for UI testing only."
+                    }
+                ],
+                "meta": {
+                    "lastUpdated": "2026-08-25T16:58:00Z"
+                }
+            },
+            {
+                "resourceType": "MedicationAdministration",
+                "id": "administration-demo-001",
+                "status": "completed",
+                "medicationCodeableConcept": {
+                    "coding": [
+                        {
+                            "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+                            "code": "861007",
+                            "display": "Metformin 500 MG Oral Tablet"
+                        }
+                    ],
+                    "text": "Metformin 500 mg tablet"
+                },
+                "subject": {
+                    "reference": "Patient/patient-demo-001"
+                },
+                "effectiveDateTime": "2026-07-18T16:00:00Z",
+                "performer": [
+                    {
+                        "actor": {
+                            "reference": "Practitioner/practitioner-demo-001",
+                            "display": "Dr. Avery Demo"
+                        }
+                    }
+                ],
+                "reasonCode": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://snomed.info/sct",
+                                "code": "44054006",
+                                "display": "Type 2 diabetes mellitus"
+                            }
+                        ],
+                        "text": "Type 2 diabetes mellitus"
+                    }
+                ],
+                "dosage": {
+                    "text": "One 500 mg tablet by mouth (synthetic)",
+                    "dose": {
+                        "value": 500,
+                        "unit": "mg",
+                        "code": "mg",
+                        "system": "http://unitsofmeasure.org"
+                    },
+                    "route": {
+                        "coding": [
+                            {
+                                "system": "http://snomed.info/sct",
+                                "code": "26643006",
+                                "display": "Oral route"
+                            }
+                        ],
+                        "text": "Oral route"
+                    },
+                    "site": {
+                        "coding": [
+                            {
+                                "system": "https://finchnode.com/synthetic-data/codes",
+                                "code": "mouth",
+                                "display": "Mouth"
+                            }
+                        ],
+                        "text": "Mouth"
+                    }
+                },
+                "device": [
+                    {
+                        "display": "Synthetic unit-dose medicine cup"
+                    }
+                ],
+                "note": [
+                    {
+                        "text": "Synthetic example. Observed sample dose at the demo clinic."
+                    }
+                ],
+                "meta": {
+                    "lastUpdated": "2026-08-25T16:58:00Z"
+                }
+            },
+            {
+                "resourceType": "MedicationDispense",
+                "id": "dispense-medication-demo-001",
+                "status": "completed",
+                "medicationCodeableConcept": {
+                    "coding": [
+                        {
+                            "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+                            "code": "861007",
+                            "display": "Metformin 500 MG Oral Tablet"
+                        }
+                    ],
+                    "text": "Metformin 500 mg tablet"
+                },
+                "subject": {
+                    "reference": "Patient/patient-demo-001"
+                },
+                "type": {
+                    "coding": [
+                        {
+                            "system": "https://finchnode.com/synthetic-data/codes",
+                            "code": "refill",
+                            "display": "Refill"
+                        }
+                    ],
+                    "text": "Refill"
+                },
+                "performer": [
+                    {
+                        "actor": {
+                            "reference": "Organization/organization-demo-001",
+                            "display": "Northstar Health System (Synthetic)"
+                        }
+                    }
+                ],
+                "authorizingPrescription": [
+                    {
+                        "reference": "MedicationRequest/medication-demo-001"
+                    }
+                ],
+                "quantity": {
+                    "value": 60,
+                    "unit": "tablet",
+                    "code": "{tablet}",
+                    "system": "http://unitsofmeasure.org"
+                },
+                "daysSupply": {
+                    "value": 30,
+                    "unit": "days",
+                    "code": "d",
+                    "system": "http://unitsofmeasure.org"
+                },
+                "whenPrepared": "2026-07-18T17:30:00Z",
+                "whenHandedOver": "2026-07-18T18:00:00Z",
+                "destination": {
+                    "display": "Northstar Demo Pharmacy (Synthetic)"
+                },
+                "receiver": [
+                    {
+                        "reference": "Patient/patient-demo-001",
+                        "display": "Synthetic patient"
+                    }
+                ],
+                "dosageInstruction": [
+                    {
+                        "text": "Take one synthetic tablet twice daily with meals.",
+                        "timing": {
+                            "code": {
+                                "coding": [
+                                    {
+                                        "system": "http://terminology.hl7.org/CodeSystem/v3-GTSAbbreviation",
+                                        "code": "BID",
+                                        "display": "Twice daily"
+                                    }
+                                ],
+                                "text": "Twice daily"
+                            },
+                            "repeat": {
+                                "frequency": 2,
+                                "period": 1,
+                                "periodUnit": "d",
+                                "boundsPeriod": {
+                                    "start": "2026-07-18"
+                                }
+                            }
+                        },
+                        "route": {
+                            "coding": [
+                                {
+                                    "system": "http://snomed.info/sct",
+                                    "code": "26643006",
+                                    "display": "Oral route"
+                                }
+                            ],
+                            "text": "Oral route"
+                        },
+                        "doseAndRate": [
+                            {
+                                "doseQuantity": {
+                                    "value": 1,
+                                    "unit": "tablet",
+                                    "code": "{tablet}",
+                                    "system": "http://unitsofmeasure.org"
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "substitution": {
+                    "wasSubstituted": false,
+                    "type": {
+                        "coding": [
+                            {
+                                "system": "https://finchnode.com/synthetic-data/codes",
+                                "code": "none",
+                                "display": "No substitution"
+                            }
+                        ],
+                        "text": "No substitution"
+                    }
+                },
+                "meta": {
+                    "lastUpdated": "2026-08-25T16:58:00Z"
+                }
+            },
+            {
+                "resourceType": "MedicationDispense",
+                "id": "dispense-medication-demo-002",
+                "status": "completed",
+                "medicationCodeableConcept": {
+                    "coding": [
+                        {
+                            "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+                            "code": "314076",
+                            "display": "Lisinopril 10 MG Oral Tablet"
+                        }
+                    ],
+                    "text": "Lisinopril 10 mg tablet"
+                },
+                "subject": {
+                    "reference": "Patient/patient-demo-001"
+                },
+                "type": {
+                    "coding": [
+                        {
+                            "system": "https://finchnode.com/synthetic-data/codes",
+                            "code": "refill",
+                            "display": "Refill"
+                        }
+                    ],
+                    "text": "Refill"
+                },
+                "performer": [
+                    {
+                        "actor": {
+                            "reference": "Organization/organization-demo-001",
+                            "display": "Northstar Health System (Synthetic)"
+                        }
+                    }
+                ],
+                "authorizingPrescription": [
+                    {
+                        "reference": "MedicationRequest/medication-demo-002"
+                    }
+                ],
+                "quantity": {
+                    "value": 30,
+                    "unit": "tablet",
+                    "code": "{tablet}",
+                    "system": "http://unitsofmeasure.org"
+                },
+                "daysSupply": {
+                    "value": 30,
+                    "unit": "days",
+                    "code": "d",
+                    "system": "http://unitsofmeasure.org"
+                },
+                "whenPrepared": "2026-07-18T17:30:00Z",
+                "whenHandedOver": "2026-07-18T18:00:00Z",
+                "destination": {
+                    "display": "Northstar Demo Pharmacy (Synthetic)"
+                },
+                "receiver": [
+                    {
+                        "reference": "Patient/patient-demo-001",
+                        "display": "Synthetic patient"
+                    }
+                ],
+                "dosageInstruction": [
+                    {
+                        "text": "Take one synthetic tablet daily.",
+                        "timing": {
+                            "code": {
+                                "coding": [
+                                    {
+                                        "system": "http://terminology.hl7.org/CodeSystem/v3-GTSAbbreviation",
+                                        "code": "QD",
+                                        "display": "Daily"
+                                    }
+                                ],
+                                "text": "Daily"
+                            },
+                            "repeat": {
+                                "frequency": 1,
+                                "period": 1,
+                                "periodUnit": "d",
+                                "boundsPeriod": {
+                                    "start": "2026-07-18"
+                                }
+                            }
+                        },
+                        "route": {
+                            "coding": [
+                                {
+                                    "system": "http://snomed.info/sct",
+                                    "code": "26643006",
+                                    "display": "Oral route"
+                                }
+                            ],
+                            "text": "Oral route"
+                        },
+                        "doseAndRate": [
+                            {
+                                "doseQuantity": {
+                                    "value": 1,
+                                    "unit": "tablet",
+                                    "code": "{tablet}",
+                                    "system": "http://unitsofmeasure.org"
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "substitution": {
+                    "wasSubstituted": false,
+                    "type": {
+                        "coding": [
+                            {
+                                "system": "https://finchnode.com/synthetic-data/codes",
+                                "code": "none",
+                                "display": "No substitution"
+                            }
+                        ],
+                        "text": "No substitution"
+                    }
+                },
+                "meta": {
+                    "lastUpdated": "2026-08-25T16:58:00Z"
+                }
             }
         ],
         "conditions": [
@@ -124,9 +749,11 @@
                     "coding": [
                         {
                             "system": "http://terminology.hl7.org/CodeSystem/condition-ver-status",
-                            "code": "confirmed"
+                            "code": "confirmed",
+                            "display": "Confirmed"
                         }
-                    ]
+                    ],
+                    "text": "Confirmed"
                 },
                 "code": {
                     "coding": [
@@ -142,7 +769,41 @@
                     "reference": "Patient/patient-demo-001"
                 },
                 "onsetDateTime": "2021-03-12",
-                "recordedDate": "2021-03-15"
+                "recordedDate": "2021-03-15",
+                "category": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/condition-category",
+                                "code": "problem-list-item",
+                                "display": "Problem list item"
+                            }
+                        ],
+                        "text": "Problem list item"
+                    }
+                ],
+                "severity": {
+                    "coding": [
+                        {
+                            "system": "http://snomed.info/sct",
+                            "code": "6736007",
+                            "display": "Moderate"
+                        }
+                    ],
+                    "text": "Moderate"
+                },
+                "recorder": {
+                    "reference": "Practitioner/practitioner-demo-001",
+                    "display": "Dr. Avery Demo"
+                },
+                "note": [
+                    {
+                        "text": "Synthetic example. Included in the active problem list at the follow-up visit."
+                    }
+                ],
+                "meta": {
+                    "lastUpdated": "2026-08-25T16:58:00Z"
+                }
             },
             {
                 "resourceType": "Condition",
@@ -168,7 +829,52 @@
                 "subject": {
                     "reference": "Patient/patient-demo-001"
                 },
-                "onsetDateTime": "2023-10-02"
+                "onsetDateTime": "2023-10-02",
+                "verificationStatus": {
+                    "coding": [
+                        {
+                            "system": "http://terminology.hl7.org/CodeSystem/condition-ver-status",
+                            "code": "confirmed",
+                            "display": "Confirmed"
+                        }
+                    ],
+                    "text": "Confirmed"
+                },
+                "category": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/condition-category",
+                                "code": "problem-list-item",
+                                "display": "Problem list item"
+                            }
+                        ],
+                        "text": "Problem list item"
+                    }
+                ],
+                "severity": {
+                    "coding": [
+                        {
+                            "system": "http://snomed.info/sct",
+                            "code": "6736007",
+                            "display": "Moderate"
+                        }
+                    ],
+                    "text": "Moderate"
+                },
+                "recordedDate": "2023-10-02",
+                "recorder": {
+                    "reference": "Practitioner/practitioner-demo-001",
+                    "display": "Dr. Avery Demo"
+                },
+                "note": [
+                    {
+                        "text": "Synthetic example. Included in the active problem list at the follow-up visit."
+                    }
+                ],
+                "meta": {
+                    "lastUpdated": "2026-08-25T16:58:00Z"
+                }
             }
         ],
         "labs": [
@@ -181,9 +887,11 @@
                         "coding": [
                             {
                                 "system": "http://terminology.hl7.org/CodeSystem/observation-category",
-                                "code": "laboratory"
+                                "code": "laboratory",
+                                "display": "Laboratory"
                             }
-                        ]
+                        ],
+                        "text": "Laboratory"
                     }
                 ],
                 "code": {
@@ -214,7 +922,44 @@
                         },
                         "text": "Synthetic reference: below 5.7%"
                     }
-                ]
+                ],
+                "performer": [
+                    {
+                        "reference": "Organization/organization-demo-001",
+                        "display": "Northstar Health System (Synthetic)"
+                    }
+                ],
+                "bodySite": {
+                    "coding": [
+                        {
+                            "system": "https://finchnode.com/synthetic-data/codes",
+                            "code": "left-antecubital-fossa",
+                            "display": "Left antecubital fossa"
+                        }
+                    ],
+                    "text": "Left antecubital fossa"
+                },
+                "interpretation": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+                                "code": "H",
+                                "display": "High"
+                            }
+                        ],
+                        "text": "High"
+                    }
+                ],
+                "issued": "2026-07-18T15:30:00Z",
+                "note": [
+                    {
+                        "text": "Synthetic example. Fixed measurement for chart and reference-range testing; ranges are illustrative."
+                    }
+                ],
+                "meta": {
+                    "lastUpdated": "2026-08-25T16:58:00Z"
+                }
             },
             {
                 "resourceType": "Observation",
@@ -225,9 +970,11 @@
                         "coding": [
                             {
                                 "system": "http://terminology.hl7.org/CodeSystem/observation-category",
-                                "code": "laboratory"
+                                "code": "laboratory",
+                                "display": "Laboratory"
                             }
-                        ]
+                        ],
+                        "text": "Laboratory"
                     }
                 ],
                 "code": {
@@ -249,6 +996,54 @@
                     "unit": "mg/dL",
                     "system": "http://unitsofmeasure.org",
                     "code": "mg/dL"
+                },
+                "referenceRange": [
+                    {
+                        "high": {
+                            "value": 100,
+                            "unit": "mg/dL",
+                            "code": "mg/dL",
+                            "system": "http://unitsofmeasure.org"
+                        },
+                        "text": "Synthetic reference: below 100 mg/dL"
+                    }
+                ],
+                "performer": [
+                    {
+                        "reference": "Organization/organization-demo-001",
+                        "display": "Northstar Health System (Synthetic)"
+                    }
+                ],
+                "bodySite": {
+                    "coding": [
+                        {
+                            "system": "https://finchnode.com/synthetic-data/codes",
+                            "code": "left-antecubital-fossa",
+                            "display": "Left antecubital fossa"
+                        }
+                    ],
+                    "text": "Left antecubital fossa"
+                },
+                "interpretation": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+                                "code": "N",
+                                "display": "Normal"
+                            }
+                        ],
+                        "text": "Normal"
+                    }
+                ],
+                "issued": "2026-07-18T15:30:00Z",
+                "note": [
+                    {
+                        "text": "Synthetic example. Fixed measurement for chart and reference-range testing; ranges are illustrative."
+                    }
+                ],
+                "meta": {
+                    "lastUpdated": "2026-08-25T16:58:00Z"
                 }
             },
             {
@@ -261,6 +1056,13 @@
                     }
                 ],
                 "code": {
+                    "coding": [
+                        {
+                            "system": "https://finchnode.com/synthetic-data/codes",
+                            "code": "metabolic-monitoring",
+                            "display": "Synthetic metabolic monitoring panel"
+                        }
+                    ],
                     "text": "Synthetic metabolic monitoring panel"
                 },
                 "subject": {
@@ -269,13 +1071,1464 @@
                 "effectiveDateTime": "2026-07-18T15:30:00Z",
                 "result": [
                     {
-                        "reference": "Observation/observation-demo-a1c"
+                        "reference": "Observation/observation-demo-a1c",
+                        "display": "Hemoglobin A1c"
                     },
                     {
-                        "reference": "Observation/observation-demo-ldl"
+                        "reference": "Observation/observation-demo-ldl",
+                        "display": "LDL cholesterol"
                     }
                 ],
-                "conclusion": "Synthetic results generated for the FinchNode Visualizer. Not for clinical use."
+                "conclusion": "Synthetic results generated for the FinchNode Visualizer. Not for clinical use.",
+                "issued": "2026-07-18T17:00:00Z",
+                "performer": [
+                    {
+                        "reference": "Organization/organization-demo-001",
+                        "display": "Northstar Health System (Synthetic)"
+                    }
+                ],
+                "resultsInterpreter": [
+                    {
+                        "reference": "Practitioner/practitioner-demo-001",
+                        "display": "Dr. Avery Demo"
+                    }
+                ],
+                "specimen": [
+                    {
+                        "display": "Synthetic blood specimen SYN-SPECIMEN-001"
+                    }
+                ],
+                "meta": {
+                    "lastUpdated": "2026-08-25T16:58:00Z"
+                }
+            },
+            {
+                "resourceType": "Observation",
+                "id": "observation-demo-a1c-jan",
+                "status": "final",
+                "category": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                                "code": "laboratory",
+                                "display": "Laboratory"
+                            }
+                        ],
+                        "text": "Laboratory"
+                    }
+                ],
+                "code": {
+                    "coding": [
+                        {
+                            "system": "http://loinc.org",
+                            "code": "4548-4",
+                            "display": "Hemoglobin A1c"
+                        }
+                    ],
+                    "text": "Hemoglobin A1c"
+                },
+                "subject": {
+                    "reference": "Patient/patient-demo-001"
+                },
+                "effectiveDateTime": "2026-01-18T15:30:00Z",
+                "valueQuantity": {
+                    "value": 7.1,
+                    "unit": "%",
+                    "system": "http://unitsofmeasure.org",
+                    "code": "%"
+                },
+                "referenceRange": [
+                    {
+                        "high": {
+                            "value": 5.7,
+                            "unit": "%"
+                        },
+                        "text": "Synthetic reference: below 5.7%"
+                    }
+                ],
+                "performer": [
+                    {
+                        "reference": "Organization/organization-demo-001",
+                        "display": "Northstar Health System (Synthetic)"
+                    }
+                ],
+                "bodySite": {
+                    "coding": [
+                        {
+                            "system": "https://finchnode.com/synthetic-data/codes",
+                            "code": "left-antecubital-fossa",
+                            "display": "Left antecubital fossa"
+                        }
+                    ],
+                    "text": "Left antecubital fossa"
+                },
+                "interpretation": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+                                "code": "H",
+                                "display": "High"
+                            }
+                        ],
+                        "text": "High"
+                    }
+                ],
+                "issued": "2026-01-18T15:30:00Z",
+                "note": [
+                    {
+                        "text": "Synthetic example. Fixed measurement for chart and reference-range testing; ranges are illustrative."
+                    }
+                ],
+                "meta": {
+                    "lastUpdated": "2026-08-25T16:58:00Z"
+                }
+            },
+            {
+                "resourceType": "Observation",
+                "id": "observation-demo-ldl-jan",
+                "status": "final",
+                "category": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                                "code": "laboratory",
+                                "display": "Laboratory"
+                            }
+                        ],
+                        "text": "Laboratory"
+                    }
+                ],
+                "code": {
+                    "coding": [
+                        {
+                            "system": "http://loinc.org",
+                            "code": "13457-7",
+                            "display": "LDL Cholesterol"
+                        }
+                    ],
+                    "text": "LDL cholesterol"
+                },
+                "subject": {
+                    "reference": "Patient/patient-demo-001"
+                },
+                "effectiveDateTime": "2026-01-18T15:30:00Z",
+                "valueQuantity": {
+                    "value": 116,
+                    "unit": "mg/dL",
+                    "system": "http://unitsofmeasure.org",
+                    "code": "mg/dL"
+                },
+                "referenceRange": [
+                    {
+                        "high": {
+                            "value": 100,
+                            "unit": "mg/dL",
+                            "code": "mg/dL",
+                            "system": "http://unitsofmeasure.org"
+                        },
+                        "text": "Synthetic reference: below 100 mg/dL"
+                    }
+                ],
+                "performer": [
+                    {
+                        "reference": "Organization/organization-demo-001",
+                        "display": "Northstar Health System (Synthetic)"
+                    }
+                ],
+                "bodySite": {
+                    "coding": [
+                        {
+                            "system": "https://finchnode.com/synthetic-data/codes",
+                            "code": "left-antecubital-fossa",
+                            "display": "Left antecubital fossa"
+                        }
+                    ],
+                    "text": "Left antecubital fossa"
+                },
+                "interpretation": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+                                "code": "H",
+                                "display": "High"
+                            }
+                        ],
+                        "text": "High"
+                    }
+                ],
+                "issued": "2026-01-18T15:30:00Z",
+                "note": [
+                    {
+                        "text": "Synthetic example. Fixed measurement for chart and reference-range testing; ranges are illustrative."
+                    }
+                ],
+                "meta": {
+                    "lastUpdated": "2026-08-25T16:58:00Z"
+                }
+            },
+            {
+                "resourceType": "Observation",
+                "id": "observation-demo-a1c-apr",
+                "status": "final",
+                "category": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                                "code": "laboratory",
+                                "display": "Laboratory"
+                            }
+                        ],
+                        "text": "Laboratory"
+                    }
+                ],
+                "code": {
+                    "coding": [
+                        {
+                            "system": "http://loinc.org",
+                            "code": "4548-4",
+                            "display": "Hemoglobin A1c"
+                        }
+                    ],
+                    "text": "Hemoglobin A1c"
+                },
+                "subject": {
+                    "reference": "Patient/patient-demo-001"
+                },
+                "effectiveDateTime": "2026-04-18T15:30:00Z",
+                "valueQuantity": {
+                    "value": 6.8,
+                    "unit": "%",
+                    "system": "http://unitsofmeasure.org",
+                    "code": "%"
+                },
+                "referenceRange": [
+                    {
+                        "high": {
+                            "value": 5.7,
+                            "unit": "%"
+                        },
+                        "text": "Synthetic reference: below 5.7%"
+                    }
+                ],
+                "performer": [
+                    {
+                        "reference": "Organization/organization-demo-001",
+                        "display": "Northstar Health System (Synthetic)"
+                    }
+                ],
+                "bodySite": {
+                    "coding": [
+                        {
+                            "system": "https://finchnode.com/synthetic-data/codes",
+                            "code": "left-antecubital-fossa",
+                            "display": "Left antecubital fossa"
+                        }
+                    ],
+                    "text": "Left antecubital fossa"
+                },
+                "interpretation": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+                                "code": "H",
+                                "display": "High"
+                            }
+                        ],
+                        "text": "High"
+                    }
+                ],
+                "issued": "2026-04-18T15:30:00Z",
+                "note": [
+                    {
+                        "text": "Synthetic example. Fixed measurement for chart and reference-range testing; ranges are illustrative."
+                    }
+                ],
+                "meta": {
+                    "lastUpdated": "2026-08-25T16:58:00Z"
+                }
+            },
+            {
+                "resourceType": "Observation",
+                "id": "observation-demo-ldl-apr",
+                "status": "final",
+                "category": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                                "code": "laboratory",
+                                "display": "Laboratory"
+                            }
+                        ],
+                        "text": "Laboratory"
+                    }
+                ],
+                "code": {
+                    "coding": [
+                        {
+                            "system": "http://loinc.org",
+                            "code": "13457-7",
+                            "display": "LDL Cholesterol"
+                        }
+                    ],
+                    "text": "LDL cholesterol"
+                },
+                "subject": {
+                    "reference": "Patient/patient-demo-001"
+                },
+                "effectiveDateTime": "2026-04-18T15:30:00Z",
+                "valueQuantity": {
+                    "value": 104,
+                    "unit": "mg/dL",
+                    "system": "http://unitsofmeasure.org",
+                    "code": "mg/dL"
+                },
+                "referenceRange": [
+                    {
+                        "high": {
+                            "value": 100,
+                            "unit": "mg/dL",
+                            "code": "mg/dL",
+                            "system": "http://unitsofmeasure.org"
+                        },
+                        "text": "Synthetic reference: below 100 mg/dL"
+                    }
+                ],
+                "performer": [
+                    {
+                        "reference": "Organization/organization-demo-001",
+                        "display": "Northstar Health System (Synthetic)"
+                    }
+                ],
+                "bodySite": {
+                    "coding": [
+                        {
+                            "system": "https://finchnode.com/synthetic-data/codes",
+                            "code": "left-antecubital-fossa",
+                            "display": "Left antecubital fossa"
+                        }
+                    ],
+                    "text": "Left antecubital fossa"
+                },
+                "interpretation": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+                                "code": "H",
+                                "display": "High"
+                            }
+                        ],
+                        "text": "High"
+                    }
+                ],
+                "issued": "2026-04-18T15:30:00Z",
+                "note": [
+                    {
+                        "text": "Synthetic example. Fixed measurement for chart and reference-range testing; ranges are illustrative."
+                    }
+                ],
+                "meta": {
+                    "lastUpdated": "2026-08-25T16:58:00Z"
+                }
+            },
+            {
+                "resourceType": "Observation",
+                "id": "observation-demo-glucose-1",
+                "status": "final",
+                "category": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                                "code": "laboratory",
+                                "display": "Laboratory"
+                            }
+                        ],
+                        "text": "Laboratory"
+                    }
+                ],
+                "code": {
+                    "coding": [
+                        {
+                            "system": "http://loinc.org",
+                            "code": "2345-7",
+                            "display": "Glucose"
+                        }
+                    ],
+                    "text": "Glucose"
+                },
+                "subject": {
+                    "reference": "Patient/patient-demo-001"
+                },
+                "effectiveDateTime": "2026-01-18T15:30:00Z",
+                "valueQuantity": {
+                    "value": 112,
+                    "unit": "mg/dL",
+                    "code": "mg/dL",
+                    "system": "http://unitsofmeasure.org"
+                },
+                "referenceRange": [
+                    {
+                        "low": {
+                            "value": 70,
+                            "unit": "mg/dL",
+                            "code": "mg/dL",
+                            "system": "http://unitsofmeasure.org"
+                        },
+                        "high": {
+                            "value": 99,
+                            "unit": "mg/dL",
+                            "code": "mg/dL",
+                            "system": "http://unitsofmeasure.org"
+                        },
+                        "text": "Synthetic reference: 70\u201399 mg/dL"
+                    }
+                ],
+                "performer": [
+                    {
+                        "reference": "Organization/organization-demo-001",
+                        "display": "Northstar Health System (Synthetic)"
+                    }
+                ],
+                "bodySite": {
+                    "coding": [
+                        {
+                            "system": "https://finchnode.com/synthetic-data/codes",
+                            "code": "left-antecubital-fossa",
+                            "display": "Left antecubital fossa"
+                        }
+                    ],
+                    "text": "Left antecubital fossa"
+                },
+                "interpretation": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+                                "code": "H",
+                                "display": "High"
+                            }
+                        ],
+                        "text": "High"
+                    }
+                ],
+                "issued": "2026-01-18T15:30:00Z",
+                "note": [
+                    {
+                        "text": "Synthetic example. Fixed measurement for chart and reference-range testing; ranges are illustrative."
+                    }
+                ],
+                "meta": {
+                    "lastUpdated": "2026-08-25T16:58:00Z"
+                }
+            },
+            {
+                "resourceType": "Observation",
+                "id": "observation-demo-glucose-2",
+                "status": "final",
+                "category": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                                "code": "laboratory",
+                                "display": "Laboratory"
+                            }
+                        ],
+                        "text": "Laboratory"
+                    }
+                ],
+                "code": {
+                    "coding": [
+                        {
+                            "system": "http://loinc.org",
+                            "code": "2345-7",
+                            "display": "Glucose"
+                        }
+                    ],
+                    "text": "Glucose"
+                },
+                "subject": {
+                    "reference": "Patient/patient-demo-001"
+                },
+                "effectiveDateTime": "2026-04-18T15:30:00Z",
+                "valueQuantity": {
+                    "value": 106,
+                    "unit": "mg/dL",
+                    "code": "mg/dL",
+                    "system": "http://unitsofmeasure.org"
+                },
+                "referenceRange": [
+                    {
+                        "low": {
+                            "value": 70,
+                            "unit": "mg/dL",
+                            "code": "mg/dL",
+                            "system": "http://unitsofmeasure.org"
+                        },
+                        "high": {
+                            "value": 99,
+                            "unit": "mg/dL",
+                            "code": "mg/dL",
+                            "system": "http://unitsofmeasure.org"
+                        },
+                        "text": "Synthetic reference: 70\u201399 mg/dL"
+                    }
+                ],
+                "performer": [
+                    {
+                        "reference": "Organization/organization-demo-001",
+                        "display": "Northstar Health System (Synthetic)"
+                    }
+                ],
+                "bodySite": {
+                    "coding": [
+                        {
+                            "system": "https://finchnode.com/synthetic-data/codes",
+                            "code": "left-antecubital-fossa",
+                            "display": "Left antecubital fossa"
+                        }
+                    ],
+                    "text": "Left antecubital fossa"
+                },
+                "interpretation": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+                                "code": "H",
+                                "display": "High"
+                            }
+                        ],
+                        "text": "High"
+                    }
+                ],
+                "issued": "2026-04-18T15:30:00Z",
+                "note": [
+                    {
+                        "text": "Synthetic example. Fixed measurement for chart and reference-range testing; ranges are illustrative."
+                    }
+                ],
+                "meta": {
+                    "lastUpdated": "2026-08-25T16:58:00Z"
+                }
+            },
+            {
+                "resourceType": "Observation",
+                "id": "observation-demo-glucose-3",
+                "status": "final",
+                "category": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                                "code": "laboratory",
+                                "display": "Laboratory"
+                            }
+                        ],
+                        "text": "Laboratory"
+                    }
+                ],
+                "code": {
+                    "coding": [
+                        {
+                            "system": "http://loinc.org",
+                            "code": "2345-7",
+                            "display": "Glucose"
+                        }
+                    ],
+                    "text": "Glucose"
+                },
+                "subject": {
+                    "reference": "Patient/patient-demo-001"
+                },
+                "effectiveDateTime": "2026-07-18T15:30:00Z",
+                "valueQuantity": {
+                    "value": 98,
+                    "unit": "mg/dL",
+                    "code": "mg/dL",
+                    "system": "http://unitsofmeasure.org"
+                },
+                "referenceRange": [
+                    {
+                        "low": {
+                            "value": 70,
+                            "unit": "mg/dL",
+                            "code": "mg/dL",
+                            "system": "http://unitsofmeasure.org"
+                        },
+                        "high": {
+                            "value": 99,
+                            "unit": "mg/dL",
+                            "code": "mg/dL",
+                            "system": "http://unitsofmeasure.org"
+                        },
+                        "text": "Synthetic reference: 70\u201399 mg/dL"
+                    }
+                ],
+                "performer": [
+                    {
+                        "reference": "Organization/organization-demo-001",
+                        "display": "Northstar Health System (Synthetic)"
+                    }
+                ],
+                "bodySite": {
+                    "coding": [
+                        {
+                            "system": "https://finchnode.com/synthetic-data/codes",
+                            "code": "left-antecubital-fossa",
+                            "display": "Left antecubital fossa"
+                        }
+                    ],
+                    "text": "Left antecubital fossa"
+                },
+                "interpretation": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+                                "code": "N",
+                                "display": "Normal"
+                            }
+                        ],
+                        "text": "Normal"
+                    }
+                ],
+                "issued": "2026-07-18T15:30:00Z",
+                "note": [
+                    {
+                        "text": "Synthetic example. Fixed measurement for chart and reference-range testing; ranges are illustrative."
+                    }
+                ],
+                "meta": {
+                    "lastUpdated": "2026-08-25T16:58:00Z"
+                }
+            },
+            {
+                "resourceType": "Observation",
+                "id": "observation-demo-creatinine-1",
+                "status": "final",
+                "category": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                                "code": "laboratory",
+                                "display": "Laboratory"
+                            }
+                        ],
+                        "text": "Laboratory"
+                    }
+                ],
+                "code": {
+                    "coding": [
+                        {
+                            "system": "http://loinc.org",
+                            "code": "2160-0",
+                            "display": "Creatinine"
+                        }
+                    ],
+                    "text": "Creatinine"
+                },
+                "subject": {
+                    "reference": "Patient/patient-demo-001"
+                },
+                "effectiveDateTime": "2026-01-18T15:30:00Z",
+                "valueQuantity": {
+                    "value": 0.92,
+                    "unit": "mg/dL",
+                    "code": "mg/dL",
+                    "system": "http://unitsofmeasure.org"
+                },
+                "referenceRange": [
+                    {
+                        "low": {
+                            "value": 0.6,
+                            "unit": "mg/dL",
+                            "code": "mg/dL",
+                            "system": "http://unitsofmeasure.org"
+                        },
+                        "high": {
+                            "value": 1.1,
+                            "unit": "mg/dL",
+                            "code": "mg/dL",
+                            "system": "http://unitsofmeasure.org"
+                        },
+                        "text": "Synthetic reference: 0.6\u20131.1 mg/dL"
+                    }
+                ],
+                "performer": [
+                    {
+                        "reference": "Organization/organization-demo-001",
+                        "display": "Northstar Health System (Synthetic)"
+                    }
+                ],
+                "bodySite": {
+                    "coding": [
+                        {
+                            "system": "https://finchnode.com/synthetic-data/codes",
+                            "code": "left-antecubital-fossa",
+                            "display": "Left antecubital fossa"
+                        }
+                    ],
+                    "text": "Left antecubital fossa"
+                },
+                "interpretation": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+                                "code": "N",
+                                "display": "Normal"
+                            }
+                        ],
+                        "text": "Normal"
+                    }
+                ],
+                "issued": "2026-01-18T15:30:00Z",
+                "note": [
+                    {
+                        "text": "Synthetic example. Fixed measurement for chart and reference-range testing; ranges are illustrative."
+                    }
+                ],
+                "meta": {
+                    "lastUpdated": "2026-08-25T16:58:00Z"
+                }
+            },
+            {
+                "resourceType": "Observation",
+                "id": "observation-demo-creatinine-2",
+                "status": "final",
+                "category": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                                "code": "laboratory",
+                                "display": "Laboratory"
+                            }
+                        ],
+                        "text": "Laboratory"
+                    }
+                ],
+                "code": {
+                    "coding": [
+                        {
+                            "system": "http://loinc.org",
+                            "code": "2160-0",
+                            "display": "Creatinine"
+                        }
+                    ],
+                    "text": "Creatinine"
+                },
+                "subject": {
+                    "reference": "Patient/patient-demo-001"
+                },
+                "effectiveDateTime": "2026-04-18T15:30:00Z",
+                "valueQuantity": {
+                    "value": 0.9,
+                    "unit": "mg/dL",
+                    "code": "mg/dL",
+                    "system": "http://unitsofmeasure.org"
+                },
+                "referenceRange": [
+                    {
+                        "low": {
+                            "value": 0.6,
+                            "unit": "mg/dL",
+                            "code": "mg/dL",
+                            "system": "http://unitsofmeasure.org"
+                        },
+                        "high": {
+                            "value": 1.1,
+                            "unit": "mg/dL",
+                            "code": "mg/dL",
+                            "system": "http://unitsofmeasure.org"
+                        },
+                        "text": "Synthetic reference: 0.6\u20131.1 mg/dL"
+                    }
+                ],
+                "performer": [
+                    {
+                        "reference": "Organization/organization-demo-001",
+                        "display": "Northstar Health System (Synthetic)"
+                    }
+                ],
+                "bodySite": {
+                    "coding": [
+                        {
+                            "system": "https://finchnode.com/synthetic-data/codes",
+                            "code": "left-antecubital-fossa",
+                            "display": "Left antecubital fossa"
+                        }
+                    ],
+                    "text": "Left antecubital fossa"
+                },
+                "interpretation": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+                                "code": "N",
+                                "display": "Normal"
+                            }
+                        ],
+                        "text": "Normal"
+                    }
+                ],
+                "issued": "2026-04-18T15:30:00Z",
+                "note": [
+                    {
+                        "text": "Synthetic example. Fixed measurement for chart and reference-range testing; ranges are illustrative."
+                    }
+                ],
+                "meta": {
+                    "lastUpdated": "2026-08-25T16:58:00Z"
+                }
+            },
+            {
+                "resourceType": "Observation",
+                "id": "observation-demo-creatinine-3",
+                "status": "final",
+                "category": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                                "code": "laboratory",
+                                "display": "Laboratory"
+                            }
+                        ],
+                        "text": "Laboratory"
+                    }
+                ],
+                "code": {
+                    "coding": [
+                        {
+                            "system": "http://loinc.org",
+                            "code": "2160-0",
+                            "display": "Creatinine"
+                        }
+                    ],
+                    "text": "Creatinine"
+                },
+                "subject": {
+                    "reference": "Patient/patient-demo-001"
+                },
+                "effectiveDateTime": "2026-07-18T15:30:00Z",
+                "valueQuantity": {
+                    "value": 0.88,
+                    "unit": "mg/dL",
+                    "code": "mg/dL",
+                    "system": "http://unitsofmeasure.org"
+                },
+                "referenceRange": [
+                    {
+                        "low": {
+                            "value": 0.6,
+                            "unit": "mg/dL",
+                            "code": "mg/dL",
+                            "system": "http://unitsofmeasure.org"
+                        },
+                        "high": {
+                            "value": 1.1,
+                            "unit": "mg/dL",
+                            "code": "mg/dL",
+                            "system": "http://unitsofmeasure.org"
+                        },
+                        "text": "Synthetic reference: 0.6\u20131.1 mg/dL"
+                    }
+                ],
+                "performer": [
+                    {
+                        "reference": "Organization/organization-demo-001",
+                        "display": "Northstar Health System (Synthetic)"
+                    }
+                ],
+                "bodySite": {
+                    "coding": [
+                        {
+                            "system": "https://finchnode.com/synthetic-data/codes",
+                            "code": "left-antecubital-fossa",
+                            "display": "Left antecubital fossa"
+                        }
+                    ],
+                    "text": "Left antecubital fossa"
+                },
+                "interpretation": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+                                "code": "N",
+                                "display": "Normal"
+                            }
+                        ],
+                        "text": "Normal"
+                    }
+                ],
+                "issued": "2026-07-18T15:30:00Z",
+                "note": [
+                    {
+                        "text": "Synthetic example. Fixed measurement for chart and reference-range testing; ranges are illustrative."
+                    }
+                ],
+                "meta": {
+                    "lastUpdated": "2026-08-25T16:58:00Z"
+                }
+            },
+            {
+                "resourceType": "Observation",
+                "id": "observation-demo-potassium-1",
+                "status": "final",
+                "category": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                                "code": "laboratory",
+                                "display": "Laboratory"
+                            }
+                        ],
+                        "text": "Laboratory"
+                    }
+                ],
+                "code": {
+                    "coding": [
+                        {
+                            "system": "http://loinc.org",
+                            "code": "2823-3",
+                            "display": "Potassium"
+                        }
+                    ],
+                    "text": "Potassium"
+                },
+                "subject": {
+                    "reference": "Patient/patient-demo-001"
+                },
+                "effectiveDateTime": "2026-01-18T15:30:00Z",
+                "valueQuantity": {
+                    "value": 4.1,
+                    "unit": "mmol/L",
+                    "code": "mmol/L",
+                    "system": "http://unitsofmeasure.org"
+                },
+                "referenceRange": [
+                    {
+                        "low": {
+                            "value": 3.5,
+                            "unit": "mmol/L",
+                            "code": "mmol/L",
+                            "system": "http://unitsofmeasure.org"
+                        },
+                        "high": {
+                            "value": 5.1,
+                            "unit": "mmol/L",
+                            "code": "mmol/L",
+                            "system": "http://unitsofmeasure.org"
+                        },
+                        "text": "Synthetic reference: 3.5\u20135.1 mmol/L"
+                    }
+                ],
+                "performer": [
+                    {
+                        "reference": "Organization/organization-demo-001",
+                        "display": "Northstar Health System (Synthetic)"
+                    }
+                ],
+                "bodySite": {
+                    "coding": [
+                        {
+                            "system": "https://finchnode.com/synthetic-data/codes",
+                            "code": "left-antecubital-fossa",
+                            "display": "Left antecubital fossa"
+                        }
+                    ],
+                    "text": "Left antecubital fossa"
+                },
+                "interpretation": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+                                "code": "N",
+                                "display": "Normal"
+                            }
+                        ],
+                        "text": "Normal"
+                    }
+                ],
+                "issued": "2026-01-18T15:30:00Z",
+                "note": [
+                    {
+                        "text": "Synthetic example. Fixed measurement for chart and reference-range testing; ranges are illustrative."
+                    }
+                ],
+                "meta": {
+                    "lastUpdated": "2026-08-25T16:58:00Z"
+                }
+            },
+            {
+                "resourceType": "Observation",
+                "id": "observation-demo-potassium-2",
+                "status": "final",
+                "category": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                                "code": "laboratory",
+                                "display": "Laboratory"
+                            }
+                        ],
+                        "text": "Laboratory"
+                    }
+                ],
+                "code": {
+                    "coding": [
+                        {
+                            "system": "http://loinc.org",
+                            "code": "2823-3",
+                            "display": "Potassium"
+                        }
+                    ],
+                    "text": "Potassium"
+                },
+                "subject": {
+                    "reference": "Patient/patient-demo-001"
+                },
+                "effectiveDateTime": "2026-04-18T15:30:00Z",
+                "valueQuantity": {
+                    "value": 4.2,
+                    "unit": "mmol/L",
+                    "code": "mmol/L",
+                    "system": "http://unitsofmeasure.org"
+                },
+                "referenceRange": [
+                    {
+                        "low": {
+                            "value": 3.5,
+                            "unit": "mmol/L",
+                            "code": "mmol/L",
+                            "system": "http://unitsofmeasure.org"
+                        },
+                        "high": {
+                            "value": 5.1,
+                            "unit": "mmol/L",
+                            "code": "mmol/L",
+                            "system": "http://unitsofmeasure.org"
+                        },
+                        "text": "Synthetic reference: 3.5\u20135.1 mmol/L"
+                    }
+                ],
+                "performer": [
+                    {
+                        "reference": "Organization/organization-demo-001",
+                        "display": "Northstar Health System (Synthetic)"
+                    }
+                ],
+                "bodySite": {
+                    "coding": [
+                        {
+                            "system": "https://finchnode.com/synthetic-data/codes",
+                            "code": "left-antecubital-fossa",
+                            "display": "Left antecubital fossa"
+                        }
+                    ],
+                    "text": "Left antecubital fossa"
+                },
+                "interpretation": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+                                "code": "N",
+                                "display": "Normal"
+                            }
+                        ],
+                        "text": "Normal"
+                    }
+                ],
+                "issued": "2026-04-18T15:30:00Z",
+                "note": [
+                    {
+                        "text": "Synthetic example. Fixed measurement for chart and reference-range testing; ranges are illustrative."
+                    }
+                ],
+                "meta": {
+                    "lastUpdated": "2026-08-25T16:58:00Z"
+                }
+            },
+            {
+                "resourceType": "Observation",
+                "id": "observation-demo-potassium-3",
+                "status": "final",
+                "category": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                                "code": "laboratory",
+                                "display": "Laboratory"
+                            }
+                        ],
+                        "text": "Laboratory"
+                    }
+                ],
+                "code": {
+                    "coding": [
+                        {
+                            "system": "http://loinc.org",
+                            "code": "2823-3",
+                            "display": "Potassium"
+                        }
+                    ],
+                    "text": "Potassium"
+                },
+                "subject": {
+                    "reference": "Patient/patient-demo-001"
+                },
+                "effectiveDateTime": "2026-07-18T15:30:00Z",
+                "valueQuantity": {
+                    "value": 4.3,
+                    "unit": "mmol/L",
+                    "code": "mmol/L",
+                    "system": "http://unitsofmeasure.org"
+                },
+                "referenceRange": [
+                    {
+                        "low": {
+                            "value": 3.5,
+                            "unit": "mmol/L",
+                            "code": "mmol/L",
+                            "system": "http://unitsofmeasure.org"
+                        },
+                        "high": {
+                            "value": 5.1,
+                            "unit": "mmol/L",
+                            "code": "mmol/L",
+                            "system": "http://unitsofmeasure.org"
+                        },
+                        "text": "Synthetic reference: 3.5\u20135.1 mmol/L"
+                    }
+                ],
+                "performer": [
+                    {
+                        "reference": "Organization/organization-demo-001",
+                        "display": "Northstar Health System (Synthetic)"
+                    }
+                ],
+                "bodySite": {
+                    "coding": [
+                        {
+                            "system": "https://finchnode.com/synthetic-data/codes",
+                            "code": "left-antecubital-fossa",
+                            "display": "Left antecubital fossa"
+                        }
+                    ],
+                    "text": "Left antecubital fossa"
+                },
+                "interpretation": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+                                "code": "N",
+                                "display": "Normal"
+                            }
+                        ],
+                        "text": "Normal"
+                    }
+                ],
+                "issued": "2026-07-18T15:30:00Z",
+                "note": [
+                    {
+                        "text": "Synthetic example. Fixed measurement for chart and reference-range testing; ranges are illustrative."
+                    }
+                ],
+                "meta": {
+                    "lastUpdated": "2026-08-25T16:58:00Z"
+                }
+            },
+            {
+                "resourceType": "Observation",
+                "id": "observation-demo-hemoglobin-1",
+                "status": "final",
+                "category": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                                "code": "laboratory",
+                                "display": "Laboratory"
+                            }
+                        ],
+                        "text": "Laboratory"
+                    }
+                ],
+                "code": {
+                    "coding": [
+                        {
+                            "system": "http://loinc.org",
+                            "code": "718-7",
+                            "display": "Hemoglobin"
+                        }
+                    ],
+                    "text": "Hemoglobin"
+                },
+                "subject": {
+                    "reference": "Patient/patient-demo-001"
+                },
+                "effectiveDateTime": "2026-01-18T15:30:00Z",
+                "valueQuantity": {
+                    "value": 13.2,
+                    "unit": "g/dL",
+                    "code": "g/dL",
+                    "system": "http://unitsofmeasure.org"
+                },
+                "referenceRange": [
+                    {
+                        "low": {
+                            "value": 12,
+                            "unit": "g/dL",
+                            "code": "g/dL",
+                            "system": "http://unitsofmeasure.org"
+                        },
+                        "high": {
+                            "value": 16,
+                            "unit": "g/dL",
+                            "code": "g/dL",
+                            "system": "http://unitsofmeasure.org"
+                        },
+                        "text": "Synthetic reference: 12\u201316 g/dL"
+                    }
+                ],
+                "performer": [
+                    {
+                        "reference": "Organization/organization-demo-001",
+                        "display": "Northstar Health System (Synthetic)"
+                    }
+                ],
+                "bodySite": {
+                    "coding": [
+                        {
+                            "system": "https://finchnode.com/synthetic-data/codes",
+                            "code": "left-antecubital-fossa",
+                            "display": "Left antecubital fossa"
+                        }
+                    ],
+                    "text": "Left antecubital fossa"
+                },
+                "interpretation": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+                                "code": "N",
+                                "display": "Normal"
+                            }
+                        ],
+                        "text": "Normal"
+                    }
+                ],
+                "issued": "2026-01-18T15:30:00Z",
+                "note": [
+                    {
+                        "text": "Synthetic example. Fixed measurement for chart and reference-range testing; ranges are illustrative."
+                    }
+                ],
+                "meta": {
+                    "lastUpdated": "2026-08-25T16:58:00Z"
+                }
+            },
+            {
+                "resourceType": "Observation",
+                "id": "observation-demo-hemoglobin-2",
+                "status": "final",
+                "category": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                                "code": "laboratory",
+                                "display": "Laboratory"
+                            }
+                        ],
+                        "text": "Laboratory"
+                    }
+                ],
+                "code": {
+                    "coding": [
+                        {
+                            "system": "http://loinc.org",
+                            "code": "718-7",
+                            "display": "Hemoglobin"
+                        }
+                    ],
+                    "text": "Hemoglobin"
+                },
+                "subject": {
+                    "reference": "Patient/patient-demo-001"
+                },
+                "effectiveDateTime": "2026-04-18T15:30:00Z",
+                "valueQuantity": {
+                    "value": 13.4,
+                    "unit": "g/dL",
+                    "code": "g/dL",
+                    "system": "http://unitsofmeasure.org"
+                },
+                "referenceRange": [
+                    {
+                        "low": {
+                            "value": 12,
+                            "unit": "g/dL",
+                            "code": "g/dL",
+                            "system": "http://unitsofmeasure.org"
+                        },
+                        "high": {
+                            "value": 16,
+                            "unit": "g/dL",
+                            "code": "g/dL",
+                            "system": "http://unitsofmeasure.org"
+                        },
+                        "text": "Synthetic reference: 12\u201316 g/dL"
+                    }
+                ],
+                "performer": [
+                    {
+                        "reference": "Organization/organization-demo-001",
+                        "display": "Northstar Health System (Synthetic)"
+                    }
+                ],
+                "bodySite": {
+                    "coding": [
+                        {
+                            "system": "https://finchnode.com/synthetic-data/codes",
+                            "code": "left-antecubital-fossa",
+                            "display": "Left antecubital fossa"
+                        }
+                    ],
+                    "text": "Left antecubital fossa"
+                },
+                "interpretation": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+                                "code": "N",
+                                "display": "Normal"
+                            }
+                        ],
+                        "text": "Normal"
+                    }
+                ],
+                "issued": "2026-04-18T15:30:00Z",
+                "note": [
+                    {
+                        "text": "Synthetic example. Fixed measurement for chart and reference-range testing; ranges are illustrative."
+                    }
+                ],
+                "meta": {
+                    "lastUpdated": "2026-08-25T16:58:00Z"
+                }
+            },
+            {
+                "resourceType": "Observation",
+                "id": "observation-demo-hemoglobin-3",
+                "status": "final",
+                "category": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                                "code": "laboratory",
+                                "display": "Laboratory"
+                            }
+                        ],
+                        "text": "Laboratory"
+                    }
+                ],
+                "code": {
+                    "coding": [
+                        {
+                            "system": "http://loinc.org",
+                            "code": "718-7",
+                            "display": "Hemoglobin"
+                        }
+                    ],
+                    "text": "Hemoglobin"
+                },
+                "subject": {
+                    "reference": "Patient/patient-demo-001"
+                },
+                "effectiveDateTime": "2026-07-18T15:30:00Z",
+                "valueQuantity": {
+                    "value": 13.6,
+                    "unit": "g/dL",
+                    "code": "g/dL",
+                    "system": "http://unitsofmeasure.org"
+                },
+                "referenceRange": [
+                    {
+                        "low": {
+                            "value": 12,
+                            "unit": "g/dL",
+                            "code": "g/dL",
+                            "system": "http://unitsofmeasure.org"
+                        },
+                        "high": {
+                            "value": 16,
+                            "unit": "g/dL",
+                            "code": "g/dL",
+                            "system": "http://unitsofmeasure.org"
+                        },
+                        "text": "Synthetic reference: 12\u201316 g/dL"
+                    }
+                ],
+                "performer": [
+                    {
+                        "reference": "Organization/organization-demo-001",
+                        "display": "Northstar Health System (Synthetic)"
+                    }
+                ],
+                "bodySite": {
+                    "coding": [
+                        {
+                            "system": "https://finchnode.com/synthetic-data/codes",
+                            "code": "left-antecubital-fossa",
+                            "display": "Left antecubital fossa"
+                        }
+                    ],
+                    "text": "Left antecubital fossa"
+                },
+                "interpretation": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+                                "code": "N",
+                                "display": "Normal"
+                            }
+                        ],
+                        "text": "Normal"
+                    }
+                ],
+                "issued": "2026-07-18T15:30:00Z",
+                "note": [
+                    {
+                        "text": "Synthetic example. Fixed measurement for chart and reference-range testing; ranges are illustrative."
+                    }
+                ],
+                "meta": {
+                    "lastUpdated": "2026-08-25T16:58:00Z"
+                }
             }
         ],
         "vitals": [
@@ -288,9 +2541,11 @@
                         "coding": [
                             {
                                 "system": "http://terminology.hl7.org/CodeSystem/observation-category",
-                                "code": "vital-signs"
+                                "code": "vital-signs",
+                                "display": "Vital signs"
                             }
-                        ]
+                        ],
+                        "text": "Vital signs"
                     }
                 ],
                 "code": {
@@ -338,7 +2593,1414 @@
                             "unit": "mmHg"
                         }
                     }
-                ]
+                ],
+                "referenceRange": [
+                    {
+                        "text": "Synthetic example: systolic 90\u2013129, diastolic 60\u201379 mmHg"
+                    }
+                ],
+                "performer": [
+                    {
+                        "reference": "Practitioner/practitioner-demo-001",
+                        "display": "Dr. Avery Demo"
+                    }
+                ],
+                "bodySite": {
+                    "coding": [
+                        {
+                            "system": "https://finchnode.com/synthetic-data/codes",
+                            "code": "left-upper-arm",
+                            "display": "Left upper arm"
+                        }
+                    ],
+                    "text": "Left upper arm"
+                },
+                "interpretation": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+                                "code": "N",
+                                "display": "Normal"
+                            }
+                        ],
+                        "text": "Normal"
+                    }
+                ],
+                "issued": "2026-07-18T16:04:00Z",
+                "note": [
+                    {
+                        "text": "Synthetic example. Fixed measurement for chart and reference-range testing; ranges are illustrative."
+                    }
+                ],
+                "meta": {
+                    "lastUpdated": "2026-08-25T16:58:00Z"
+                }
+            },
+            {
+                "resourceType": "Observation",
+                "id": "observation-demo-weight-1",
+                "status": "final",
+                "category": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                                "code": "vital-signs",
+                                "display": "Vital signs"
+                            }
+                        ],
+                        "text": "Vital signs"
+                    }
+                ],
+                "code": {
+                    "coding": [
+                        {
+                            "system": "http://loinc.org",
+                            "code": "29463-7",
+                            "display": "Body weight"
+                        }
+                    ],
+                    "text": "Body weight"
+                },
+                "subject": {
+                    "reference": "Patient/patient-demo-001"
+                },
+                "effectiveDateTime": "2026-01-18T15:30:00Z",
+                "valueQuantity": {
+                    "value": 76,
+                    "unit": "kg",
+                    "code": "kg",
+                    "system": "http://unitsofmeasure.org"
+                },
+                "referenceRange": [
+                    {
+                        "low": {
+                            "value": 50,
+                            "unit": "kg",
+                            "code": "kg",
+                            "system": "http://unitsofmeasure.org"
+                        },
+                        "high": {
+                            "value": 90,
+                            "unit": "kg",
+                            "code": "kg",
+                            "system": "http://unitsofmeasure.org"
+                        },
+                        "text": "Synthetic reference: 50\u201390 kg"
+                    }
+                ],
+                "performer": [
+                    {
+                        "reference": "Practitioner/practitioner-demo-001",
+                        "display": "Dr. Avery Demo"
+                    }
+                ],
+                "bodySite": {
+                    "coding": [
+                        {
+                            "system": "https://finchnode.com/synthetic-data/codes",
+                            "code": "whole-body",
+                            "display": "Whole body"
+                        }
+                    ],
+                    "text": "Whole body"
+                },
+                "interpretation": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+                                "code": "N",
+                                "display": "Normal"
+                            }
+                        ],
+                        "text": "Normal"
+                    }
+                ],
+                "issued": "2026-01-18T15:30:00Z",
+                "note": [
+                    {
+                        "text": "Synthetic example. Fixed measurement for chart and reference-range testing; ranges are illustrative."
+                    }
+                ],
+                "meta": {
+                    "lastUpdated": "2026-08-25T16:58:00Z"
+                }
+            },
+            {
+                "resourceType": "Observation",
+                "id": "observation-demo-weight-2",
+                "status": "final",
+                "category": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                                "code": "vital-signs",
+                                "display": "Vital signs"
+                            }
+                        ],
+                        "text": "Vital signs"
+                    }
+                ],
+                "code": {
+                    "coding": [
+                        {
+                            "system": "http://loinc.org",
+                            "code": "29463-7",
+                            "display": "Body weight"
+                        }
+                    ],
+                    "text": "Body weight"
+                },
+                "subject": {
+                    "reference": "Patient/patient-demo-001"
+                },
+                "effectiveDateTime": "2026-04-18T15:30:00Z",
+                "valueQuantity": {
+                    "value": 75,
+                    "unit": "kg",
+                    "code": "kg",
+                    "system": "http://unitsofmeasure.org"
+                },
+                "referenceRange": [
+                    {
+                        "low": {
+                            "value": 50,
+                            "unit": "kg",
+                            "code": "kg",
+                            "system": "http://unitsofmeasure.org"
+                        },
+                        "high": {
+                            "value": 90,
+                            "unit": "kg",
+                            "code": "kg",
+                            "system": "http://unitsofmeasure.org"
+                        },
+                        "text": "Synthetic reference: 50\u201390 kg"
+                    }
+                ],
+                "performer": [
+                    {
+                        "reference": "Practitioner/practitioner-demo-001",
+                        "display": "Dr. Avery Demo"
+                    }
+                ],
+                "bodySite": {
+                    "coding": [
+                        {
+                            "system": "https://finchnode.com/synthetic-data/codes",
+                            "code": "whole-body",
+                            "display": "Whole body"
+                        }
+                    ],
+                    "text": "Whole body"
+                },
+                "interpretation": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+                                "code": "N",
+                                "display": "Normal"
+                            }
+                        ],
+                        "text": "Normal"
+                    }
+                ],
+                "issued": "2026-04-18T15:30:00Z",
+                "note": [
+                    {
+                        "text": "Synthetic example. Fixed measurement for chart and reference-range testing; ranges are illustrative."
+                    }
+                ],
+                "meta": {
+                    "lastUpdated": "2026-08-25T16:58:00Z"
+                }
+            },
+            {
+                "resourceType": "Observation",
+                "id": "observation-demo-weight-3",
+                "status": "final",
+                "category": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                                "code": "vital-signs",
+                                "display": "Vital signs"
+                            }
+                        ],
+                        "text": "Vital signs"
+                    }
+                ],
+                "code": {
+                    "coding": [
+                        {
+                            "system": "http://loinc.org",
+                            "code": "29463-7",
+                            "display": "Body weight"
+                        }
+                    ],
+                    "text": "Body weight"
+                },
+                "subject": {
+                    "reference": "Patient/patient-demo-001"
+                },
+                "effectiveDateTime": "2026-07-18T15:30:00Z",
+                "valueQuantity": {
+                    "value": 74,
+                    "unit": "kg",
+                    "code": "kg",
+                    "system": "http://unitsofmeasure.org"
+                },
+                "referenceRange": [
+                    {
+                        "low": {
+                            "value": 50,
+                            "unit": "kg",
+                            "code": "kg",
+                            "system": "http://unitsofmeasure.org"
+                        },
+                        "high": {
+                            "value": 90,
+                            "unit": "kg",
+                            "code": "kg",
+                            "system": "http://unitsofmeasure.org"
+                        },
+                        "text": "Synthetic reference: 50\u201390 kg"
+                    }
+                ],
+                "performer": [
+                    {
+                        "reference": "Practitioner/practitioner-demo-001",
+                        "display": "Dr. Avery Demo"
+                    }
+                ],
+                "bodySite": {
+                    "coding": [
+                        {
+                            "system": "https://finchnode.com/synthetic-data/codes",
+                            "code": "whole-body",
+                            "display": "Whole body"
+                        }
+                    ],
+                    "text": "Whole body"
+                },
+                "interpretation": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+                                "code": "N",
+                                "display": "Normal"
+                            }
+                        ],
+                        "text": "Normal"
+                    }
+                ],
+                "issued": "2026-07-18T15:30:00Z",
+                "note": [
+                    {
+                        "text": "Synthetic example. Fixed measurement for chart and reference-range testing; ranges are illustrative."
+                    }
+                ],
+                "meta": {
+                    "lastUpdated": "2026-08-25T16:58:00Z"
+                }
+            },
+            {
+                "resourceType": "Observation",
+                "id": "observation-demo-bmi-1",
+                "status": "final",
+                "category": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                                "code": "vital-signs",
+                                "display": "Vital signs"
+                            }
+                        ],
+                        "text": "Vital signs"
+                    }
+                ],
+                "code": {
+                    "coding": [
+                        {
+                            "system": "http://loinc.org",
+                            "code": "39156-5",
+                            "display": "Body mass index"
+                        }
+                    ],
+                    "text": "Body mass index"
+                },
+                "subject": {
+                    "reference": "Patient/patient-demo-001"
+                },
+                "effectiveDateTime": "2026-01-18T15:30:00Z",
+                "valueQuantity": {
+                    "value": 27.9,
+                    "unit": "kg/m2",
+                    "code": "kg/m2",
+                    "system": "http://unitsofmeasure.org"
+                },
+                "referenceRange": [
+                    {
+                        "low": {
+                            "value": 18.5,
+                            "unit": "kg/m2",
+                            "code": "kg/m2",
+                            "system": "http://unitsofmeasure.org"
+                        },
+                        "high": {
+                            "value": 24.9,
+                            "unit": "kg/m2",
+                            "code": "kg/m2",
+                            "system": "http://unitsofmeasure.org"
+                        },
+                        "text": "Synthetic reference: 18.5\u201324.9 kg/m2"
+                    }
+                ],
+                "performer": [
+                    {
+                        "reference": "Practitioner/practitioner-demo-001",
+                        "display": "Dr. Avery Demo"
+                    }
+                ],
+                "bodySite": {
+                    "coding": [
+                        {
+                            "system": "https://finchnode.com/synthetic-data/codes",
+                            "code": "whole-body",
+                            "display": "Whole body"
+                        }
+                    ],
+                    "text": "Whole body"
+                },
+                "interpretation": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+                                "code": "H",
+                                "display": "High"
+                            }
+                        ],
+                        "text": "High"
+                    }
+                ],
+                "issued": "2026-01-18T15:30:00Z",
+                "note": [
+                    {
+                        "text": "Synthetic example. Fixed measurement for chart and reference-range testing; ranges are illustrative."
+                    }
+                ],
+                "meta": {
+                    "lastUpdated": "2026-08-25T16:58:00Z"
+                }
+            },
+            {
+                "resourceType": "Observation",
+                "id": "observation-demo-bmi-2",
+                "status": "final",
+                "category": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                                "code": "vital-signs",
+                                "display": "Vital signs"
+                            }
+                        ],
+                        "text": "Vital signs"
+                    }
+                ],
+                "code": {
+                    "coding": [
+                        {
+                            "system": "http://loinc.org",
+                            "code": "39156-5",
+                            "display": "Body mass index"
+                        }
+                    ],
+                    "text": "Body mass index"
+                },
+                "subject": {
+                    "reference": "Patient/patient-demo-001"
+                },
+                "effectiveDateTime": "2026-04-18T15:30:00Z",
+                "valueQuantity": {
+                    "value": 27.5,
+                    "unit": "kg/m2",
+                    "code": "kg/m2",
+                    "system": "http://unitsofmeasure.org"
+                },
+                "referenceRange": [
+                    {
+                        "low": {
+                            "value": 18.5,
+                            "unit": "kg/m2",
+                            "code": "kg/m2",
+                            "system": "http://unitsofmeasure.org"
+                        },
+                        "high": {
+                            "value": 24.9,
+                            "unit": "kg/m2",
+                            "code": "kg/m2",
+                            "system": "http://unitsofmeasure.org"
+                        },
+                        "text": "Synthetic reference: 18.5\u201324.9 kg/m2"
+                    }
+                ],
+                "performer": [
+                    {
+                        "reference": "Practitioner/practitioner-demo-001",
+                        "display": "Dr. Avery Demo"
+                    }
+                ],
+                "bodySite": {
+                    "coding": [
+                        {
+                            "system": "https://finchnode.com/synthetic-data/codes",
+                            "code": "whole-body",
+                            "display": "Whole body"
+                        }
+                    ],
+                    "text": "Whole body"
+                },
+                "interpretation": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+                                "code": "H",
+                                "display": "High"
+                            }
+                        ],
+                        "text": "High"
+                    }
+                ],
+                "issued": "2026-04-18T15:30:00Z",
+                "note": [
+                    {
+                        "text": "Synthetic example. Fixed measurement for chart and reference-range testing; ranges are illustrative."
+                    }
+                ],
+                "meta": {
+                    "lastUpdated": "2026-08-25T16:58:00Z"
+                }
+            },
+            {
+                "resourceType": "Observation",
+                "id": "observation-demo-bmi-3",
+                "status": "final",
+                "category": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                                "code": "vital-signs",
+                                "display": "Vital signs"
+                            }
+                        ],
+                        "text": "Vital signs"
+                    }
+                ],
+                "code": {
+                    "coding": [
+                        {
+                            "system": "http://loinc.org",
+                            "code": "39156-5",
+                            "display": "Body mass index"
+                        }
+                    ],
+                    "text": "Body mass index"
+                },
+                "subject": {
+                    "reference": "Patient/patient-demo-001"
+                },
+                "effectiveDateTime": "2026-07-18T15:30:00Z",
+                "valueQuantity": {
+                    "value": 27.2,
+                    "unit": "kg/m2",
+                    "code": "kg/m2",
+                    "system": "http://unitsofmeasure.org"
+                },
+                "referenceRange": [
+                    {
+                        "low": {
+                            "value": 18.5,
+                            "unit": "kg/m2",
+                            "code": "kg/m2",
+                            "system": "http://unitsofmeasure.org"
+                        },
+                        "high": {
+                            "value": 24.9,
+                            "unit": "kg/m2",
+                            "code": "kg/m2",
+                            "system": "http://unitsofmeasure.org"
+                        },
+                        "text": "Synthetic reference: 18.5\u201324.9 kg/m2"
+                    }
+                ],
+                "performer": [
+                    {
+                        "reference": "Practitioner/practitioner-demo-001",
+                        "display": "Dr. Avery Demo"
+                    }
+                ],
+                "bodySite": {
+                    "coding": [
+                        {
+                            "system": "https://finchnode.com/synthetic-data/codes",
+                            "code": "whole-body",
+                            "display": "Whole body"
+                        }
+                    ],
+                    "text": "Whole body"
+                },
+                "interpretation": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+                                "code": "H",
+                                "display": "High"
+                            }
+                        ],
+                        "text": "High"
+                    }
+                ],
+                "issued": "2026-07-18T15:30:00Z",
+                "note": [
+                    {
+                        "text": "Synthetic example. Fixed measurement for chart and reference-range testing; ranges are illustrative."
+                    }
+                ],
+                "meta": {
+                    "lastUpdated": "2026-08-25T16:58:00Z"
+                }
+            },
+            {
+                "resourceType": "Observation",
+                "id": "observation-demo-heart-rate-1",
+                "status": "final",
+                "category": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                                "code": "vital-signs",
+                                "display": "Vital signs"
+                            }
+                        ],
+                        "text": "Vital signs"
+                    }
+                ],
+                "code": {
+                    "coding": [
+                        {
+                            "system": "http://loinc.org",
+                            "code": "8867-4",
+                            "display": "Heart rate"
+                        }
+                    ],
+                    "text": "Heart rate"
+                },
+                "subject": {
+                    "reference": "Patient/patient-demo-001"
+                },
+                "effectiveDateTime": "2026-01-18T15:30:00Z",
+                "valueQuantity": {
+                    "value": 78,
+                    "unit": "beats/min",
+                    "code": "/min",
+                    "system": "http://unitsofmeasure.org"
+                },
+                "referenceRange": [
+                    {
+                        "low": {
+                            "value": 60,
+                            "unit": "beats/min",
+                            "code": "/min",
+                            "system": "http://unitsofmeasure.org"
+                        },
+                        "high": {
+                            "value": 100,
+                            "unit": "beats/min",
+                            "code": "/min",
+                            "system": "http://unitsofmeasure.org"
+                        },
+                        "text": "Synthetic reference: 60\u2013100 beats/min"
+                    }
+                ],
+                "performer": [
+                    {
+                        "reference": "Practitioner/practitioner-demo-001",
+                        "display": "Dr. Avery Demo"
+                    }
+                ],
+                "bodySite": {
+                    "coding": [
+                        {
+                            "system": "https://finchnode.com/synthetic-data/codes",
+                            "code": "left-wrist",
+                            "display": "Left wrist"
+                        }
+                    ],
+                    "text": "Left wrist"
+                },
+                "interpretation": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+                                "code": "N",
+                                "display": "Normal"
+                            }
+                        ],
+                        "text": "Normal"
+                    }
+                ],
+                "issued": "2026-01-18T15:30:00Z",
+                "note": [
+                    {
+                        "text": "Synthetic example. Fixed measurement for chart and reference-range testing; ranges are illustrative."
+                    }
+                ],
+                "meta": {
+                    "lastUpdated": "2026-08-25T16:58:00Z"
+                }
+            },
+            {
+                "resourceType": "Observation",
+                "id": "observation-demo-heart-rate-2",
+                "status": "final",
+                "category": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                                "code": "vital-signs",
+                                "display": "Vital signs"
+                            }
+                        ],
+                        "text": "Vital signs"
+                    }
+                ],
+                "code": {
+                    "coding": [
+                        {
+                            "system": "http://loinc.org",
+                            "code": "8867-4",
+                            "display": "Heart rate"
+                        }
+                    ],
+                    "text": "Heart rate"
+                },
+                "subject": {
+                    "reference": "Patient/patient-demo-001"
+                },
+                "effectiveDateTime": "2026-04-18T15:30:00Z",
+                "valueQuantity": {
+                    "value": 74,
+                    "unit": "beats/min",
+                    "code": "/min",
+                    "system": "http://unitsofmeasure.org"
+                },
+                "referenceRange": [
+                    {
+                        "low": {
+                            "value": 60,
+                            "unit": "beats/min",
+                            "code": "/min",
+                            "system": "http://unitsofmeasure.org"
+                        },
+                        "high": {
+                            "value": 100,
+                            "unit": "beats/min",
+                            "code": "/min",
+                            "system": "http://unitsofmeasure.org"
+                        },
+                        "text": "Synthetic reference: 60\u2013100 beats/min"
+                    }
+                ],
+                "performer": [
+                    {
+                        "reference": "Practitioner/practitioner-demo-001",
+                        "display": "Dr. Avery Demo"
+                    }
+                ],
+                "bodySite": {
+                    "coding": [
+                        {
+                            "system": "https://finchnode.com/synthetic-data/codes",
+                            "code": "left-wrist",
+                            "display": "Left wrist"
+                        }
+                    ],
+                    "text": "Left wrist"
+                },
+                "interpretation": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+                                "code": "N",
+                                "display": "Normal"
+                            }
+                        ],
+                        "text": "Normal"
+                    }
+                ],
+                "issued": "2026-04-18T15:30:00Z",
+                "note": [
+                    {
+                        "text": "Synthetic example. Fixed measurement for chart and reference-range testing; ranges are illustrative."
+                    }
+                ],
+                "meta": {
+                    "lastUpdated": "2026-08-25T16:58:00Z"
+                }
+            },
+            {
+                "resourceType": "Observation",
+                "id": "observation-demo-heart-rate-3",
+                "status": "final",
+                "category": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                                "code": "vital-signs",
+                                "display": "Vital signs"
+                            }
+                        ],
+                        "text": "Vital signs"
+                    }
+                ],
+                "code": {
+                    "coding": [
+                        {
+                            "system": "http://loinc.org",
+                            "code": "8867-4",
+                            "display": "Heart rate"
+                        }
+                    ],
+                    "text": "Heart rate"
+                },
+                "subject": {
+                    "reference": "Patient/patient-demo-001"
+                },
+                "effectiveDateTime": "2026-07-18T15:30:00Z",
+                "valueQuantity": {
+                    "value": 72,
+                    "unit": "beats/min",
+                    "code": "/min",
+                    "system": "http://unitsofmeasure.org"
+                },
+                "referenceRange": [
+                    {
+                        "low": {
+                            "value": 60,
+                            "unit": "beats/min",
+                            "code": "/min",
+                            "system": "http://unitsofmeasure.org"
+                        },
+                        "high": {
+                            "value": 100,
+                            "unit": "beats/min",
+                            "code": "/min",
+                            "system": "http://unitsofmeasure.org"
+                        },
+                        "text": "Synthetic reference: 60\u2013100 beats/min"
+                    }
+                ],
+                "performer": [
+                    {
+                        "reference": "Practitioner/practitioner-demo-001",
+                        "display": "Dr. Avery Demo"
+                    }
+                ],
+                "bodySite": {
+                    "coding": [
+                        {
+                            "system": "https://finchnode.com/synthetic-data/codes",
+                            "code": "left-wrist",
+                            "display": "Left wrist"
+                        }
+                    ],
+                    "text": "Left wrist"
+                },
+                "interpretation": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+                                "code": "N",
+                                "display": "Normal"
+                            }
+                        ],
+                        "text": "Normal"
+                    }
+                ],
+                "issued": "2026-07-18T15:30:00Z",
+                "note": [
+                    {
+                        "text": "Synthetic example. Fixed measurement for chart and reference-range testing; ranges are illustrative."
+                    }
+                ],
+                "meta": {
+                    "lastUpdated": "2026-08-25T16:58:00Z"
+                }
+            },
+            {
+                "resourceType": "Observation",
+                "id": "observation-demo-temperature-1",
+                "status": "final",
+                "category": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                                "code": "vital-signs",
+                                "display": "Vital signs"
+                            }
+                        ],
+                        "text": "Vital signs"
+                    }
+                ],
+                "code": {
+                    "coding": [
+                        {
+                            "system": "http://loinc.org",
+                            "code": "8310-5",
+                            "display": "Body temperature"
+                        }
+                    ],
+                    "text": "Body temperature"
+                },
+                "subject": {
+                    "reference": "Patient/patient-demo-001"
+                },
+                "effectiveDateTime": "2026-01-18T15:30:00Z",
+                "valueQuantity": {
+                    "value": 36.8,
+                    "unit": "\u00b0C",
+                    "code": "Cel",
+                    "system": "http://unitsofmeasure.org"
+                },
+                "referenceRange": [
+                    {
+                        "low": {
+                            "value": 36.1,
+                            "unit": "\u00b0C",
+                            "code": "Cel",
+                            "system": "http://unitsofmeasure.org"
+                        },
+                        "high": {
+                            "value": 37.2,
+                            "unit": "\u00b0C",
+                            "code": "Cel",
+                            "system": "http://unitsofmeasure.org"
+                        },
+                        "text": "Synthetic reference: 36.1\u201337.2 \u00b0C"
+                    }
+                ],
+                "performer": [
+                    {
+                        "reference": "Practitioner/practitioner-demo-001",
+                        "display": "Dr. Avery Demo"
+                    }
+                ],
+                "bodySite": {
+                    "coding": [
+                        {
+                            "system": "https://finchnode.com/synthetic-data/codes",
+                            "code": "oral-cavity",
+                            "display": "Oral cavity"
+                        }
+                    ],
+                    "text": "Oral cavity"
+                },
+                "interpretation": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+                                "code": "N",
+                                "display": "Normal"
+                            }
+                        ],
+                        "text": "Normal"
+                    }
+                ],
+                "issued": "2026-01-18T15:30:00Z",
+                "note": [
+                    {
+                        "text": "Synthetic example. Fixed measurement for chart and reference-range testing; ranges are illustrative."
+                    }
+                ],
+                "meta": {
+                    "lastUpdated": "2026-08-25T16:58:00Z"
+                }
+            },
+            {
+                "resourceType": "Observation",
+                "id": "observation-demo-temperature-2",
+                "status": "final",
+                "category": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                                "code": "vital-signs",
+                                "display": "Vital signs"
+                            }
+                        ],
+                        "text": "Vital signs"
+                    }
+                ],
+                "code": {
+                    "coding": [
+                        {
+                            "system": "http://loinc.org",
+                            "code": "8310-5",
+                            "display": "Body temperature"
+                        }
+                    ],
+                    "text": "Body temperature"
+                },
+                "subject": {
+                    "reference": "Patient/patient-demo-001"
+                },
+                "effectiveDateTime": "2026-04-18T15:30:00Z",
+                "valueQuantity": {
+                    "value": 36.7,
+                    "unit": "\u00b0C",
+                    "code": "Cel",
+                    "system": "http://unitsofmeasure.org"
+                },
+                "referenceRange": [
+                    {
+                        "low": {
+                            "value": 36.1,
+                            "unit": "\u00b0C",
+                            "code": "Cel",
+                            "system": "http://unitsofmeasure.org"
+                        },
+                        "high": {
+                            "value": 37.2,
+                            "unit": "\u00b0C",
+                            "code": "Cel",
+                            "system": "http://unitsofmeasure.org"
+                        },
+                        "text": "Synthetic reference: 36.1\u201337.2 \u00b0C"
+                    }
+                ],
+                "performer": [
+                    {
+                        "reference": "Practitioner/practitioner-demo-001",
+                        "display": "Dr. Avery Demo"
+                    }
+                ],
+                "bodySite": {
+                    "coding": [
+                        {
+                            "system": "https://finchnode.com/synthetic-data/codes",
+                            "code": "oral-cavity",
+                            "display": "Oral cavity"
+                        }
+                    ],
+                    "text": "Oral cavity"
+                },
+                "interpretation": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+                                "code": "N",
+                                "display": "Normal"
+                            }
+                        ],
+                        "text": "Normal"
+                    }
+                ],
+                "issued": "2026-04-18T15:30:00Z",
+                "note": [
+                    {
+                        "text": "Synthetic example. Fixed measurement for chart and reference-range testing; ranges are illustrative."
+                    }
+                ],
+                "meta": {
+                    "lastUpdated": "2026-08-25T16:58:00Z"
+                }
+            },
+            {
+                "resourceType": "Observation",
+                "id": "observation-demo-temperature-3",
+                "status": "final",
+                "category": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                                "code": "vital-signs",
+                                "display": "Vital signs"
+                            }
+                        ],
+                        "text": "Vital signs"
+                    }
+                ],
+                "code": {
+                    "coding": [
+                        {
+                            "system": "http://loinc.org",
+                            "code": "8310-5",
+                            "display": "Body temperature"
+                        }
+                    ],
+                    "text": "Body temperature"
+                },
+                "subject": {
+                    "reference": "Patient/patient-demo-001"
+                },
+                "effectiveDateTime": "2026-07-18T15:30:00Z",
+                "valueQuantity": {
+                    "value": 36.9,
+                    "unit": "\u00b0C",
+                    "code": "Cel",
+                    "system": "http://unitsofmeasure.org"
+                },
+                "referenceRange": [
+                    {
+                        "low": {
+                            "value": 36.1,
+                            "unit": "\u00b0C",
+                            "code": "Cel",
+                            "system": "http://unitsofmeasure.org"
+                        },
+                        "high": {
+                            "value": 37.2,
+                            "unit": "\u00b0C",
+                            "code": "Cel",
+                            "system": "http://unitsofmeasure.org"
+                        },
+                        "text": "Synthetic reference: 36.1\u201337.2 \u00b0C"
+                    }
+                ],
+                "performer": [
+                    {
+                        "reference": "Practitioner/practitioner-demo-001",
+                        "display": "Dr. Avery Demo"
+                    }
+                ],
+                "bodySite": {
+                    "coding": [
+                        {
+                            "system": "https://finchnode.com/synthetic-data/codes",
+                            "code": "oral-cavity",
+                            "display": "Oral cavity"
+                        }
+                    ],
+                    "text": "Oral cavity"
+                },
+                "interpretation": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+                                "code": "N",
+                                "display": "Normal"
+                            }
+                        ],
+                        "text": "Normal"
+                    }
+                ],
+                "issued": "2026-07-18T15:30:00Z",
+                "note": [
+                    {
+                        "text": "Synthetic example. Fixed measurement for chart and reference-range testing; ranges are illustrative."
+                    }
+                ],
+                "meta": {
+                    "lastUpdated": "2026-08-25T16:58:00Z"
+                }
+            },
+            {
+                "resourceType": "Observation",
+                "id": "observation-demo-oxygen-1",
+                "status": "final",
+                "category": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                                "code": "vital-signs",
+                                "display": "Vital signs"
+                            }
+                        ],
+                        "text": "Vital signs"
+                    }
+                ],
+                "code": {
+                    "coding": [
+                        {
+                            "system": "http://loinc.org",
+                            "code": "2708-6",
+                            "display": "Oxygen saturation"
+                        }
+                    ],
+                    "text": "Oxygen saturation"
+                },
+                "subject": {
+                    "reference": "Patient/patient-demo-001"
+                },
+                "effectiveDateTime": "2026-01-18T15:30:00Z",
+                "valueQuantity": {
+                    "value": 97,
+                    "unit": "%",
+                    "code": "%",
+                    "system": "http://unitsofmeasure.org"
+                },
+                "referenceRange": [
+                    {
+                        "low": {
+                            "value": 95,
+                            "unit": "%",
+                            "code": "%",
+                            "system": "http://unitsofmeasure.org"
+                        },
+                        "high": {
+                            "value": 100,
+                            "unit": "%",
+                            "code": "%",
+                            "system": "http://unitsofmeasure.org"
+                        },
+                        "text": "Synthetic reference: 95\u2013100 %"
+                    }
+                ],
+                "performer": [
+                    {
+                        "reference": "Practitioner/practitioner-demo-001",
+                        "display": "Dr. Avery Demo"
+                    }
+                ],
+                "bodySite": {
+                    "coding": [
+                        {
+                            "system": "https://finchnode.com/synthetic-data/codes",
+                            "code": "left-index-finger",
+                            "display": "Left index finger"
+                        }
+                    ],
+                    "text": "Left index finger"
+                },
+                "interpretation": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+                                "code": "N",
+                                "display": "Normal"
+                            }
+                        ],
+                        "text": "Normal"
+                    }
+                ],
+                "issued": "2026-01-18T15:30:00Z",
+                "note": [
+                    {
+                        "text": "Synthetic example. Fixed measurement for chart and reference-range testing; ranges are illustrative."
+                    }
+                ],
+                "meta": {
+                    "lastUpdated": "2026-08-25T16:58:00Z"
+                }
+            },
+            {
+                "resourceType": "Observation",
+                "id": "observation-demo-oxygen-2",
+                "status": "final",
+                "category": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                                "code": "vital-signs",
+                                "display": "Vital signs"
+                            }
+                        ],
+                        "text": "Vital signs"
+                    }
+                ],
+                "code": {
+                    "coding": [
+                        {
+                            "system": "http://loinc.org",
+                            "code": "2708-6",
+                            "display": "Oxygen saturation"
+                        }
+                    ],
+                    "text": "Oxygen saturation"
+                },
+                "subject": {
+                    "reference": "Patient/patient-demo-001"
+                },
+                "effectiveDateTime": "2026-04-18T15:30:00Z",
+                "valueQuantity": {
+                    "value": 98,
+                    "unit": "%",
+                    "code": "%",
+                    "system": "http://unitsofmeasure.org"
+                },
+                "referenceRange": [
+                    {
+                        "low": {
+                            "value": 95,
+                            "unit": "%",
+                            "code": "%",
+                            "system": "http://unitsofmeasure.org"
+                        },
+                        "high": {
+                            "value": 100,
+                            "unit": "%",
+                            "code": "%",
+                            "system": "http://unitsofmeasure.org"
+                        },
+                        "text": "Synthetic reference: 95\u2013100 %"
+                    }
+                ],
+                "performer": [
+                    {
+                        "reference": "Practitioner/practitioner-demo-001",
+                        "display": "Dr. Avery Demo"
+                    }
+                ],
+                "bodySite": {
+                    "coding": [
+                        {
+                            "system": "https://finchnode.com/synthetic-data/codes",
+                            "code": "left-index-finger",
+                            "display": "Left index finger"
+                        }
+                    ],
+                    "text": "Left index finger"
+                },
+                "interpretation": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+                                "code": "N",
+                                "display": "Normal"
+                            }
+                        ],
+                        "text": "Normal"
+                    }
+                ],
+                "issued": "2026-04-18T15:30:00Z",
+                "note": [
+                    {
+                        "text": "Synthetic example. Fixed measurement for chart and reference-range testing; ranges are illustrative."
+                    }
+                ],
+                "meta": {
+                    "lastUpdated": "2026-08-25T16:58:00Z"
+                }
+            },
+            {
+                "resourceType": "Observation",
+                "id": "observation-demo-oxygen-3",
+                "status": "final",
+                "category": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                                "code": "vital-signs",
+                                "display": "Vital signs"
+                            }
+                        ],
+                        "text": "Vital signs"
+                    }
+                ],
+                "code": {
+                    "coding": [
+                        {
+                            "system": "http://loinc.org",
+                            "code": "2708-6",
+                            "display": "Oxygen saturation"
+                        }
+                    ],
+                    "text": "Oxygen saturation"
+                },
+                "subject": {
+                    "reference": "Patient/patient-demo-001"
+                },
+                "effectiveDateTime": "2026-07-18T15:30:00Z",
+                "valueQuantity": {
+                    "value": 98,
+                    "unit": "%",
+                    "code": "%",
+                    "system": "http://unitsofmeasure.org"
+                },
+                "referenceRange": [
+                    {
+                        "low": {
+                            "value": 95,
+                            "unit": "%",
+                            "code": "%",
+                            "system": "http://unitsofmeasure.org"
+                        },
+                        "high": {
+                            "value": 100,
+                            "unit": "%",
+                            "code": "%",
+                            "system": "http://unitsofmeasure.org"
+                        },
+                        "text": "Synthetic reference: 95\u2013100 %"
+                    }
+                ],
+                "performer": [
+                    {
+                        "reference": "Practitioner/practitioner-demo-001",
+                        "display": "Dr. Avery Demo"
+                    }
+                ],
+                "bodySite": {
+                    "coding": [
+                        {
+                            "system": "https://finchnode.com/synthetic-data/codes",
+                            "code": "left-index-finger",
+                            "display": "Left index finger"
+                        }
+                    ],
+                    "text": "Left index finger"
+                },
+                "interpretation": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+                                "code": "N",
+                                "display": "Normal"
+                            }
+                        ],
+                        "text": "Normal"
+                    }
+                ],
+                "issued": "2026-07-18T15:30:00Z",
+                "note": [
+                    {
+                        "text": "Synthetic example. Fixed measurement for chart and reference-range testing; ranges are illustrative."
+                    }
+                ],
+                "meta": {
+                    "lastUpdated": "2026-08-25T16:58:00Z"
+                }
             }
         ],
         "allergies": [
@@ -383,7 +4045,25 @@
                         ],
                         "severity": "mild"
                     }
-                ]
+                ],
+                "recordedDate": "2021-03-15",
+                "type": "allergy",
+                "category": [
+                    "medication"
+                ],
+                "criticality": "low",
+                "recorder": {
+                    "reference": "Practitioner/practitioner-demo-001",
+                    "display": "Dr. Avery Demo"
+                },
+                "note": [
+                    {
+                        "text": "Synthetic example. Historical rash reported; no acute reaction at the sample visit."
+                    }
+                ],
+                "meta": {
+                    "lastUpdated": "2026-08-25T16:58:00Z"
+                }
             }
         ],
         "immunizations": [
@@ -395,17 +4075,70 @@
                     "coding": [
                         {
                             "system": "http://hl7.org/fhir/sid/cvx",
-                            "code": "197",
-                            "display": "influenza, high-dose, quadrivalent"
+                            "code": "158",
+                            "display": "Influenza, injectable, quadrivalent, preservative free"
                         }
                     ],
-                    "text": "Seasonal influenza vaccine"
+                    "text": "Influenza, injectable, quadrivalent, preservative free"
                 },
                 "patient": {
                     "reference": "Patient/patient-demo-001"
                 },
                 "occurrenceDateTime": "2025-10-04",
-                "primarySource": true
+                "primarySource": true,
+                "manufacturer": {
+                    "display": "Example Vaccine Manufacturer (Synthetic)"
+                },
+                "lotNumber": "SYN-LOT-001",
+                "site": {
+                    "coding": [
+                        {
+                            "system": "http://snomed.info/sct",
+                            "code": "368208006",
+                            "display": "Left upper arm"
+                        }
+                    ],
+                    "text": "Left upper arm"
+                },
+                "route": {
+                    "coding": [
+                        {
+                            "system": "http://snomed.info/sct",
+                            "code": "78421000",
+                            "display": "Intramuscular route"
+                        }
+                    ],
+                    "text": "Intramuscular route"
+                },
+                "doseQuantity": {
+                    "value": 0.5,
+                    "unit": "mL",
+                    "code": "mL",
+                    "system": "http://unitsofmeasure.org"
+                },
+                "protocolApplied": [
+                    {
+                        "doseNumberPositiveInt": 1,
+                        "series": "Annual immunization example",
+                        "seriesDosesPositiveInt": 1
+                    }
+                ],
+                "performer": [
+                    {
+                        "actor": {
+                            "reference": "Practitioner/practitioner-demo-001",
+                            "display": "Dr. Avery Demo"
+                        }
+                    }
+                ],
+                "note": [
+                    {
+                        "text": "Synthetic example. Fictional administration record for vaccine history screens."
+                    }
+                ],
+                "meta": {
+                    "lastUpdated": "2026-08-25T16:58:00Z"
+                }
             },
             {
                 "resourceType": "Immunization",
@@ -425,7 +4158,60 @@
                     "reference": "Patient/patient-demo-001"
                 },
                 "occurrenceDateTime": "2024-11-09",
-                "primarySource": true
+                "primarySource": true,
+                "manufacturer": {
+                    "display": "Example Vaccine Manufacturer (Synthetic)"
+                },
+                "lotNumber": "SYN-LOT-002",
+                "site": {
+                    "coding": [
+                        {
+                            "system": "http://snomed.info/sct",
+                            "code": "368208006",
+                            "display": "Left upper arm"
+                        }
+                    ],
+                    "text": "Left upper arm"
+                },
+                "route": {
+                    "coding": [
+                        {
+                            "system": "http://snomed.info/sct",
+                            "code": "78421000",
+                            "display": "Intramuscular route"
+                        }
+                    ],
+                    "text": "Intramuscular route"
+                },
+                "doseQuantity": {
+                    "value": 0.3,
+                    "unit": "mL",
+                    "code": "mL",
+                    "system": "http://unitsofmeasure.org"
+                },
+                "protocolApplied": [
+                    {
+                        "doseNumberPositiveInt": 1,
+                        "series": "Annual immunization example",
+                        "seriesDosesPositiveInt": 1
+                    }
+                ],
+                "performer": [
+                    {
+                        "actor": {
+                            "reference": "Practitioner/practitioner-demo-001",
+                            "display": "Dr. Avery Demo"
+                        }
+                    }
+                ],
+                "note": [
+                    {
+                        "text": "Synthetic example. Fictional administration record for vaccine history screens."
+                    }
+                ],
+                "meta": {
+                    "lastUpdated": "2026-08-25T16:58:00Z"
+                }
             }
         ],
         "encounters": [
@@ -440,6 +4226,13 @@
                 },
                 "type": [
                     {
+                        "coding": [
+                            {
+                                "system": "https://finchnode.com/synthetic-data/codes",
+                                "code": "wellness-visit",
+                                "display": "Annual wellness visit"
+                            }
+                        ],
                         "text": "Annual wellness visit"
                     }
                 ],
@@ -462,6 +4255,185 @@
                 "serviceProvider": {
                     "reference": "Organization/organization-demo-001",
                     "display": "Northstar Health System (Synthetic)"
+                },
+                "location": [
+                    {
+                        "location": {
+                            "display": "Northstar Demo Clinic, examination room 2 (Synthetic)"
+                        }
+                    }
+                ],
+                "reasonCode": [
+                    {
+                        "coding": [
+                            {
+                                "system": "https://finchnode.com/synthetic-data/codes",
+                                "code": "follow-up",
+                                "display": "Routine chronic condition follow-up"
+                            }
+                        ],
+                        "text": "Routine chronic condition follow-up"
+                    }
+                ],
+                "meta": {
+                    "lastUpdated": "2026-08-25T16:58:00Z"
+                }
+            },
+            {
+                "resourceType": "Appointment",
+                "id": "appointment-demo-001",
+                "status": "booked",
+                "appointmentType": {
+                    "coding": [
+                        {
+                            "system": "https://finchnode.com/synthetic-data/codes",
+                            "code": "follow-up",
+                            "display": "Follow-up visit"
+                        }
+                    ],
+                    "text": "Follow-up visit"
+                },
+                "description": "Synthetic three-month follow-up appointment",
+                "start": "2026-10-18T16:00:00Z",
+                "end": "2026-10-18T16:30:00Z",
+                "minutesDuration": 30,
+                "reasonCode": [
+                    {
+                        "coding": [
+                            {
+                                "system": "https://finchnode.com/synthetic-data/codes",
+                                "code": "monitoring",
+                                "display": "Review sample medication and lab trends"
+                            }
+                        ],
+                        "text": "Review sample medication and lab trends"
+                    }
+                ],
+                "participant": [
+                    {
+                        "actor": {
+                            "reference": "Patient/patient-demo-001"
+                        },
+                        "status": "accepted"
+                    },
+                    {
+                        "actor": {
+                            "reference": "Practitioner/practitioner-demo-001",
+                            "display": "Dr. Avery Demo"
+                        },
+                        "type": [
+                            {
+                                "coding": [
+                                    {
+                                        "system": "https://finchnode.com/synthetic-data/codes",
+                                        "code": "primary-care",
+                                        "display": "Primary care clinician"
+                                    }
+                                ],
+                                "text": "Primary care clinician"
+                            }
+                        ],
+                        "status": "accepted"
+                    },
+                    {
+                        "actor": {
+                            "display": "Northstar Demo Clinic, examination room 2 (Synthetic)",
+                            "type": "Location"
+                        },
+                        "status": "accepted"
+                    }
+                ],
+                "meta": {
+                    "lastUpdated": "2026-08-25T16:58:00Z"
+                }
+            },
+            {
+                "resourceType": "CareTeam",
+                "id": "care-team-demo-001",
+                "status": "active",
+                "name": "Northstar chronic care team (Synthetic)",
+                "category": [
+                    {
+                        "coding": [
+                            {
+                                "system": "https://finchnode.com/synthetic-data/codes",
+                                "code": "longitudinal",
+                                "display": "Longitudinal care"
+                            }
+                        ],
+                        "text": "Longitudinal care"
+                    }
+                ],
+                "subject": {
+                    "reference": "Patient/patient-demo-001"
+                },
+                "period": {
+                    "start": "2026-01-01",
+                    "end": "2026-12-31"
+                },
+                "reasonCode": [
+                    {
+                        "coding": [
+                            {
+                                "system": "https://finchnode.com/synthetic-data/codes",
+                                "code": "monitoring",
+                                "display": "Chronic condition follow-up"
+                            }
+                        ],
+                        "text": "Chronic condition follow-up"
+                    }
+                ],
+                "managingOrganization": [
+                    {
+                        "reference": "Organization/organization-demo-001",
+                        "display": "Northstar Health System (Synthetic)"
+                    }
+                ],
+                "participant": [
+                    {
+                        "member": {
+                            "reference": "Practitioner/practitioner-demo-001",
+                            "display": "Dr. Avery Demo"
+                        },
+                        "role": [
+                            {
+                                "coding": [
+                                    {
+                                        "system": "https://finchnode.com/synthetic-data/codes",
+                                        "code": "primary-care",
+                                        "display": "Primary care clinician"
+                                    }
+                                ],
+                                "text": "Primary care clinician"
+                            }
+                        ]
+                    },
+                    {
+                        "member": {
+                            "reference": "Organization/organization-demo-001",
+                            "display": "Northstar Health System (Synthetic)"
+                        },
+                        "role": [
+                            {
+                                "coding": [
+                                    {
+                                        "system": "https://finchnode.com/synthetic-data/codes",
+                                        "code": "coordinator",
+                                        "display": "Care coordination"
+                                    }
+                                ],
+                                "text": "Care coordination"
+                            }
+                        ]
+                    }
+                ],
+                "note": [
+                    {
+                        "text": "Synthetic example. Fictional care-team contacts for app development."
+                    }
+                ],
+                "meta": {
+                    "lastUpdated": "2026-08-25T16:58:00Z"
                 }
             }
         ]
