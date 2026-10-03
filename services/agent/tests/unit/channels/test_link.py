@@ -22,9 +22,9 @@ def _env(monkeypatch):
 
 
 def test_extract_code():
-    assert link.extract_code("hi my code is pulse-7qk2 thanks") == "PULSE-7QK2"
-    assert link.extract_code("PULSE-ABCD") == "PULSE-ABCD"
-    assert link.extract_code("PULSE-ABC") is None
+    assert link.extract_code("hi my code is pulse-7qk2ab thanks") == "PULSE-7QK2AB"
+    assert link.extract_code("PULSE-ABCDEF") == "PULSE-ABCDEF"
+    assert link.extract_code("PULSE-ABCD") is None
     assert link.extract_code("hello") is None
     assert link.extract_code("") is None
 
@@ -52,8 +52,8 @@ async def test_known_code_links_and_welcomes(monkeypatch):
 
     monkeypatch.setattr(link, "claim_code", claim)
     monkeypatch.setattr(link, "display_name", name)
-    reply = await link.handle_unknown("imessage", "+15550001111", "hey pulse-7qk2")
-    assert seen == {"channel": "imessage", "external_id": "+15550001111", "code": "PULSE-7QK2"}
+    reply = await link.handle_unknown("imessage", "+15550001111", "hey pulse-7qk2ab")
+    assert seen == {"channel": "imessage", "external_id": "+15550001111", "code": "PULSE-7QK2AB"}
     assert "Welcome to Pulse, Ada" in reply
 
 
@@ -62,14 +62,14 @@ async def test_unmatched_code_replies_with_signup(monkeypatch):
         return None
 
     monkeypatch.setattr(link, "claim_code", claim)
-    reply = await link.handle_unknown("imessage", "+1", "PULSE-ZZZZ")
+    reply = await link.handle_unknown("imessage", "+1", "PULSE-ZZZZZZ")
     assert "PULSE-XXXX" in reply
     assert "https://pulse.test" in reply
 
 
 async def test_no_code_replies_with_signup():
     reply = await link.handle_unknown("imessage", "+1", "hello there")
-    assert reply == "Text your PULSE-XXXX code from onboarding, or sign up at https://pulse.test"
+    assert reply == "Text your PULSE-XXXXXX code from Pulse onboarding, or sign up at https://pulse.test"
 
 
 async def test_db_failure_does_not_raise(monkeypatch):
@@ -77,7 +77,7 @@ async def test_db_failure_does_not_raise(monkeypatch):
         raise RuntimeError("db down")
 
     monkeypatch.setattr(link, "claim_code", claim)
-    reply = await link.handle_unknown("imessage", "+1", "PULSE-7QK2")
+    reply = await link.handle_unknown("imessage", "+1", "PULSE-7QK2AB")
     assert "try again" in reply
 
 
@@ -101,12 +101,35 @@ def test_status_endpoint_masks(monkeypatch):
     monkeypatch.setattr(db, "neon", fake_neon({"external_id": "+15551234567"}))
     r = TestClient(app).get(f"/channels/status?user_id={USER}", headers=HEADERS)
     assert r.status_code == 200
-    assert r.json() == {"imessage": {"linked": True, "external_id_masked": "***4567"}}
+    assert r.json()["imessage"] == {"linked": True, "external_id_masked": "***4567"}
 
 
 def test_status_endpoint_unlinked_and_auth(monkeypatch):
     monkeypatch.setattr(db, "neon", fake_neon(None))
     c = TestClient(app)
     r = c.get(f"/channels/status?user_id={USER}", headers=HEADERS)
-    assert r.json() == {"imessage": {"linked": False, "external_id_masked": None}}
+    assert r.json() == {
+        "imessage": {"linked": False, "external_id_masked": None},
+        "asi_one": {"linked": False, "external_id_masked": None},
+    }
     assert c.get(f"/channels/status?user_id={USER}").status_code == 401
+
+
+def test_asi_one_texts_are_channel_specific():
+    assert "iMessage" in link.welcome_text("Ada", "asi_one") and "text you" not in link.welcome_text(
+        "Ada", "asi_one"
+    )
+    assert "ASI:One" in link.unknown_text("https://pulse.test", False, "asi_one")
+
+
+async def test_wrong_codes_are_rate_limited(monkeypatch):
+    async def claim(channel, external_id, code):
+        return None
+
+    monkeypatch.setattr(link, "claim_code", claim)
+    link._failed.clear()
+    for _ in range(link.MAX_FAILED):
+        assert "did not match" in await link.handle_unknown("asi_one", "agent1qguess", "PULSE-AAAAAA")
+    assert "Too many wrong codes" in await link.handle_unknown("asi_one", "agent1qguess", "PULSE-BBBBBB")
+    assert "did not match" in await link.handle_unknown("imessage", "+1555", "PULSE-AAAAAA")
+    link._failed.clear()

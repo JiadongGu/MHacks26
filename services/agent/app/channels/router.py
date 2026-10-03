@@ -17,15 +17,20 @@ class ChannelState(BaseModel):
 
 class ChannelStatus(BaseModel):
     imessage: ChannelState
+    asi_one: ChannelState = ChannelState(linked=False)
+
+
+async def _state(user_id: UUID, channel: str) -> ChannelState:
+    async with db.neon() as conn:
+        cur = await conn.execute(
+            "select external_id from channel_links where user_id = %s and channel = %s "
+            "and status = 'linked' order by linked_at desc nulls last limit 1", (user_id, channel))
+        row = await cur.fetchone()
+    if not row:
+        return ChannelState(linked=False)
+    return ChannelState(linked=True, external_id_masked=mask(row["external_id"]))
 
 
 @router.get("/status", response_model=ChannelStatus)
 async def status(user_id: UUID) -> ChannelStatus:
-    async with db.neon() as conn:
-        cur = await conn.execute(
-            "select external_id from channel_links where user_id = %s and channel = 'imessage' "
-            "and status = 'linked' order by linked_at desc nulls last limit 1", (user_id,))
-        row = await cur.fetchone()
-    if not row:
-        return ChannelStatus(imessage=ChannelState(linked=False))
-    return ChannelStatus(imessage=ChannelState(linked=True, external_id_masked=mask(row["external_id"])))
+    return ChannelStatus(imessage=await _state(user_id, "imessage"), asi_one=await _state(user_id, "asi_one"))

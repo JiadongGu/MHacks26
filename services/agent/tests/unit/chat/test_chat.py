@@ -207,20 +207,20 @@ def test_build_status_and_format():
 
 async def test_unknown_sender_gets_link_reply_and_nothing_is_saved(store):
     reply = await chat.handle(msg("hello", external_id="+999"))
-    assert "PULSE-XXXX" in reply.reply
+    assert "PULSE-XXXXXX" in reply.reply
     assert store.saved == []
 
 
 async def test_unknown_sender_with_code_is_linked(store, monkeypatch):
     async def claim(channel, external_id, code):
-        return USER if code == "PULSE-7QK2" else None
+        return USER if code == "PULSE-7QK2AB" else None
 
     async def name(user_id):
         return "Ada"
 
     monkeypatch.setattr(link, "claim_code", claim)
     monkeypatch.setattr(link, "display_name", name)
-    reply = await chat.handle(msg("PULSE-7QK2", external_id="+999"))
+    reply = await chat.handle(msg("PULSE-7QK2AB", external_id="+999"))
     assert "Welcome to Pulse, Ada" in reply.reply
 
 

@@ -2,6 +2,7 @@
 // Dates leave this file as ISO strings so client components can take them as props.
 import { and, asc, desc, eq, gte, inArray, isNull, lte, max } from "drizzle-orm";
 import { db, schema } from "@/lib/db";
+import { LINK_CODE_TTL_MS, type LinkChannel } from "@/lib/link-code";
 
 export type AlertView = {
   id: string;
@@ -214,19 +215,23 @@ export async function listGoals(userId: string): Promise<GoalView[]> {
 export async function getChannelLinkStatus(
   userId: string,
   code: string,
-): Promise<"pending" | "linked" | "missing"> {
+  channel: LinkChannel = "imessage",
+): Promise<"pending" | "linked" | "expired" | "missing"> {
   const rows = await db
-    .select({ status: schema.channel_links.status })
+    .select({ status: schema.channel_links.status, created_at: schema.channel_links.created_at })
     .from(schema.channel_links)
     .where(
       and(
         eq(schema.channel_links.user_id, userId),
-        eq(schema.channel_links.channel, "imessage"),
+        eq(schema.channel_links.channel, channel),
         eq(schema.channel_links.link_code, code),
       ),
     )
     .limit(1);
-  return rows[0]?.status ?? "missing";
+  const row = rows[0];
+  if (!row) return "missing";
+  if (row.status === "pending" && Date.now() - row.created_at.getTime() > LINK_CODE_TTL_MS) return "expired";
+  return row.status === "linked" ? "linked" : "pending";
 }
 
 export async function hasLinkedChannel(userId: string): Promise<boolean> {

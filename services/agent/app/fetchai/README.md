@@ -15,7 +15,7 @@ health record, and acts on what it sees. Chat with it here the same way you do o
 - **Why did you alert me?** Pulse explains its last alert.
 
 ## First time
-Send the `PULSE-XXXX` code from onboarding (sign up in the Pulse web app) in this chat once to link your account.
+Send the `PULSE-XXXXXX` code from the ASI:One step of onboarding (sign up in the Pulse web app) in this chat once to link your account.
 
 ## Agent
 - Address: `agent1qw9glwdgrmg9tmd7fj9u6wst50d38hwcaat09nck0aml3jvdkrrf6n7pxcv`
