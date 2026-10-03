@@ -85,3 +85,7 @@ J (Jiadong Gu) and P (Gavin Mordhorst).
 ---
 
 Pulse gives wellness guidance, not medical advice.
+
+## Evaluation
+
+A live Gemini evaluation harness lives in `services/agent/evals/` (`uv run python -m evals.gemini_eval`, uses a throwaway Neon branch). The first run (141 cases: alert phrasing across 3 patient personas, 47 chat conversations incl. emergencies, injection and cross-user requests, and robustness under bad keys/timeouts/quota) is in [`services/agent/evals/report.md`](services/agent/evals/report.md); its findings were fixed in #37, #46, #50 and #52.

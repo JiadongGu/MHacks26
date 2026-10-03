@@ -5,7 +5,7 @@ export const STEPS = [
   { id: 2, label: "Health history" },
   { id: 3, label: "Devices" },
   { id: 4, label: "Google Calendar" },
-  { id: 5, label: "Goals" },
+  { id: 5, label: "Focus" },
   { id: 6, label: "iMessage" },
   { id: 7, label: "Done" },
 ] as const;

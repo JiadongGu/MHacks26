@@ -78,3 +78,6 @@ app.include_router(demo_router)
 from app.voice.router import router as voice_router  # noqa: E402
 
 app.include_router(voice_router)
+from app.focus.api import router as focus_router  # noqa: E402
+
+app.include_router(focus_router)

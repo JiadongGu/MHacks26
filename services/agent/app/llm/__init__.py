@@ -1,6 +1,7 @@
 import asyncio
 import json
 import logging
+import re
 import time
 from datetime import UTC, date, datetime
 from typing import Any
@@ -24,8 +25,14 @@ SYSTEM_PROMPT = (
     "Cite the exact numbers from the facts. Use at most 320 characters, in iMessage style, "
     "with no markdown and no emoji spam. If a fact suggests danger, advise medical care. "
     "For timing, copy any *_when phrase exactly (e.g. 'tomorrow at 2:00 PM'); never work out dates yourself. "
-    "Say sleep in hours, not minutes."
+    "Say sleep in hours, not minutes. Only cite numbers that appear in the Facts; never quote thresholds, "
+    "goals or values from the twin summary. Never state or suggest a diagnosis or that the user 'has' an "
+    "illness."
 )
+
+DIAGNOSIS_RE = re.compile(r"\byou (definitely |probably |likely )?(have|'ve got) (a |an |the )?"
+                          r"(flu|covid|infection|cold|virus|disease|pneumonia|diabetes|heart attack)|diagnos|"
+                          r"\bdefinitely\b", re.IGNORECASE)
 
 
 def _for_llm(facts: dict[str, Any]) -> dict[str, Any]:
@@ -58,21 +65,24 @@ def _count_call() -> None:
     _calls[today] = _calls.get(today, 0) + 1
 
 
+RETRY_NEXT_MODEL = {429, 500, 503}
+
+
 def models_to_try(primary: str) -> list[str]:
     extra = [m.strip() for m in settings().gemini_fallback_models.split(",") if m.strip()]
     return [primary] + [m for m in extra if m != primary]
 
 
 async def generate_with_fallback(client: Any, primary: str, **kwargs: Any) -> Any:
-    """generate_content on the primary model; on 429 (quota) move to the next model. Other errors raise."""
+    """generate_content on the primary model; on 429 (quota) or 500/503 (overloaded) try the next model."""
     last: Exception | None = None
     for model in models_to_try(primary):
         try:
             return await client.aio.models.generate_content(model=model, **kwargs)
         except genai_errors.APIError as exc:
-            if getattr(exc, "code", None) != 429:
+            if getattr(exc, "code", None) not in RETRY_NEXT_MODEL:
                 raise
-            log.warning("llm.quota model=%s; trying next", model)
+            log.warning("llm.model_unavailable model=%s code=%s; trying next", model, exc.code)
             last = exc
     raise last or RuntimeError("no model available")
 
@@ -114,7 +124,11 @@ async def phrase(kind: str, facts: dict[str, Any], twin_summary: str, persona: s
         out = await asyncio.wait_for(
             _generate(kind, facts, twin_summary, persona), timeout=TIMEOUT_MS / 1000 + 2)
         log.info("llm.phrase kind=%s ok=1 ms=%d", kind, (time.monotonic() - started) * 1000)
-        return out.text.strip()[:MAX_CHARS]
+        text = out.text.strip()[:MAX_CHARS]
+        if DIAGNOSIS_RE.search(text):
+            log.warning("llm.phrase kind=%s diagnosis_language=1; using template", kind)
+            return render(kind, facts)
+        return text
     except Exception as exc:
         log.warning("llm.phrase kind=%s ok=0 err=%s ms=%d", kind, type(exc).__name__,
                     (time.monotonic() - started) * 1000)

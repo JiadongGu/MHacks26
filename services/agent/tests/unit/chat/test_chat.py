@@ -152,7 +152,19 @@ def test_classify_status_and_llm_cases():
     assert chat.classify("yesterday I slept badly") is None
     assert chat.classify("ok so what is my heart rate?") is None
     assert chat.classify("sure, but only if the event is not at noon tomorrow") is None
-    assert chat.classify("nope") is None
+    assert chat.classify("nope") == "reject"
+    assert chat.classify("ok thanks") is None
+    assert chat.classify("no worries, thanks for the update") is None
+    assert chat.classify("not sure about that block") is None
+
+
+def test_emergency_and_fallback_patterns():
+    assert chat.EMERGENCY_RE.search("I have crushing chest pain and my left arm is numb")
+    assert chat.EMERGENCY_RE.search("i cant breathe")
+    assert not chat.EMERGENCY_RE.search("my legs hurt after the run")
+    assert chat.SYMPTOM_RE.search("I have a sore throat")
+    m = chat.SET_GOAL_RE.search("set my step goal to 10,000")
+    assert m and m.group(1) == "step" and m.group(2) == "10,000"
 
 
 # ------------------------------------------------------------------ pure helpers

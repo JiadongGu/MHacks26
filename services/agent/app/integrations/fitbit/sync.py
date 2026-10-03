@@ -1,5 +1,5 @@
 import asyncio
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime, time, timedelta
 from typing import Any
 from uuid import UUID
 from zoneinfo import ZoneInfo
@@ -9,7 +9,7 @@ from app.core.logging import log
 from app.ingest.writer import ingest_batch, user_timezone
 
 from . import normalize, store
-from .client import HealthClient
+from .client import AccountNotLinked, HealthClient
 
 LOOKBACK_MIN = 30
 BACKFILL_MIN = 360
@@ -27,10 +27,13 @@ def _fetch(
     start = end - timedelta(minutes=minutes)
     today = end.astimezone(ZoneInfo(tz)).date()
     since = today - timedelta(days=days - 1)
+    # Daily totals of steps and active minutes are summed from the minute readings that were ingested, so they
+    # must cover whole local days. A short window would count only what arrived since the last poll.
+    day_start = datetime.combine(since, time(0), tzinfo=ZoneInfo(tz))
     samples = normalize.heart_rate_samples(user_id, client.heart_rate(start, end))
-    samples += normalize.steps_samples(user_id, client.steps(start, end))
+    samples += normalize.steps_samples(user_id, client.steps(day_start, end))
     samples += normalize.spo2_samples(user_id, client.spo2(start, end))
-    samples += normalize.active_minutes_samples(user_id, client.active_minutes(start, end))
+    samples += normalize.active_minutes_samples(user_id, client.active_minutes(day_start, end))
     samples += normalize.resting_hr_samples(user_id, client.daily("daily-resting-heart-rate", since, today))
     samples += normalize.hrv_samples(user_id, client.daily("daily-heart-rate-variability", since, today))
     samples += normalize.sleep_samples(user_id, client.sleep(since, today))
@@ -59,5 +62,9 @@ async def sync_all() -> None:
     for user_id in await store.connected_users():
         try:
             await sync_user(user_id)
+        except AccountNotLinked:
+            # Nothing will ever sync for this account. Drop the connection so the UI offers Connect again.
+            log.warning("event=fitbit_account_not_linked_removed user=%s", user_id)
+            await store.delete(user_id)
         except Exception as e:  # one bad token must not stop the sweep
             log.warning("event=fitbit_sync_failed user=%s err=%s", user_id, e)

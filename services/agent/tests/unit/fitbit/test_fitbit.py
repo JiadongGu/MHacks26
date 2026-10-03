@@ -1,4 +1,5 @@
 import time
+from datetime import timedelta
 from uuid import UUID
 
 import httpx
@@ -300,3 +301,86 @@ def test_callback_success(monkeypatch):
     fakes = CallbackFakes()
     assert _callback(monkeypatch, fakes) == "?fitbit=connected"
     assert fakes.saved == [UID] and fakes.deleted == []
+
+
+def test_steps_and_active_minutes_cover_whole_local_days_but_heart_rate_stays_short(monkeypatch):
+    from datetime import UTC, datetime
+    from zoneinfo import ZoneInfo
+
+    calls = {}
+
+    class FakeClient:
+        refreshed = False
+        row = {}
+
+        def __init__(self, row):
+            pass
+
+        def _rec(self, name):
+            def f(start, end):
+                calls[name] = (start, end)
+                return []
+
+            return f
+
+        def __getattr__(self, name):
+            if name in ("heart_rate", "steps", "spo2", "active_minutes"):
+                return self._rec(name)
+            return lambda *a, **k: []
+
+    monkeypatch.setattr(sync, "HealthClient", FakeClient)
+    sync._fetch({}, UID, 30, 2, "America/Detroit")
+    now_local = datetime.now(UTC).astimezone(ZoneInfo("America/Detroit"))
+    local_midnight_yesterday = (now_local - timedelta(days=1)).replace(
+        hour=0, minute=0, second=0, microsecond=0
+    )
+    for name in ("steps", "active_minutes"):
+        start, end = calls[name]
+        assert start == local_midnight_yesterday and (end - start) > timedelta(hours=24)
+    for name in ("heart_rate", "spo2"):
+        start, end = calls[name]
+        assert end - start == timedelta(minutes=30)
+
+
+async def test_sync_all_removes_a_connection_whose_account_is_not_linked(monkeypatch):
+    from app.integrations.fitbit.client import AccountNotLinked
+
+    other = UUID("00000000-0000-0000-0000-000000000002")
+    deleted, synced = [], []
+
+    async def users():
+        return [UID, other]
+
+    async def sync_user(user_id, *a):
+        if user_id == UID:
+            raise AccountNotLinked("x")
+        synced.append(user_id)
+        return 1
+
+    async def delete(user_id):
+        deleted.append(user_id)
+
+    monkeypatch.setattr(sync.store, "connected_users", users)
+    monkeypatch.setattr(sync.store, "delete", delete)
+    monkeypatch.setattr(sync, "sync_user", sync_user)
+    await sync.sync_all()
+    assert deleted == [UID] and synced == [other]  # the sweep carries on to the next user
+
+
+async def test_sync_all_keeps_a_connection_after_an_ordinary_failure(monkeypatch):
+    deleted = []
+
+    async def users():
+        return [UID]
+
+    async def sync_user(user_id, *a):
+        raise RuntimeError("network blip")
+
+    async def delete(user_id):
+        deleted.append(user_id)
+
+    monkeypatch.setattr(sync.store, "connected_users", users)
+    monkeypatch.setattr(sync.store, "delete", delete)
+    monkeypatch.setattr(sync, "sync_user", sync_user)
+    await sync.sync_all()
+    assert deleted == []
