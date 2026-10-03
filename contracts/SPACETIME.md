@@ -2,7 +2,7 @@
 
 Replaces Tiger (decided 2026-10-03). SpacetimeDB v2.10, TypeScript module, hosted on maincloud. Neon stays the long-term pool and source of truth for alerts, proposals, twin, goals.
 
-Owners: **P** builds the module (`infra/spacetime/`, tables, reducers, rollup, publish) and the ingest writer. **J** consumes it: rules reads (Python, HTTP) and the live dashboard (React, views).
+Owners (changed 2026-10-03): **J** owns the module (`infra/spacetime/`, tables, reducers, rollup, views, publish) and its consumers (rules reads, live dashboard). **P** writes into it from the ingest side (Fitbit sync, Apple Watch simulator, `/ingest/*`) through `spacetime.call("ingest", ...)` only.
 
 ## Facts that constrain the design (verified 2026-10-03)
 - Python has no maintained SDK. The agent uses the HTTP API: `POST {host}/v1/database/{db}/call/{reducer}` (JSON array of args) and `POST {host}/v1/database/{db}/sql` (plain-text SQL), `Authorization: Bearer <token>`.
