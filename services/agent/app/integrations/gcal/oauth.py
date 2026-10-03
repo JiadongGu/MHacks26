@@ -1,4 +1,5 @@
 import json
+import os
 import secrets
 import time
 
@@ -12,6 +13,9 @@ from .store import fernet
 
 SCOPES = ["https://www.googleapis.com/auth/calendar"]
 STATE_TTL = 600
+
+# oauthlib raises when Google returns scopes that were not requested. Never fail a connect over that.
+os.environ.setdefault("OAUTHLIB_RELAX_TOKEN_SCOPE", "1")
 
 
 def _flow(state: str | None = None, code_verifier: str | None = None) -> Flow:
@@ -31,11 +35,11 @@ def _flow(state: str | None = None, code_verifier: str | None = None) -> Flow:
 
 def authorization_url(user_id: str) -> str:
     verifier = secrets.token_urlsafe(64)
-    state = fernet().encrypt(
-        json.dumps({"u": user_id, "v": verifier, "t": int(time.time())}).encode()
-    ).decode()
+    state = (
+        fernet().encrypt(json.dumps({"u": user_id, "v": verifier, "t": int(time.time())}).encode()).decode()
+    )
     url, _ = _flow(code_verifier=verifier).authorization_url(
-        access_type="offline", prompt="consent select_account", include_granted_scopes="true", state=state
+        access_type="offline", prompt="consent select_account", state=state
     )
     return url
 

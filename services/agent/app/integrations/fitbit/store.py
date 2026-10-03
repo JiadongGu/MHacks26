@@ -60,3 +60,8 @@ async def mark_synced(user_id: UUID) -> None:
         await conn.execute(
             "update fitbit_connections set last_sync_at = now() where user_id = %s", (user_id,)
         )
+
+
+async def delete(user_id: UUID) -> None:
+    async with db.neon() as conn:
+        await conn.execute("delete from fitbit_connections where user_id = %s", (user_id,))

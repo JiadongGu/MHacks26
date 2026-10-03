@@ -4,9 +4,15 @@ from typing import Any
 
 import httpx
 
+from app.core.logging import log
+
 from . import oauth
 
 API = "https://health.googleapis.com/v4/users/me"
+
+
+class AccountNotLinked(Exception):
+    """The Google account has no Fitbit or Google Health data to read."""
 
 
 def _z(dt: datetime) -> str:
@@ -37,9 +43,24 @@ class HealthClient:
             if r.status_code == 401 and attempt == 1:
                 self._refresh()
                 continue
-            r.raise_for_status()
+            if r.status_code >= 400:
+                self._raise(r)
             return r.json()
         raise AssertionError("unreachable")
+
+    @staticmethod
+    def _raise(r: httpx.Response) -> None:
+        try:
+            err = r.json().get("error", {})
+            reason = ((err.get("details") or [{}])[0]).get("reason")
+        except ValueError:
+            err, reason = {}, None
+        if reason == "ACCOUNT_NOT_LINKED":
+            raise AccountNotLinked(err.get("message", "account not linked"))
+        log.warning(
+            "event=health_api_error status=%s reason=%s message=%s", r.status_code, reason, err.get("message")
+        )
+        r.raise_for_status()
 
     def list_points(self, data_type: str, filter_expr: str) -> list[dict[str, Any]]:
         out: list[dict[str, Any]] = []
