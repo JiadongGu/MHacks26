@@ -17,7 +17,7 @@
 - Gemini key once rules are verified with templates
 
 ## Next — P
-- PLAN.md §13 hour 0–1: Railway, Tiger, Fitbit go/no-go, Agentverse
+- PLAN.md §13 hour 0–1: Railway, Tiger, Agentverse. Fitbit go/no-go PASSED on Google Health API (live HR ~1300 samples/3h + steps; account must be linked to Google Health); missing resting HR, sleep, active minutes; remove `/integrations/fitbit/raw` before prod
 - `neon link --project-id wispy-wind-94465979 --branch production -y` for env
 - Confirm: `steps` samples are per-interval deltas (not cumulative); `daily_summary.day` is the user's local day
 

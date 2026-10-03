@@ -45,7 +45,7 @@ def authorization_url(user_id: str) -> str:
                 "redirect_uri": redirect_uri(),
                 "scope": SCOPES,
                 "access_type": "offline",
-                "prompt": "consent",
+                "prompt": "consent select_account",
                 "state": state,
                 "code_challenge": challenge,
                 "code_challenge_method": "S256",
