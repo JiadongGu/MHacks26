@@ -127,3 +127,10 @@ async def test_daily_budget_switches_to_templates(monkeypatch):
     assert await llm.phrase("recovery", FACTS["recovery"], "") == "from gemini"
     llm._calls[next(iter(llm._calls))] = llm.DAILY_LIMIT
     assert await llm.phrase("recovery", FACTS["recovery"], "") == render("recovery", FACTS["recovery"])
+
+
+def test_for_llm_turns_sleep_minutes_into_hours():
+    from app.llm import _for_llm
+
+    out = _for_llm({"sleep_min": 300, "sleep_total_min": 450, "duration_min": 20, "rhr_today": 84})
+    assert out == {"sleep_hours": 5.0, "sleep_total_hours": 7.5, "duration_min": 20, "rhr_today": 84}
