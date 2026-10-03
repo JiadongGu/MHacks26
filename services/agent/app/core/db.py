@@ -10,7 +10,11 @@ _tiger: AsyncConnectionPool | None = None
 
 
 def _pool(url: str) -> AsyncConnectionPool:
-    return AsyncConnectionPool(url, min_size=1, max_size=5, open=False, kwargs={"row_factory": dict_row})
+    # Neon scales to zero and drops idle connections: check before handing one out, recycle idle ones.
+    return AsyncConnectionPool(
+        url, min_size=1, max_size=5, open=False, max_idle=240,
+        check=AsyncConnectionPool.check_connection, kwargs={"row_factory": dict_row},
+    )
 
 
 async def open_pools() -> None:

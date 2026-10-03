@@ -4,14 +4,39 @@
     {
       "name": "agent",
       "runtimeExecutable": "uv",
-      "runtimeArgs": ["--directory", "services/agent", "run", "uvicorn", "app.main:app", "--port", "8000", "--reload"],
+      "runtimeArgs": [
+        "--directory",
+        "services/agent",
+        "run",
+        "uvicorn",
+        "app.main:app",
+        "--port",
+        "8000",
+        "--reload",
+        "--reload-dir",
+        "app"
+      ],
       "port": 8000
     },
     {
       "name": "web",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["--prefix", "apps/web", "run", "dev"],
+      "runtimeArgs": [
+        "--prefix",
+        "apps/web",
+        "run",
+        "dev"
+      ],
       "port": 3000
+    },
+    {
+      "name": "gateway",
+      "runtimeExecutable": "sh",
+      "runtimeArgs": [
+        "-c",
+        "cd services/gateway && npx tsx --env-file=.env src/index.ts"
+      ],
+      "port": 8789
     }
   ]
 }
