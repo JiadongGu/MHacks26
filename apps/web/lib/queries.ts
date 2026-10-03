@@ -234,6 +234,35 @@ export async function getChannelLinkStatus(
   return row.status === "linked" ? "linked" : "pending";
 }
 
+export type BriefingView = {
+  day: string;
+  text: string;
+  has_audio: boolean;
+  created_at: string;
+};
+
+/** The briefing for one local day (YYYY-MM-DD) of the session user. */
+export async function getBriefing(userId: string, day: string): Promise<BriefingView | null> {
+  const rows = await db
+    .select({
+      day: schema.briefings.day,
+      text: schema.briefings.text,
+      audio_url: schema.briefings.audio_url,
+      created_at: schema.briefings.created_at,
+    })
+    .from(schema.briefings)
+    .where(and(eq(schema.briefings.user_id, userId), eq(schema.briefings.day, day)))
+    .limit(1);
+  const r = rows[0];
+  if (!r) return null;
+  return {
+    day: r.day,
+    text: r.text,
+    has_audio: r.audio_url !== null,
+    created_at: r.created_at.toISOString(),
+  };
+}
+
 export async function hasLinkedChannel(userId: string): Promise<boolean> {
   const rows = await db
     .select({ id: schema.channel_links.id })
