@@ -3,6 +3,7 @@
 import { and, asc, desc, eq, gte, inArray, isNull, lte, max } from "drizzle-orm";
 import { db, schema } from "@/lib/db";
 import { LINK_CODE_TTL_MS, type LinkChannel } from "@/lib/link-code";
+import { parseItems, type PlanView } from "@/lib/plan";
 
 export type AlertView = {
   id: string;
@@ -240,6 +241,25 @@ export type BriefingView = {
   has_audio: boolean;
   created_at: string;
 };
+
+/** The saved plan for one local day (YYYY-MM-DD) of the session user, or null. */
+export async function getDailyPlan(userId: string, day: string): Promise<PlanView | null> {
+  const rows = await db
+    .select()
+    .from(schema.daily_plans)
+    .where(and(eq(schema.daily_plans.user_id, userId), eq(schema.daily_plans.day, day)))
+    .limit(1);
+  const r = rows[0];
+  if (!r) return null;
+  return {
+    day: r.day,
+    load: r.load,
+    headline: r.headline,
+    bed_time: r.bed_time,
+    wake_time: r.wake_time,
+    items: parseItems(r.items),
+  };
+}
 
 /** The briefing for one local day (YYYY-MM-DD) of the session user. */
 export async function getBriefing(userId: string, day: string): Promise<BriefingView | null> {
