@@ -134,3 +134,24 @@ def test_for_llm_turns_sleep_minutes_into_hours():
 
     out = _for_llm({"sleep_min": 300, "sleep_total_min": 450, "duration_min": 20, "rhr_today": 84})
     assert out == {"sleep_hours": 5.0, "sleep_total_hours": 7.5, "duration_min": 20, "rhr_today": 84}
+
+
+async def test_generate_with_fallback_moves_on_429_only(monkeypatch):
+    from google.genai import errors as genai_errors
+
+    import app.llm as llm
+
+    tried = []
+
+    class Models:
+        async def generate_content(self, model, **kw):
+            tried.append(model)
+            if model == "m1":
+                body = {"error": {"code": 429, "message": "quota", "status": "x"}}
+                raise genai_errors.ClientError(429, body)
+            return f"ok:{model}"
+
+    client = type("C", (), {"aio": type("A", (), {"models": Models()})()})()
+    monkeypatch.setattr(llm, "models_to_try", lambda primary: ["m1", "m2", "m3"])
+    assert await llm.generate_with_fallback(client, "m1", contents="x") == "ok:m2"
+    assert tried == ["m1", "m2"]

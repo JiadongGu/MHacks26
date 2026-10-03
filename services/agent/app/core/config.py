@@ -19,6 +19,8 @@ class Settings(BaseSettings):
     gemini_api_key: str = ""
     gemini_model_fast: str = "gemini-3.5-flash-lite"
     gemini_model_smart: str = "gemini-3.8-flash"
+    # Tried in order when a model returns 429 (each model has its own free-tier daily quota).
+    gemini_fallback_models: str = "gemini-3.5-flash,gemini-3.1-flash-lite,gemini-2.5-flash"
     llm_fake: bool = False
     fitbit_client_id: str = ""
     fitbit_client_secret: str = ""
