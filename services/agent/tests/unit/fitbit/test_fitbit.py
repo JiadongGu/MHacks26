@@ -300,3 +300,47 @@ def test_callback_success(monkeypatch):
     fakes = CallbackFakes()
     assert _callback(monkeypatch, fakes) == "?fitbit=connected"
     assert fakes.saved == [UID] and fakes.deleted == []
+
+
+async def test_sync_all_removes_a_connection_whose_account_is_not_linked(monkeypatch):
+    from app.integrations.fitbit.client import AccountNotLinked
+
+    other = UUID("00000000-0000-0000-0000-000000000002")
+    deleted, synced = [], []
+
+    async def users():
+        return [UID, other]
+
+    async def sync_user(user_id, *a):
+        if user_id == UID:
+            raise AccountNotLinked("x")
+        synced.append(user_id)
+        return 1
+
+    async def delete(user_id):
+        deleted.append(user_id)
+
+    monkeypatch.setattr(sync.store, "connected_users", users)
+    monkeypatch.setattr(sync.store, "delete", delete)
+    monkeypatch.setattr(sync, "sync_user", sync_user)
+    await sync.sync_all()
+    assert deleted == [UID] and synced == [other]  # the sweep carries on to the next user
+
+
+async def test_sync_all_keeps_a_connection_after_an_ordinary_failure(monkeypatch):
+    deleted = []
+
+    async def users():
+        return [UID]
+
+    async def sync_user(user_id, *a):
+        raise RuntimeError("network blip")
+
+    async def delete(user_id):
+        deleted.append(user_id)
+
+    monkeypatch.setattr(sync.store, "connected_users", users)
+    monkeypatch.setattr(sync.store, "delete", delete)
+    monkeypatch.setattr(sync, "sync_user", sync_user)
+    await sync.sync_all()
+    assert deleted == []
