@@ -14,7 +14,7 @@ from psycopg.types.json import Jsonb
 
 from app import llm, notify
 from app.contracts import CalendarEvent, DailySummary, Goal
-from app.core import db
+from app.core import db, spacetime
 from app.rules import TITLES, Finding, RuleContext, evaluate
 
 log = logging.getLogger("pulse.live")
@@ -90,6 +90,26 @@ def assemble(
     return ctx, summary.strip()
 
 
+def _ms(t: datetime) -> int:
+    return int(t.timestamp() * 1000)
+
+
+async def _series(user_id: UUID, now: datetime) -> list[dict[str, Any]]:
+    """Minute series from Spacetime `minute_agg` (contracts/SPACETIME.md): last 3h, BP last 24h."""
+    if not spacetime.configured():
+        return []
+    uid = str(UUID(str(user_id)))
+    base = f"SELECT * FROM minute_agg WHERE user_id = '{uid}' AND minute_ms >= "
+    recent = await spacetime.sql(base + str(_ms(now - timedelta(hours=3))))
+    bp = await spacetime.sql(
+        base + str(_ms(now - timedelta(hours=24)))
+        + " AND (metric = 'bp_systolic' OR metric = 'bp_diastolic')")
+    out = [r for r in recent if r["metric"] in SERIES_METRICS] + bp
+    rows = [{"metric": r["metric"], "ts": datetime.fromtimestamp(int(r["minute_ms"]) / 1000, UTC),
+             "v": r["sum"] if r["metric"] == "steps" else r["avg"]} for r in out]
+    return sorted(rows, key=lambda r: (r["metric"], r["ts"]))
+
+
 async def _load(user_id: UUID, now: datetime) -> tuple[RuleContext, str]:
     async with db.neon() as conn:
         cur = await conn.execute(
@@ -123,15 +143,7 @@ async def _load(user_id: UUID, now: datetime) -> tuple[RuleContext, str]:
             "select kind, created_at from alerts where user_id = %s and created_at > %s",
             (user_id, now - timedelta(hours=48)))
         alert_rows = await cur.fetchall()
-    async with db.tiger() as conn:
-        cur = await conn.execute(
-            "select metric, date_trunc('minute', ts) as ts, "
-            "case when metric = 'steps' then sum(value) else avg(value) end as v "
-            "from vitals_raw where user_id = %s and "
-            "((metric = any(%s) and ts > %s) or (metric = any(%s) and ts > %s)) "
-            "group by metric, date_trunc('minute', ts) order by metric, ts",
-            (user_id, SERIES_METRICS, now - timedelta(hours=3), BP_METRICS, now - timedelta(hours=24)))
-        series_rows = await cur.fetchall()
+    series_rows = await _series(user_id, now)
     return assemble(now, user_id, profile, twin_row, goal_rows, series_rows, daily_rows, event_rows,
                     alert_rows)
 
@@ -200,11 +212,9 @@ async def sweep_all() -> None:
     """Run the rules for every user with samples in the last 10 minutes. Never raises."""
     started = time.monotonic()
     try:
-        async with db.tiger() as conn:
-            cur = await conn.execute(
-                "select distinct user_id from vitals_raw where ts > %s",
-                (datetime.now(UTC) - timedelta(minutes=SWEEP_WINDOW_MIN),))
-            users = [r["user_id"] for r in await cur.fetchall()]
+        since = int((datetime.now(UTC) - timedelta(minutes=SWEEP_WINDOW_MIN)).timestamp() * 1000)
+        rows = await spacetime.sql(f"SELECT user_id FROM minute_agg WHERE minute_ms >= {since}")
+        users = sorted({UUID(r["user_id"]) for r in rows})
     except Exception as exc:
         log.exception("live.sweep_failed err=%s", type(exc).__name__)
         return
