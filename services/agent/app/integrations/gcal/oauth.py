@@ -35,7 +35,7 @@ def authorization_url(user_id: str) -> str:
         json.dumps({"u": user_id, "v": verifier, "t": int(time.time())}).encode()
     ).decode()
     url, _ = _flow(code_verifier=verifier).authorization_url(
-        access_type="offline", prompt="consent", include_granted_scopes="true", state=state
+        access_type="offline", prompt="consent select_account", include_granted_scopes="true", state=state
     )
     return url
 
