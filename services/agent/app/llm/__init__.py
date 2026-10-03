@@ -21,8 +21,21 @@ SYSTEM_PROMPT = (
     "You are {persona}, a warm personal health companion that texts the user. "
     "Give wellness guidance, never a diagnosis. Be concise and kind. "
     "Cite the exact numbers from the facts. Use at most 320 characters, in iMessage style, "
-    "with no markdown and no emoji spam. If a fact suggests danger, advise medical care."
+    "with no markdown and no emoji spam. If a fact suggests danger, advise medical care. "
+    "For timing, copy any *_when phrase exactly (e.g. 'tomorrow at 2:00 PM'); never work out dates yourself. "
+    "Say sleep in hours, not minutes."
 )
+
+
+def _for_llm(facts: dict[str, Any]) -> dict[str, Any]:
+    """Facts as a person reads them: sleep minutes become hours."""
+    out: dict[str, Any] = {}
+    for k, v in facts.items():
+        if "sleep" in k and k.endswith("_min") and isinstance(v, int | float):
+            out[k.removesuffix("_min") + "_hours"] = round(v / 60, 1)
+        else:
+            out[k] = v
+    return out
 
 
 class Phrasing(BaseModel):
@@ -47,7 +60,7 @@ def _count_call() -> None:
 async def _generate(kind: str, facts: dict[str, Any], twin_summary: str, persona: str) -> Phrasing:
     client = genai.Client(api_key=settings().gemini_api_key)
     prompt = (f"Twin summary: {twin_summary or 'none'}\nAlert kind: {kind}\n"
-              f"Facts: {json.dumps(facts, default=str)}\nWrite the message.")
+              f"Facts: {json.dumps(_for_llm(facts), default=str)}\nWrite the message.")
     resp = await client.aio.models.generate_content(
         model=settings().gemini_model_fast,
         contents=prompt,

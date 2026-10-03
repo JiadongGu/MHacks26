@@ -117,6 +117,16 @@ def r_low_hr(ctx: RuleContext) -> Finding | None:
     return Finding("low_hr", "warning", {"min_hr": round(min(low)), "minutes": len(low), "threshold": thr})
 
 
+def _when(ctx: RuleContext, dt: datetime) -> str:
+    """Local time in words, e.g. 'tomorrow at 2:00 PM', so the LLM never does date math."""
+    local = dt.astimezone(ctx.zone)
+    days = (local.date() - ctx.local_now.date()).days
+    day = {0: "today", 1: "tomorrow"}.get(days, local.strftime("%A"))
+    if days == 0 and local.hour >= 18:
+        day = "tonight"
+    return f"{day} at {local.strftime('%I:%M %p').lstrip('0')}"
+
+
 def r2_illness(ctx: RuleContext) -> Finding | None:
     base = _baseline(ctx, "resting_hr")
     today = ctx.local_now.date()
@@ -149,8 +159,9 @@ def r2_illness(ctx: RuleContext) -> Finding | None:
     if events:
         ev = events[0]
         hours = round((ev.starts_at - ctx.now).total_seconds() / 3600)
-        facts.update(event_title=ev.title, event_in_h=hours)
+        facts.update(event_title=ev.title, event_in_h=hours, event_when=_when(ctx, ev.starts_at))
         s, e = _block(ctx, ctx.bed_time or time(22, 0), ctx.wake_time or time(6, 0))
+        facts["block_when"] = f"{_when(ctx, s)} to {e.astimezone(ctx.zone).strftime('%I:%M %p').lstrip('0')}"
         proposal = {
             "title": "Sleep block (Pulse)", "starts_at": s.isoformat(), "ends_at": e.isoformat(),
             "rationale": (f"Resting heart rate is {facts['rhr_today']} bpm, {facts['rhr_delta']} above your "

@@ -288,3 +288,18 @@ def test_inactivity_cooldown_3h_and_two_per_day_cap():
     yesterday = ctx.now - timedelta(hours=30)
     ctx.recent_alerts = [("inactivity", yesterday), ("inactivity", yesterday - timedelta(hours=4))]
     assert kinds(evaluate(ctx)) == ["inactivity"]
+
+
+def test_when_words_today_tonight_tomorrow_weekday():
+    from datetime import datetime
+    from types import SimpleNamespace
+    from zoneinfo import ZoneInfo
+
+    from app.rules.engine import _when
+
+    tz = ZoneInfo("America/Detroit")
+    ctx = SimpleNamespace(zone=tz, local_now=datetime(2026, 10, 3, 16, 0, tzinfo=tz))
+    assert _when(ctx, datetime(2026, 10, 3, 17, 30, tzinfo=tz)) == "today at 5:30 PM"
+    assert _when(ctx, datetime(2026, 10, 3, 23, 0, tzinfo=tz)) == "tonight at 11:00 PM"
+    assert _when(ctx, datetime(2026, 10, 4, 14, 0, tzinfo=tz)) == "tomorrow at 2:00 PM"
+    assert _when(ctx, datetime(2026, 10, 6, 7, 0, tzinfo=tz)) == "Tuesday at 7:00 AM"
