@@ -1,104 +1,56 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Check } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorNote } from "@/components/ui-bits";
 import { agent, errorText } from "@/lib/api-client";
-import type { Goal } from "@/lib/contracts";
-import {
-  GOAL_PRESETS,
-  formatMinutes,
-  metricInfo,
-  validateGoal,
-  type GoalPreset,
-} from "@/lib/goals";
+import { AREA_LABEL, groupByArea, toggleFocus, type FocusCatalog } from "@/lib/focus";
+import { cn } from "@/lib/utils";
 
-type Row = { preset: GoalPreset; enabled: boolean; target: string; existing: boolean };
-
-const keyOf = (g: { metric: string; period: string }) => `${g.metric}:${g.period}`;
-
+/** Step 5. The person picks a few areas to focus on. No numbers are asked for. */
 export function StepGoals({ onDone }: { onDone: () => void }) {
-  const [rows, setRows] = useState<Row[] | null>(null);
+  const [catalog, setCatalog] = useState<FocusCatalog | null>(null);
+  const [selected, setSelected] = useState<string[]>([]);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
     let live = true;
-    agent<Goal[]>("/goals")
-      .then((goals) => {
+    Promise.all([agent<FocusCatalog>("/focus/catalog"), agent<{ keys: string[] }>("/focus")])
+      .then(([cat, picks]) => {
         if (!live) return;
-        const have = new Set(goals.map(keyOf));
-        setRows(
-          GOAL_PRESETS.map((preset) => ({
-            preset,
-            enabled: !have.has(keyOf(preset)),
-            target: String(preset.target),
-            existing: have.has(keyOf(preset)),
-          })),
-        );
+        setCatalog(cat);
+        setSelected(picks.keys);
       })
       .catch((err) => {
         if (!live) return;
         const text = errorText(err);
         setLoadError(text);
-        toast.error(`Could not load your goals: ${text}`);
+        toast.error(`Could not load the focus areas: ${text}`);
       });
     return () => {
       live = false;
     };
   }, [attempt]);
 
-  function update(i: number, patch: Partial<Row>) {
-    setRows((rs) => (rs ? rs.map((r, j) => (j === i ? { ...r, ...patch } : r)) : rs));
-  }
-
   async function save() {
-    if (!rows) return;
-    const chosen = rows.filter((r) => r.enabled && !r.existing);
-    for (const r of chosen) {
-      const problem = validateGoal({ metric: r.preset.metric, target: Number(r.target) });
-      if (problem) {
-        toast.error(`${metricInfo(r.preset.metric).label}: ${problem}`);
-        return;
-      }
-    }
     setSaving(true);
-    const results = await Promise.allSettled(
-      chosen.map((r) =>
-        agent<Goal>("/goals", {
-          body: {
-            metric: r.preset.metric,
-            target: Number(r.target),
-            period: r.preset.period,
-            direction: r.preset.direction,
-          },
-        }),
-      ),
-    );
-    setSaving(false);
-    const failed = results.flatMap((res, i) => (res.status === "rejected" ? [{ i, res }] : []));
-    if (failed.length > 0) {
-      for (const { i, res } of failed) {
-        toast.error(`${metricInfo(chosen[i].preset.metric).label}: ${errorText(res.reason)}`);
-      }
-      // Mark the saved ones as existing so a retry does not make duplicates.
-      setRows(
-        rows.map((r) => {
-          const idx = chosen.indexOf(r);
-          return idx >= 0 && results[idx].status === "fulfilled" ? { ...r, existing: true } : r;
-        }),
-      );
-      return;
+    try {
+      await agent("/focus", { method: "PUT", body: { keys: selected } });
+      if (selected.length > 0) toast.success("Your focus is saved.");
+      onDone();
+    } catch (err) {
+      toast.error(`Could not save your focus: ${errorText(err)}`);
+    } finally {
+      setSaving(false);
     }
-    if (chosen.length > 0) toast.success("Goals saved.");
-    onDone();
   }
 
-  if (loadError && !rows) {
+  if (loadError && !catalog) {
     return (
       <ErrorNote
         className="max-w-xl"
@@ -115,64 +67,74 @@ export function StepGoals({ onDone }: { onDone: () => void }) {
           </Button>
         }
       >
-        Could not load your goals. {loadError}
+        Could not load the focus areas. {loadError}
       </ErrorNote>
     );
   }
-  if (!rows) return <Skeleton role="status" aria-label="Loading goals" className="h-64 max-w-xl" />;
+  if (!catalog) return <Skeleton role="status" aria-label="Loading focus areas" className="h-64 max-w-2xl" />;
+
+  const max = catalog.max_picks;
+  const full = selected.length >= max;
 
   return (
-    <div className="max-w-xl space-y-8">
-      <ul className="divide-y divide-border border-y border-border">
-        {rows.map((r, i) => {
-          const info = metricInfo(r.preset.metric);
-          const id = `goal-${r.preset.metric}`;
-          const n = Number(r.target);
-          return (
-            <li key={id} className="grid grid-cols-[auto_1fr] items-start gap-x-3 gap-y-2 py-4 sm:grid-cols-[auto_1fr_9rem]">
-              <input
-                id={`${id}-on`}
-                type="checkbox"
-                checked={r.enabled || r.existing}
-                disabled={r.existing}
-                onChange={(e) => update(i, { enabled: e.target.checked })}
-                className="mt-1 size-4 accent-[var(--foreground)]"
-              />
-              <div className="min-w-0">
-                <label htmlFor={`${id}-on`} className="text-base font-medium">
-                  {info.label}
-                </label>
-                <p className="text-sm text-muted-foreground">
-                  {r.preset.direction === "at_least" ? "At least" : "At most"} per {r.preset.period}
-                  {r.existing && ". Already set."}
-                </p>
-              </div>
-              <div className="col-start-2 sm:col-start-3">
-                <label htmlFor={id} className="sr-only">
-                  {info.label} target, {info.unit} per {r.preset.period}
-                </label>
-                <Input
-                  id={id}
-                  type="number"
-                  inputMode="numeric"
-                  min={1}
-                  value={r.target}
-                  disabled={!r.enabled || r.existing}
-                  onChange={(e) => update(i, { target: e.target.value })}
-                />
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {r.preset.metric === "sleep_total_min" && Number.isFinite(n) && n > 0
-                    ? `${formatMinutes(n)} per day`
-                    : `${info.unit} per ${r.preset.period}`}
-                </p>
-              </div>
-            </li>
-          );
-        })}
-      </ul>
-      <Button size="lg" className="h-10 px-5" onClick={() => void save()} disabled={saving}>
-        {saving ? "Saving..." : "Save goals and continue"}
-      </Button>
+    <div className="max-w-2xl space-y-8">
+      <p className="max-w-[60ch] text-sm text-muted-foreground">
+        Pick up to {max} things you want to work on. There are no numbers to hit. Pulse shapes your day around
+        what you choose, and adjusts it each night to fit your calendar.
+      </p>
+
+      {groupByArea(catalog.items).map((group) => (
+        <section key={group.area} aria-labelledby={`focus-${group.area}`}>
+          <h3 id={`focus-${group.area}`} className="mb-3 text-sm font-medium">
+            {AREA_LABEL[group.area]}
+          </h3>
+          <ul className="grid gap-3 sm:grid-cols-2">
+            {group.items.map((item) => {
+              const on = selected.includes(item.key);
+              const blocked = full && !on;
+              return (
+                <li key={item.key}>
+                  <button
+                    type="button"
+                    aria-pressed={on}
+                    disabled={blocked}
+                    title={blocked ? `You can pick up to ${max}. Unselect one to change.` : undefined}
+                    onClick={() => setSelected((s) => toggleFocus(s, item.key, max))}
+                    className={cn(
+                      "flex h-full w-full items-start gap-3 rounded-lg border px-4 py-3 text-left outline-none transition-colors focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50",
+                      on ? "border-foreground bg-muted" : "border-border hover:bg-muted/50",
+                    )}
+                  >
+                    <span
+                      aria-hidden="true"
+                      className={cn(
+                        "mt-0.5 grid size-5 shrink-0 place-items-center rounded-full border",
+                        on ? "border-foreground bg-foreground text-background" : "border-input",
+                      )}
+                    >
+                      {on && <Check className="size-3" />}
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block text-base font-medium">{item.label}</span>
+                      <span className="block text-sm text-muted-foreground">{item.blurb}</span>
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      ))}
+
+      <div className="flex flex-wrap items-center gap-4">
+        <Button size="lg" className="h-10 px-5" onClick={() => void save()} disabled={saving}>
+          {saving ? "Saving..." : selected.length === 0 ? "Skip for now" : "Save and continue"}
+        </Button>
+        <p className="text-sm text-muted-foreground" aria-live="polite">
+          {selected.length} of {max} chosen
+          {full ? ". Unselect one to change your picks." : ""}
+        </p>
+      </div>
     </div>
   );
 }
