@@ -6,6 +6,7 @@ from datetime import UTC, date, datetime
 from typing import Any
 
 from google import genai
+from google.genai import errors as genai_errors
 from google.genai import types
 from pydantic import BaseModel
 
@@ -57,12 +58,31 @@ def _count_call() -> None:
     _calls[today] = _calls.get(today, 0) + 1
 
 
+def models_to_try(primary: str) -> list[str]:
+    extra = [m.strip() for m in settings().gemini_fallback_models.split(",") if m.strip()]
+    return [primary] + [m for m in extra if m != primary]
+
+
+async def generate_with_fallback(client: Any, primary: str, **kwargs: Any) -> Any:
+    """generate_content on the primary model; on 429 (quota) move to the next model. Other errors raise."""
+    last: Exception | None = None
+    for model in models_to_try(primary):
+        try:
+            return await client.aio.models.generate_content(model=model, **kwargs)
+        except genai_errors.APIError as exc:
+            if getattr(exc, "code", None) != 429:
+                raise
+            log.warning("llm.quota model=%s; trying next", model)
+            last = exc
+    raise last or RuntimeError("no model available")
+
+
 async def _generate(kind: str, facts: dict[str, Any], twin_summary: str, persona: str) -> Phrasing:
     client = genai.Client(api_key=settings().gemini_api_key)
     prompt = (f"Twin summary: {twin_summary or 'none'}\nAlert kind: {kind}\n"
               f"Facts: {json.dumps(_for_llm(facts), default=str)}\nWrite the message.")
-    resp = await client.aio.models.generate_content(
-        model=settings().gemini_model_fast,
+    resp = await generate_with_fallback(
+        client, settings().gemini_model_fast,
         contents=prompt,
         config=types.GenerateContentConfig(
             system_instruction=SYSTEM_PROMPT.format(persona=persona),
