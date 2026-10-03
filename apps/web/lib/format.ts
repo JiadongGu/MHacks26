@@ -14,9 +14,17 @@ export function timeAgo(value: Date | string | number, now: Date = new Date()): 
   return `${Math.round(hours / 24)} d ago`;
 }
 
+/** Server renders run in UTC on Vercel; format there in the demo's local zone unless the caller passes one. */
+export const SERVER_TIME_ZONE = "America/Detroit";
+
+function zoneFor(timeZone?: string): string | undefined {
+  return timeZone ?? (typeof window === "undefined" ? SERVER_TIME_ZONE : undefined);
+}
+
 export function formatDateTime(value: Date | string, timeZone?: string): string {
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return "unknown";
+  timeZone = zoneFor(timeZone);
   return d.toLocaleString("en-US", {
     weekday: "short",
     month: "short",
@@ -27,10 +35,10 @@ export function formatDateTime(value: Date | string, timeZone?: string): string 
   });
 }
 
-export function formatDate(value: Date | string): string {
+export function formatDate(value: Date | string, timeZone?: string): string {
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return "unknown";
-  return d.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
+  return d.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric", timeZone: zoneFor(timeZone) });
 }
 
 /** "possibly_ill" becomes "Possibly ill". */
