@@ -1,6 +1,7 @@
 import asyncio
 import json
 import logging
+import re
 import time
 from datetime import UTC, date, datetime
 from typing import Any
@@ -24,8 +25,14 @@ SYSTEM_PROMPT = (
     "Cite the exact numbers from the facts. Use at most 320 characters, in iMessage style, "
     "with no markdown and no emoji spam. If a fact suggests danger, advise medical care. "
     "For timing, copy any *_when phrase exactly (e.g. 'tomorrow at 2:00 PM'); never work out dates yourself. "
-    "Say sleep in hours, not minutes."
+    "Say sleep in hours, not minutes. Only cite numbers that appear in the Facts; never quote thresholds, "
+    "goals or values from the twin summary. Never state or suggest a diagnosis or that the user 'has' an "
+    "illness."
 )
+
+DIAGNOSIS_RE = re.compile(r"\byou (definitely |probably |likely )?(have|'ve got) (a |an |the )?"
+                          r"(flu|covid|infection|cold|virus|disease|pneumonia|diabetes|heart attack)|diagnos|"
+                          r"\bdefinitely\b", re.IGNORECASE)
 
 
 def _for_llm(facts: dict[str, Any]) -> dict[str, Any]:
@@ -117,7 +124,11 @@ async def phrase(kind: str, facts: dict[str, Any], twin_summary: str, persona: s
         out = await asyncio.wait_for(
             _generate(kind, facts, twin_summary, persona), timeout=TIMEOUT_MS / 1000 + 2)
         log.info("llm.phrase kind=%s ok=1 ms=%d", kind, (time.monotonic() - started) * 1000)
-        return out.text.strip()[:MAX_CHARS]
+        text = out.text.strip()[:MAX_CHARS]
+        if DIAGNOSIS_RE.search(text):
+            log.warning("llm.phrase kind=%s diagnosis_language=1; using template", kind)
+            return render(kind, facts)
+        return text
     except Exception as exc:
         log.warning("llm.phrase kind=%s ok=0 err=%s ms=%d", kind, type(exc).__name__,
                     (time.monotonic() - started) * 1000)
