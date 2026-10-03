@@ -1,5 +1,5 @@
 import time
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime, timedelta
 from typing import Any
 
 import httpx
@@ -29,7 +29,9 @@ class HealthClient:
             self._refresh()
         for attempt in (1, 2):
             r = httpx.get(
-                API + path, params=params, timeout=15,
+                API + path,
+                params=params,
+                timeout=15,
                 headers={"Authorization": f"Bearer {self.row['access_token']}"},
             )
             if r.status_code == 401 and attempt == 1:
@@ -57,3 +59,23 @@ class HealthClient:
     def steps(self, start: datetime, end: datetime) -> list[dict[str, Any]]:
         f = "steps.interval.start_time"
         return self.list_points("steps", f'{f} >= "{_z(start)}" AND {f} < "{_z(end)}"')
+
+    def spo2(self, start: datetime, end: datetime) -> list[dict[str, Any]]:
+        f = "oxygen_saturation.sample_time.physical_time"
+        return self.list_points("oxygen-saturation", f'{f} >= "{_z(start)}" AND {f} < "{_z(end)}"')
+
+    def active_minutes(self, start: datetime, end: datetime) -> list[dict[str, Any]]:
+        f = "active_minutes.interval.start_time"
+        return self.list_points("active-minutes", f'{f} >= "{_z(start)}" AND {f} < "{_z(end)}"')
+
+    def daily(self, data_type: str, since: date, until: date) -> list[dict[str, Any]]:
+        """Daily data types (resting heart rate, HRV): one point per civil day, `since` through `until`."""
+        f = data_type.replace("-", "_") + ".date"
+        return self.list_points(data_type, f'{f} >= "{since}" AND {f} < "{until + timedelta(days=1)}"')
+
+    def sleep(self, since: date, until: date) -> list[dict[str, Any]]:
+        """Sleep sessions that ended on a civil day from `since` through `until`."""
+        f = "sleep.interval.civil_end_time"
+        return self.list_points(
+            "sleep", f'{f} >= "{since}T00:00:00" AND {f} < "{until + timedelta(days=1)}T00:00:00"'
+        )
