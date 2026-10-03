@@ -1,0 +1,43 @@
+{
+  "properties": {
+    "user_id": {
+      "format": "uuid",
+      "title": "User Id",
+      "type": "string"
+    },
+    "channel": {
+      "enum": [
+        "imessage",
+        "web",
+        "asi_one",
+        "relay"
+      ],
+      "title": "Channel",
+      "type": "string"
+    },
+    "text": {
+      "title": "Text",
+      "type": "string"
+    },
+    "alert_id": {
+      "anyOf": [
+        {
+          "format": "uuid",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Alert Id"
+    }
+  },
+  "required": [
+    "user_id",
+    "channel",
+    "text"
+  ],
+  "title": "OutboundMessage",
+  "type": "object"
+}

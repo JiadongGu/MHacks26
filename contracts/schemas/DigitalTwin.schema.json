@@ -1,0 +1,30 @@
+{
+  "properties": {
+    "user_id": {
+      "format": "uuid",
+      "title": "User Id",
+      "type": "string"
+    },
+    "version": {
+      "title": "Version",
+      "type": "integer"
+    },
+    "model": {
+      "additionalProperties": true,
+      "title": "Model",
+      "type": "object"
+    },
+    "summary": {
+      "title": "Summary",
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_id",
+    "version",
+    "model",
+    "summary"
+  ],
+  "title": "DigitalTwin",
+  "type": "object"
+}

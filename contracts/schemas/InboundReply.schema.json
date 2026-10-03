@@ -1,0 +1,40 @@
+{
+  "$defs": {
+    "ReplyAction": {
+      "properties": {
+        "type": {
+          "title": "Type",
+          "type": "string"
+        },
+        "payload": {
+          "additionalProperties": true,
+          "title": "Payload",
+          "type": "object"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "ReplyAction",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "reply": {
+      "title": "Reply",
+      "type": "string"
+    },
+    "actions": {
+      "items": {
+        "$ref": "#/$defs/ReplyAction"
+      },
+      "title": "Actions",
+      "type": "array"
+    }
+  },
+  "required": [
+    "reply"
+  ],
+  "title": "InboundReply",
+  "type": "object"
+}

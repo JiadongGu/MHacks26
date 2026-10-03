@@ -1,0 +1,74 @@
+{
+  "properties": {
+    "id": {
+      "format": "uuid",
+      "title": "Id",
+      "type": "string"
+    },
+    "user_id": {
+      "format": "uuid",
+      "title": "User Id",
+      "type": "string"
+    },
+    "metric": {
+      "enum": [
+        "heart_rate",
+        "resting_heart_rate",
+        "hrv_sdnn",
+        "steps",
+        "active_minutes",
+        "active_energy_kcal",
+        "spo2",
+        "respiratory_rate",
+        "skin_temp_delta",
+        "bp_systolic",
+        "bp_diastolic",
+        "weight_kg",
+        "sleep_total_min",
+        "sleep_deep_min",
+        "sleep_rem_min",
+        "sleep_core_min",
+        "sleep_awake_min",
+        "stress_score",
+        "workout"
+      ],
+      "title": "Metric",
+      "type": "string"
+    },
+    "target": {
+      "title": "Target",
+      "type": "number"
+    },
+    "period": {
+      "enum": [
+        "day",
+        "week"
+      ],
+      "title": "Period",
+      "type": "string"
+    },
+    "direction": {
+      "enum": [
+        "at_least",
+        "at_most"
+      ],
+      "title": "Direction",
+      "type": "string"
+    },
+    "active": {
+      "default": true,
+      "title": "Active",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "id",
+    "user_id",
+    "metric",
+    "target",
+    "period",
+    "direction"
+  ],
+  "title": "Goal",
+  "type": "object"
+}

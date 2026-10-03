@@ -1,0 +1,41 @@
+{
+  "properties": {
+    "ok": {
+      "title": "Ok",
+      "type": "boolean"
+    },
+    "db": {
+      "title": "Db",
+      "type": "boolean"
+    },
+    "tiger": {
+      "title": "Tiger",
+      "type": "boolean"
+    },
+    "scheduler_last_tick": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Scheduler Last Tick"
+    },
+    "gateway": {
+      "title": "Gateway",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "ok",
+    "db",
+    "tiger",
+    "gateway"
+  ],
+  "title": "Health",
+  "type": "object"
+}
