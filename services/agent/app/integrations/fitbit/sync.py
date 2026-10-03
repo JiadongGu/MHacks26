@@ -1,5 +1,5 @@
 import asyncio
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime, time, timedelta
 from typing import Any
 from uuid import UUID
 from zoneinfo import ZoneInfo
@@ -27,10 +27,13 @@ def _fetch(
     start = end - timedelta(minutes=minutes)
     today = end.astimezone(ZoneInfo(tz)).date()
     since = today - timedelta(days=days - 1)
+    # Daily totals of steps and active minutes are summed from the minute readings that were ingested, so they
+    # must cover whole local days. A short window would count only what arrived since the last poll.
+    day_start = datetime.combine(since, time(0), tzinfo=ZoneInfo(tz))
     samples = normalize.heart_rate_samples(user_id, client.heart_rate(start, end))
-    samples += normalize.steps_samples(user_id, client.steps(start, end))
+    samples += normalize.steps_samples(user_id, client.steps(day_start, end))
     samples += normalize.spo2_samples(user_id, client.spo2(start, end))
-    samples += normalize.active_minutes_samples(user_id, client.active_minutes(start, end))
+    samples += normalize.active_minutes_samples(user_id, client.active_minutes(day_start, end))
     samples += normalize.resting_hr_samples(user_id, client.daily("daily-resting-heart-rate", since, today))
     samples += normalize.hrv_samples(user_id, client.daily("daily-heart-rate-variability", since, today))
     samples += normalize.sleep_samples(user_id, client.sleep(since, today))
