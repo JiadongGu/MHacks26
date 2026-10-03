@@ -262,7 +262,7 @@ RULES: list[Callable[[RuleContext], Finding | None]] = [
 
 def _cooling(ctx: RuleContext, kind: str) -> bool:
     cd = COOLDOWNS[kind]
-    if any(k == kind and timedelta(0) <= ctx.now - ts < cd for k, ts in ctx.recent_alerts):
+    if any(k == kind and ctx.now - ts < cd for k, ts in ctx.recent_alerts):
         return True
     cap = MAX_PER_DAY.get(kind)
     if cap is not None:
