@@ -70,3 +70,36 @@ export function validateProfile(p: ProfileInput, today: Date = new Date()): Fiel
   }
   return errors;
 }
+
+/** The columns of a saved profiles row that the step 1 form reads. */
+export type SavedProfile = {
+  display_name?: string | null;
+  dob?: string | null;
+  sex?: string | null;
+  height_cm?: number | null;
+  weight_kg?: number | null;
+  timezone?: string | null;
+  wake_time?: string | null;
+  bed_time?: string | null;
+  phone_e164?: string | null;
+};
+
+/**
+ * Turns a saved row into the step 1 form values.
+ * A saved value always wins. The sign-in name fills only an empty name.
+ * An empty timezone stays empty, so the browser can fill in its own zone.
+ */
+export function profileSeed(row: SavedProfile | null | undefined, signInName = ""): ProfileInput {
+  const text = (v: string | null | undefined) => (v && v.trim() !== "" ? v : "");
+  return {
+    display_name: text(row?.display_name) || signInName,
+    dob: text(row?.dob).slice(0, 10),
+    sex: text(row?.sex),
+    height_cm: row?.height_cm ?? null,
+    weight_kg: row?.weight_kg ?? null,
+    timezone: text(row?.timezone),
+    wake_time: text(row?.wake_time).slice(0, 5) || "07:00",
+    bed_time: text(row?.bed_time).slice(0, 5) || "23:00",
+    phone_e164: text(row?.phone_e164),
+  };
+}

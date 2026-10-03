@@ -10,31 +10,12 @@ import { EmptyState, ErrorNote } from "@/components/ui-bits";
 import { agent, errorText } from "@/lib/api-client";
 import type { DigitalTwin } from "@/lib/contracts";
 import { formatDate } from "@/lib/format";
-import {
-  conditionKey,
-  medicationKey,
-  readTwin,
-  type TwinFamily,
-  type TwinView,
-} from "@/lib/twin";
+import { conditionKey, medicationKey, readTwin, type TwinView } from "@/lib/twin";
 import { cn } from "@/lib/utils";
+import { EMPTY_HISTORY, type HistoryState } from "./history-seed";
 import { twinProfile, type ProfileInput } from "./types";
 
 type Patient = { id: string; scenario: string; displayName: string; birthDate: string | null };
-
-export type HistoryState = {
-  scenario: string | null;
-  twin: TwinView | null;
-  removed: { conditions: string[]; medications: string[]; allergies: string[] };
-  family: TwinFamily[];
-};
-
-export const EMPTY_HISTORY: HistoryState = {
-  scenario: null,
-  twin: null,
-  removed: { conditions: [], medications: [], allergies: [] },
-  family: [],
-};
 
 const RELATIONS = ["mother", "father", "sister", "brother", "grandparent", "aunt or uncle", "other"];
 
