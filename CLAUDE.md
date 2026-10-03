@@ -16,6 +16,7 @@ Personal AI health agent: wearable vitals -> two data pools -> rules + Gemini ag
 - Contracts: `uv run python scripts/export_contracts.py` then `npm run contracts` in apps/web
 
 ## Layout
+- FinchNode integration (P): `app/twin/finchnode.py`, `from_finchnode()`, `/twin/import`, `/twin/finchnode/patients`, `contracts/fixtures/finchnode_*`
 - `apps/web` web app (J) · `services/agent` FastAPI agents + integrations (split by package) · `services/gateway` Photon (J)
 - `contracts/` shared schemas + fixtures, frozen after hour 2 · `infra/spacetime` Spacetime module (J) · `infra/` Dockerfiles, Railway (P) · `scripts/` export, seed, smoke
 - Ownership table and merge rules: PLAN.md §4. Endpoint contracts: PLAN.md §6 / contracts/README.md.

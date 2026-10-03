@@ -29,7 +29,7 @@ Agent persona name: **Pulse**. Working .tech domain candidates: `getpulse.tech`,
 | Sponsor | Use in Pulse | Effort | Priority | Owner |
 |---|---|---|---|---|
 | **Photon** (iMessage) | Primary notification + conversation channel via Spectrum (TS gateway) | 3h | P0 | J |
-| **FinchNode** | Onboarding "Import medical records" → seeds digital twin (conditions, meds, labs, vitals baseline, allergies); twin-aware thresholds | 2h | P0 | J |
+| **FinchNode** | Onboarding "Import medical records" → seeds digital twin (conditions, meds, labs, vitals baseline, allergies); twin-aware thresholds | 2h | P0 | P (integration, since 2026-10-03); J (twin model) |
 | **Neon** | Postgres (long-term pool), **Neon Auth** (managed Better Auth) for sign-up/login, Drizzle, branch-per-PR in CI, pgvector (stretch) | 3h | P0 | J (schema), P (CI branch) |
 | **Gemini (MLH)** | All LLM calls: message phrasing (structured output), inbound chat with function calling, twin insights, briefing | — | P0 | J |
 | **Tiger Data (MLH)** | `vitals_raw` hypertable + continuous aggregates (1m/1h/1d) + retention policy = the short-term pool | 3h timeboxed | P1 | P |
@@ -65,7 +65,7 @@ Devpost: tag Photon, FinchNode, Neon, Gemini, Tiger Data, Fetch.ai, ElevenLabs, 
                      [J] LIVE AGENT "Pulse"  = rules engine (deterministic) → Gemini phrasing (structured JSON) → Alert
                      [J] LONG-TERM AGENT "Compass" = APScheduler: 07:00 briefing, 21:00 evening check, 03:00 twin rebuild,
                                                     Sun 19:00 weekly goals, */15 proposal sweep
-                     [J] Digital twin builder (FinchNode import + onboarding + computed baselines) → NEON digital_twin (versioned)
+                     [P] FinchNode import → [J] digital twin builder (onboarding + computed baselines) → NEON digital_twin (versioned)
                                                                       │
                             ┌──────────────────────┬──────────────────┼──────────────────────┐
                             ▼                      ▼                  ▼                      ▼
@@ -115,7 +115,8 @@ MHacks26/
 │   ├── app/agents/compass.py          J   (scheduled jobs)
 │   ├── app/agents/chat.py             J   (/agent/inbound, Gemini tools)
 │   ├── app/rules/                     J   (rule functions + cooldowns)
-│   ├── app/twin/                      J   (FinchNode import, baselines, thresholds, versions)
+│   ├── app/twin/finchnode.py          P   (FinchNode client; + `from_finchnode()` in builder.py, `/twin/import`, `/twin/finchnode/patients`)
+│   ├── app/twin/ (rest)               J   (baselines, thresholds, versions, onboarding merge, rebuild)
 │   ├── app/llm/                       J   (Gemini client, prompts, fake mode)
 │   ├── app/notify/                    J   (dispatch to gateway/web/log; quiet hours)
 │   ├── app/channels/                  J   (/channels/imessage/*, link codes)
@@ -398,7 +399,7 @@ Budget: Railway $5, Neon Launch ~$8 (3 days, optional), ElevenLabs $0–1, Gemin
 
 Python (`services/agent/tests`, pytest + pytest-asyncio + httpx + respx):
 - `unit/rules/`: one test per rule from `contracts/fixtures/series_*.json` (workout, illness_onset, low_spo2, inactivity, sedentary_goal, high_bp_hypertensive, beta_blocker_suppression, recovery), plus cooldown tests. (J)
-- `unit/twin/`: FinchNode import from recorded `patient-demo-001` and `polypharmacy` JSON → expected twin fields/thresholds; baseline computation; defaults when sparse. (J)
+- `unit/twin/`: FinchNode import from recorded `patient-demo-001` and `polypharmacy` JSON → expected twin fields (P); thresholds, baseline computation, defaults when sparse (J).
 - `unit/chat/`: fast-path regexes; tool dispatch with fake LLM; link-code flow. (J)
 - `unit/ingest/`: HAE parser (official field casing + lowercase variant + both date formats); Fitbit normalizers from recorded API JSON; dedupe. (P)
 - `unit/gcal/`: proposal→event body mapping; importance heuristic; syncToken 410 handling (respx). (J)
