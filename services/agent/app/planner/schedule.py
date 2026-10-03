@@ -7,6 +7,7 @@ from zoneinfo import ZoneInfo
 from .shape import MIN_FREE_MIN, Slot
 
 GAP_MIN = 10  # space left between two planned items
+SAME_KIND_APART_MIN = 60  # repeat blocks of one kind are spread out when the day allows it
 WIND_DOWN_MIN = 30
 FALL_ASLEEP_MIN = 15
 PREP_BEFORE_FIRST_EVENT_MIN = 90
@@ -91,8 +92,8 @@ class PlanItem:
     why: str
 
 
-def _subtract(slots: list[Slot], start: datetime, end: datetime) -> list[Slot]:
-    pad = timedelta(minutes=GAP_MIN)
+def _subtract(slots: list[Slot], start: datetime, end: datetime, pad_min: int = GAP_MIN) -> list[Slot]:
+    pad = timedelta(minutes=pad_min)
     lo, hi = start - pad, end + pad
     out: list[Slot] = []
     for s in slots:
@@ -132,13 +133,15 @@ def place(focus: list[str], slots: list[Slot], load: str) -> list[PlanItem]:
         if tpl is None:
             continue
         minutes = tpl.minutes[load]
+        spread = list(free)  # the same free time, with room kept around blocks of this kind already placed
         for _ in range(tpl.repeat[load]):
-            spot = _choose(free, minutes, tpl.prefer)
+            spot = _choose(spread, minutes, tpl.prefer) or _choose(free, minutes, tpl.prefer)
             if spot is None:
                 break
             start, end = spot
             items.append(PlanItem(key, tpl.title, start, end, tpl.why))
             free = _subtract(free, start, end)
+            spread = _subtract(spread, start, end, SAME_KIND_APART_MIN)
     return sorted(items, key=lambda i: i.start)
 
 

@@ -184,3 +184,18 @@ def test_wind_down_appears_only_for_sleep_unplug_or_routine_picks():
     assert "10:45 pm" in item.title and "8:00 am" in item.why
     assert "Screens off." in schedule.wind_down(["unplug"], n).why
     assert "body clock" in schedule.wind_down(["routine"], n).why
+
+
+def test_repeat_blocks_are_spread_out_when_the_day_has_room():
+    slots = [shape.Slot(at(9), at(12)), shape.Slot(at(14), at(17))]
+    study = [i for i in schedule.place(["study"], slots, "light") if i.key == "study"]
+    assert len(study) == 3
+    for a, b in zip(study, study[1:], strict=False):
+        assert b.start - a.end >= timedelta(minutes=schedule.SAME_KIND_APART_MIN)
+
+
+def test_repeat_blocks_go_back_to_back_rather_than_being_dropped_when_the_day_is_tight():
+    slots = [shape.Slot(at(14), at(16, 5))]
+    study = [i for i in schedule.place(["study"], slots, "normal") if i.key == "study"]
+    assert len(study) == 2
+    assert study[1].start - study[0].end == timedelta(minutes=schedule.GAP_MIN)
