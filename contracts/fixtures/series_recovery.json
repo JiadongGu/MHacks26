@@ -1,0 +1,58 @@
+[
+ {
+  "user_id": "00000000-0000-0000-0000-000000000001",
+  "metric": "resting_heart_rate",
+  "value": 72,
+  "unit": "bpm",
+  "ts": "2026-10-08T12:00:00Z",
+  "source": "apple_watch_sim"
+ },
+ {
+  "user_id": "00000000-0000-0000-0000-000000000001",
+  "metric": "resting_heart_rate",
+  "value": 71,
+  "unit": "bpm",
+  "ts": "2026-10-09T12:00:00Z",
+  "source": "apple_watch_sim"
+ },
+ {
+  "user_id": "00000000-0000-0000-0000-000000000001",
+  "metric": "resting_heart_rate",
+  "value": 69,
+  "unit": "bpm",
+  "ts": "2026-10-10T12:00:00Z",
+  "source": "apple_watch_sim"
+ },
+ {
+  "user_id": "00000000-0000-0000-0000-000000000001",
+  "metric": "resting_heart_rate",
+  "value": 66,
+  "unit": "bpm",
+  "ts": "2026-10-11T12:00:00Z",
+  "source": "apple_watch_sim"
+ },
+ {
+  "user_id": "00000000-0000-0000-0000-000000000001",
+  "metric": "resting_heart_rate",
+  "value": 64,
+  "unit": "bpm",
+  "ts": "2026-10-12T12:00:00Z",
+  "source": "apple_watch_sim"
+ },
+ {
+  "user_id": "00000000-0000-0000-0000-000000000001",
+  "metric": "resting_heart_rate",
+  "value": 63,
+  "unit": "bpm",
+  "ts": "2026-10-13T12:00:00Z",
+  "source": "apple_watch_sim"
+ },
+ {
+  "user_id": "00000000-0000-0000-0000-000000000001",
+  "metric": "resting_heart_rate",
+  "value": 64,
+  "unit": "bpm",
+  "ts": "2026-10-14T12:00:00Z",
+  "source": "apple_watch_sim"
+ }
+]

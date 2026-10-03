@@ -1,0 +1,66 @@
+[
+ {
+  "user_id": "00000000-0000-0000-0000-000000000001",
+  "metric": "bp_diastolic",
+  "value": 90,
+  "unit": "mmHg",
+  "ts": "2026-10-13T21:00:00Z",
+  "source": "apple_watch_sim"
+ },
+ {
+  "user_id": "00000000-0000-0000-0000-000000000001",
+  "metric": "bp_systolic",
+  "value": 142,
+  "unit": "mmHg",
+  "ts": "2026-10-13T21:00:00Z",
+  "source": "apple_watch_sim"
+ },
+ {
+  "user_id": "00000000-0000-0000-0000-000000000001",
+  "metric": "bp_diastolic",
+  "value": 78,
+  "unit": "mmHg",
+  "ts": "2026-10-14T12:00:00Z",
+  "source": "apple_watch_sim"
+ },
+ {
+  "user_id": "00000000-0000-0000-0000-000000000001",
+  "metric": "bp_systolic",
+  "value": 128,
+  "unit": "mmHg",
+  "ts": "2026-10-14T12:00:00Z",
+  "source": "apple_watch_sim"
+ },
+ {
+  "user_id": "00000000-0000-0000-0000-000000000001",
+  "metric": "bp_diastolic",
+  "value": 86,
+  "unit": "mmHg",
+  "ts": "2026-10-14T15:00:00Z",
+  "source": "apple_watch_sim"
+ },
+ {
+  "user_id": "00000000-0000-0000-0000-000000000001",
+  "metric": "bp_systolic",
+  "value": 134,
+  "unit": "mmHg",
+  "ts": "2026-10-14T15:00:00Z",
+  "source": "apple_watch_sim"
+ },
+ {
+  "user_id": "00000000-0000-0000-0000-000000000001",
+  "metric": "bp_diastolic",
+  "value": 88,
+  "unit": "mmHg",
+  "ts": "2026-10-14T19:50:00Z",
+  "source": "apple_watch_sim"
+ },
+ {
+  "user_id": "00000000-0000-0000-0000-000000000001",
+  "metric": "bp_systolic",
+  "value": 138,
+  "unit": "mmHg",
+  "ts": "2026-10-14T19:50:00Z",
+  "source": "apple_watch_sim"
+ }
+]

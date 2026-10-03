@@ -1,0 +1,88 @@
+import asyncio
+import json
+import logging
+import time
+from datetime import UTC, date, datetime
+from typing import Any
+
+from google import genai
+from google.genai import types
+from pydantic import BaseModel
+
+from app.core.config import settings
+from app.llm.templates import MAX_CHARS, render
+
+log = logging.getLogger("pulse.llm")
+
+DAILY_LIMIT = 800
+TIMEOUT_MS = 10_000
+
+SYSTEM_PROMPT = (
+    "You are {persona}, a warm personal health companion that texts the user. "
+    "Give wellness guidance, never a diagnosis. Be concise and kind. "
+    "Cite the exact numbers from the facts. Use at most 320 characters, in iMessage style, "
+    "with no markdown and no emoji spam. If a fact suggests danger, advise medical care."
+)
+
+
+class Phrasing(BaseModel):
+    text: str
+    tone: str
+
+
+_calls: dict[date, int] = {}
+
+
+def calls_today() -> int:
+    return _calls.get(datetime.now(UTC).date(), 0)
+
+
+def _count_call() -> None:
+    today = datetime.now(UTC).date()
+    for day in [d for d in _calls if d != today]:
+        del _calls[day]
+    _calls[today] = _calls.get(today, 0) + 1
+
+
+async def _generate(kind: str, facts: dict[str, Any], twin_summary: str, persona: str) -> Phrasing:
+    client = genai.Client(api_key=settings().gemini_api_key)
+    prompt = (f"Twin summary: {twin_summary or 'none'}\nAlert kind: {kind}\n"
+              f"Facts: {json.dumps(facts, default=str)}\nWrite the message.")
+    resp = await client.aio.models.generate_content(
+        model=settings().gemini_model_fast,
+        contents=prompt,
+        config=types.GenerateContentConfig(
+            system_instruction=SYSTEM_PROMPT.format(persona=persona),
+            response_mime_type="application/json",
+            response_schema=Phrasing,
+            temperature=0.4,
+            http_options=types.HttpOptions(timeout=TIMEOUT_MS),
+        ),
+    )
+    parsed = resp.parsed
+    if not isinstance(parsed, Phrasing):
+        parsed = Phrasing.model_validate_json(resp.text or "")
+    if not parsed.text.strip():
+        raise ValueError("empty text")
+    return parsed
+
+
+async def phrase(kind: str, facts: dict[str, Any], twin_summary: str, persona: str = "Pulse") -> str:
+    """Return the alert text. Never raises. Falls back to a template on any failure."""
+    s = settings()
+    if s.llm_fake or not s.gemini_api_key:
+        return render(kind, facts)
+    if calls_today() >= DAILY_LIMIT:
+        log.warning("llm.budget_exceeded kind=%s", kind)
+        return render(kind, facts)
+    started = time.monotonic()
+    _count_call()
+    try:
+        out = await asyncio.wait_for(
+            _generate(kind, facts, twin_summary, persona), timeout=TIMEOUT_MS / 1000 + 2)
+        log.info("llm.phrase kind=%s ok=1 ms=%d", kind, (time.monotonic() - started) * 1000)
+        return out.text.strip()[:MAX_CHARS]
+    except Exception as exc:
+        log.warning("llm.phrase kind=%s ok=0 err=%s ms=%d", kind, type(exc).__name__,
+                    (time.monotonic() - started) * 1000)
+        return render(kind, facts)
