@@ -26,6 +26,23 @@ async def call(reducer: str, args: list[Any]) -> None:
         r.raise_for_status()
 
 
+def table(name: str) -> str:
+    """Table to SELECT from. A non-owner admin reads the `admin_*` views instead of the private tables."""
+    return f"admin_{name}" if settings().spacetime_admin_views else name
+
+
+_watched: set[str] = set()
+
+
+async def ensure_watching(user_id: Any) -> None:
+    """Admin views only show watched users. No-op with the owner token."""
+    uid = str(user_id)
+    if not settings().spacetime_admin_views or uid in _watched:
+        return
+    await call("watch_user", [uid])
+    _watched.add(uid)
+
+
 async def sql(query: str) -> list[dict[str, Any]]:
     """Run one SELECT; returns rows as dicts keyed by column name."""
     async with httpx.AsyncClient(timeout=10) as c:

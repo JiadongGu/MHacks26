@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     spacetime_host: str = "https://maincloud.spacetimedb.com"
     spacetime_db: str = "pulse-live-t8ng8"
     spacetime_token: str = ""
+    spacetime_admin_views: bool = False  # True when the token is an admin, not the owner
     internal_token: str = "dev-internal-token"
     gateway_url: str = ""
     gateway_secret: str = "dev-gateway-secret"

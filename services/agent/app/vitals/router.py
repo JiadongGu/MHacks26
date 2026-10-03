@@ -28,8 +28,9 @@ def _ms(t: datetime) -> int:
 
 async def _minute_rows(user_id: UUID, where: str, start: datetime, end: datetime) -> list[dict]:
     try:
+        await spacetime.ensure_watching(user_id)
         return await spacetime.sql(
-            f"SELECT * FROM minute_agg WHERE user_id = '{user_id}' AND {where} "
+            f"SELECT * FROM {spacetime.table('minute_agg')} WHERE user_id = '{user_id}' AND {where} "
             f"minute_ms >= {_ms(start)} AND minute_ms < {_ms(end)}"
         )
     except httpx.HTTPError as e:
