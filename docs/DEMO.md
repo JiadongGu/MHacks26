@@ -7,7 +7,7 @@ Setup: `/demo` panel open on laptop, team iPhone mirrored via QuickTime, Google 
 3. **Autonomy (60s)** — press "Simulate illness onset" -> iMessage: "Resting HR 71 vs your usual 62, 5h sleep, HRV down 30%. With your exam Thursday I'd protect tonight: block 10pm–6am for sleep? Reply YES." Reply YES -> event appears in Google Calendar "Pulse Health" -> confirmation text -> dashboard status "possibly ill".
 4. **Conversation (30s)** — text "how am I doing on steps this week?" -> tool-backed answer. Same question on ASI:One.
 5. **Briefing (20s)** — press "Run morning briefing" -> dashboard card -> play ElevenLabs audio.
-6. **Architecture (30s)** — two pools (Tiger live / Neon long-term), two agents (Pulse live, Compass long-term), FinchNode twin, Photon, Fetch.ai, Gemini.
+6. **Architecture (30s)** — two pools (Spacetime live / Neon long-term), two agents (Pulse live, Compass long-term), FinchNode twin, Photon, Fetch.ai, Gemini.
 
 Fallbacks: if iMessage is slow, show the alert on the dashboard and the `messages` log in `/demo`. If Gemini 429s, templates fire (say nothing). If Calendar insert fails, show the proposal state in `/demo` and the apply error.
 

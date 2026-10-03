@@ -5,8 +5,7 @@ Submit at least 30 minutes before the deadline.
 ## Devpost
 - [ ] Title: Pulse — your health agent in iMessage
 - [ ] Track: Actually Intelligent (AI). Also Grand Prize.
-- [ ] Sponsor tags: Photon, FinchNode, Neon, Google Gemini (MLH), Tiger Data (MLH), Fetch.ai, ElevenLabs, Figma, Notability, .Tech
-- [ ] Notability note + 2 screenshots (architecture sketch, wireframe)
+- [ ] Sponsor tags: Photon, FinchNode, Neon, Spacetime, Google Gemini (MLH), Fetch.ai, ElevenLabs, Figma, .Tech
 - [ ] Figma file link + 2 design screenshots
 - [ ] Live URL (.tech domain) + demo account credentials for judges
 - [ ] 3-5 min video (also required by Fetch.ai)

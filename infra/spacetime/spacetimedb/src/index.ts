@@ -60,6 +60,17 @@ export const init = spacetimedb.init(ctx => {
   ctx.db.retentionTimer.insert({ scheduled_id: 0n, scheduled_at: ScheduleAt.interval(10n * 60_000_000n) });
 });
 
+export const add_admin = spacetimedb.reducer({ identity: t.identity() }, (ctx, { identity }) => {
+  if (!ctx.db.admin.identity.find(ctx.sender)) throw new SenderError('unauthorized');
+  if (!ctx.db.admin.identity.find(identity)) ctx.db.admin.insert({ identity });
+});
+
+export const remove_admin = spacetimedb.reducer({ identity: t.identity() }, (ctx, { identity }) => {
+  if (!ctx.db.admin.identity.find(ctx.sender)) throw new SenderError('unauthorized');
+  if (identity.equals(ctx.sender)) throw new SenderError('cannot remove yourself');
+  ctx.db.admin.identity.delete(identity);
+});
+
 export const ingest = spacetimedb.reducer({ rows: t.array(SampleIn) }, (ctx, { rows }) => {
   if (!ctx.db.admin.identity.find(ctx.sender)) throw new SenderError('unauthorized');
   for (const r of rows) {
