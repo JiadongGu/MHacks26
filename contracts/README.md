@@ -33,7 +33,7 @@ Source = fitbit | apple_watch_sim | presage | manual | finchnode
 
 | Endpoint | Purpose |
 |---|---|
-| `POST /ingest/samples` (IngestBatch) | write Tiger + daily_summary, then call `live.on_samples_ingested` |
+| `POST /ingest/samples` (IngestBatch) | write Spacetime (`ingest` reducer) + daily_summary, then call `live.on_samples_ingested` |
 | `POST /ingest/hae` (Health Auto Export JSON) | parse -> IngestBatch -> same path; simulator posts here |
 | `GET /vitals/latest?user_id&metrics=a,b` | latest value per metric |
 | `GET /vitals/series?user_id&metric&from&to&bucket=raw\|1m\|1h\|1d` | from continuous aggregates |
