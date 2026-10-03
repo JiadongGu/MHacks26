@@ -41,3 +41,9 @@ async def health() -> Health:
 
 
 # Router registration: append one line per router, never reorder.
+from app.twin.api import router as twin_router  # noqa: E402
+
+app.include_router(twin_router)
+from app.goals.api import router as goals_router  # noqa: E402
+
+app.include_router(goals_router)
