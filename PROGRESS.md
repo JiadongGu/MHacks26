@@ -5,7 +5,7 @@
 - PLAN.md written (architecture, ownership, contracts, timeline). Research done on all sponsor APIs.
 
 - P: gcal module (PR #5): OAuth, upcoming, freebusy, "Pulse Health" calendar; live-verified. Missing: `apply` endpoint, syncToken refresh, Neon token store
-- P: fitbit module (legacy API) built + unit-tested, uncommitted; go/no-go with real credentials pending
+- P: fitbit module on Google Health API (legacy API dies 2026-10-30): go/no-go PASSED (live HR ~1300 samples/3h + steps). Account must be linked to Google Health. Polling only (no webhook). Missing: resting HR, sleep, active minutes; /raw debug endpoint to remove
 
 ## In progress
 - Hour 0-1 setup (see PLAN.md §13)
