@@ -1,56 +1,77 @@
-import os
+import asyncio
 from datetime import datetime
+from uuid import UUID
 
-from fastapi import APIRouter, HTTPException
+from cryptography.fernet import InvalidToken
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import RedirectResponse
 
-from . import oauth, service
-from .store import FileTokenStore, TokenStore
+from app.contracts import CalendarEvent
+from app.core.auth import require_internal
+from app.core.config import settings
+from app.core.logging import log
 
-router = APIRouter()
-store: TokenStore = FileTokenStore()
+from . import oauth, service, store, sync
+
+public = APIRouter()
+router = APIRouter(dependencies=[Depends(require_internal)])
 
 
-def _creds(user_id: str):
-    creds = oauth.credentials_for(user_id, store)
-    if not creds:
+async def _creds(user_id: UUID):
+    row = await store.load(user_id)
+    if not row:
         raise HTTPException(404, "google not connected")
-    return creds
+    return await asyncio.to_thread(oauth.credentials_for, row["refresh_token"]), row
 
 
 @router.get("/integrations/google/authorize")
-def authorize(user_id: str):
-    return RedirectResponse(oauth.authorization_url(user_id))
+async def authorize(user_id: UUID):
+    return RedirectResponse(oauth.authorization_url(str(user_id)))
 
 
-@router.get("/integrations/google/callback")
-def callback(code: str | None = None, state: str | None = None, error: str | None = None):
-    web = os.environ.get("PUBLIC_WEB_URL", "")
+@public.get("/integrations/google/callback")
+async def callback(code: str | None = None, state: str | None = None, error: str | None = None):
+    web = settings().public_web_url
     if error or not code or not state:
         return RedirectResponse(f"{web}/settings?google=denied")
     try:
-        user_id = oauth.complete(code, state, store)
-    except ValueError:
+        user_id, refresh_token = await asyncio.to_thread(oauth.complete, code, state)
+        creds = await asyncio.to_thread(oauth.credentials_for, refresh_token)
+        email = await asyncio.to_thread(service.primary_email, creds)
+        cal_id = await asyncio.to_thread(service.ensure_health_calendar, creds)
+        await store.save(UUID(user_id), refresh_token, email, cal_id)
+        await sync.refresh_user(UUID(user_id))
+    except (ValueError, InvalidToken, KeyError) as e:
+        log.warning("event=gcal_callback_failed err=%s", e)
         return RedirectResponse(f"{web}/settings?google=error")
-    creds = _creds(user_id)
-    row = store.load(user_id)
-    row["email"] = service.primary_email(creds)
-    row["health_calendar_id"] = service.ensure_health_calendar(creds)
-    store.save(user_id, row)
     return RedirectResponse(f"{web}/settings?google=connected")
 
 
 @router.get("/integrations/google/status")
-def status(user_id: str):
-    row = store.load(user_id)
-    return {"connected": bool(row), "email": row.get("email") if row else None}
+async def status(user_id: UUID):
+    row = await store.load(user_id)
+    return {"connected": bool(row), "email": row["google_email"] if row else None,
+            "last_sync": row["last_sync_at"] if row else None}
 
 
-@router.get("/calendar/upcoming")
-def upcoming(user_id: str, hours: int = 48):
-    return service.list_upcoming(_creds(user_id), hours)
+@router.get("/calendar/upcoming", response_model=list[CalendarEvent])
+async def upcoming(user_id: UUID, hours: int = 48):
+    creds, _ = await _creds(user_id)
+    return await asyncio.to_thread(service.list_upcoming, creds, hours)
 
 
 @router.get("/calendar/freebusy")
-def freebusy(user_id: str, start: datetime, end: datetime):
-    return service.freebusy(_creds(user_id), start, end)
+async def freebusy(user_id: UUID, start: datetime, end: datetime):
+    creds, _ = await _creds(user_id)
+    return await asyncio.to_thread(service.freebusy, creds, start, end)
+
+
+@router.post("/calendar/proposals/{proposal_id}/apply")
+async def apply(proposal_id: UUID):
+    return {"google_event_id": await sync.apply_proposal(proposal_id)}
+
+
+@router.delete("/calendar/proposals/{proposal_id}/event")
+async def remove_event(proposal_id: UUID):
+    await sync.remove_proposal_event(proposal_id)
+    return {"ok": True}

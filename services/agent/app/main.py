@@ -47,3 +47,11 @@ app.include_router(twin_router)
 from app.goals.api import router as goals_router  # noqa: E402
 
 app.include_router(goals_router)
+from app.integrations.gcal.router import public as gcal_public  # noqa: E402
+from app.integrations.gcal.router import router as gcal_router  # noqa: E402
+
+app.include_router(gcal_public)
+app.include_router(gcal_router)
+from app.proposals.api import router as proposals_router  # noqa: E402
+
+app.include_router(proposals_router)

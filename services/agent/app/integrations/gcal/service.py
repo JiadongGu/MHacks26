@@ -2,19 +2,11 @@ import re
 from datetime import UTC, datetime, timedelta
 
 from googleapiclient.discovery import build
-from pydantic import BaseModel
+
+from app.contracts import CalendarEvent
 
 HEALTH_CALENDAR_NAME = "Pulse Health"
 IMPORTANT_RE = re.compile(r"exam|interview|flight|presentation|race|final|midterm|deadline|wedding", re.I)
-
-
-class CalendarEvent(BaseModel):
-    event_id: str
-    title: str
-    starts_at: datetime
-    ends_at: datetime
-    is_important: bool
-    all_day: bool
 
 
 def is_important(title: str, attendee_count: int = 0) -> bool:
@@ -93,3 +85,7 @@ def insert_proposal_event(
 ) -> str:
     body = proposal_to_event_body(title, starts_at, ends_at, rationale)
     return _svc(creds).events().insert(calendarId=calendar_id, body=body).execute()["id"]
+
+
+def delete_event(creds, calendar_id: str, event_id: str) -> None:
+    _svc(creds).events().delete(calendarId=calendar_id, eventId=event_id).execute()
