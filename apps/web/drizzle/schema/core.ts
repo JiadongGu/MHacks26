@@ -61,6 +61,17 @@ export const digital_twin = pgTable(
   (t) => [primaryKey({ columns: [t.user_id, t.version] })],
 );
 
+// What the person chose to focus on (at most 3). Keys come from the catalog in services/agent/app/focus/catalog.py.
+export const focus_areas = pgTable(
+  "focus_areas",
+  {
+    user_id: uuid("user_id").notNull(),
+    key: text("key").notNull(),
+    picked_at: tz("picked_at").notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.user_id, t.key] })],
+);
+
 export const goals = pgTable(
   "goals",
   {
