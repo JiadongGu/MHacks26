@@ -4,6 +4,9 @@
 - Repo set up with context files
 - PLAN.md written (architecture, ownership, contracts, timeline). Research done on all sponsor APIs.
 
+- P: gcal module (PR #5): OAuth, upcoming, freebusy, "Pulse Health" calendar; live-verified. Missing: `apply` endpoint, syncToken refresh, Neon token store
+- P: fitbit module (legacy API) built + unit-tested, uncommitted; go/no-go with real credentials pending
+
 ## In progress
 - Hour 0-1 setup (see PLAN.md §13)
 

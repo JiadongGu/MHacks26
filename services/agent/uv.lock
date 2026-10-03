@@ -622,6 +622,7 @@ dependencies = [
     { name = "fastapi" },
     { name = "google-api-python-client" },
     { name = "google-auth-oauthlib" },
+    { name = "httpx" },
     { name = "uvicorn", extra = ["standard"] },
 ]
 
@@ -637,6 +638,7 @@ requires-dist = [
     { name = "fastapi" },
     { name = "google-api-python-client" },
     { name = "google-auth-oauthlib" },
+    { name = "httpx" },
     { name = "uvicorn", extras = ["standard"] },
 ]
 
