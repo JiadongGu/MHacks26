@@ -9,7 +9,7 @@ from app.core.logging import log
 from app.ingest.writer import ingest_batch, user_timezone
 
 from . import normalize, store
-from .client import HealthClient
+from .client import AccountNotLinked, HealthClient
 
 LOOKBACK_MIN = 30
 BACKFILL_MIN = 360
@@ -59,5 +59,9 @@ async def sync_all() -> None:
     for user_id in await store.connected_users():
         try:
             await sync_user(user_id)
+        except AccountNotLinked:
+            # Nothing will ever sync for this account. Drop the connection so the UI offers Connect again.
+            log.warning("event=fitbit_account_not_linked_removed user=%s", user_id)
+            await store.delete(user_id)
         except Exception as e:  # one bad token must not stop the sweep
             log.warning("event=fitbit_sync_failed user=%s err=%s", user_id, e)
