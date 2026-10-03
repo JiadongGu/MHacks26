@@ -1,22 +1,24 @@
 import type { Metadata } from "next";
+import { GoalsManager } from "@/components/goals/goals-manager";
 import { PageHeader } from "@/components/page-header";
-import { TodoCard } from "@/components/todo-card";
+import { listGoals } from "@/lib/queries";
+import { requireUser } from "@/lib/session";
 
 export const metadata: Metadata = { title: "Goals" };
+export const dynamic = "force-dynamic";
 
-export default function GoalsPage() {
+export default async function GoalsPage() {
+  const user = await requireUser();
+  // If the read fails, the client component loads the list itself and shows the error state.
+  const initial = await listGoals(user.id).catch(() => undefined);
   return (
     <>
-      <PageHeader eyebrow="Goals" title="Your goals">
-        Daily and weekly targets, and how you are doing against them.
+      <PageHeader eyebrow="Targets" title="Goals">
+        Pulse tracks each active goal and tells you where you stand.
       </PageHeader>
-      <TodoCard
-        items={[
-          "List of active goals with progress.",
-          "Create, edit, and pause a goal.",
-          "Empty state for a new account.",
-        ]}
-      />
+      <div className="max-w-3xl">
+        <GoalsManager initial={initial} />
+      </div>
     </>
   );
 }

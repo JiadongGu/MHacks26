@@ -211,6 +211,8 @@ async def on_samples_ingested(user_id: UUID, metrics: list[str]) -> None:
 async def sweep_all() -> None:
     """Run the rules for every user with samples in the last 10 minutes. Never raises."""
     started = time.monotonic()
+    if not spacetime.configured():
+        return
     try:
         since = int((datetime.now(UTC) - timedelta(minutes=SWEEP_WINDOW_MIN)).timestamp() * 1000)
         rows = await spacetime.sql(f"SELECT user_id FROM minute_agg WHERE minute_ms >= {since}")

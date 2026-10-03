@@ -1,0 +1,40 @@
+// Date and text helpers. Pure code.
+
+/** "3 min ago", "2 h ago", "4 d ago". `now` is a parameter so tests can fix it. */
+export function timeAgo(value: Date | string | number, now: Date = new Date()): string {
+  const then = new Date(value).getTime();
+  if (Number.isNaN(then)) return "unknown";
+  const sec = Math.round((now.getTime() - then) / 1000);
+  if (sec < 0) return "just now";
+  if (sec < 45) return "just now";
+  const min = Math.round(sec / 60);
+  if (min < 60) return `${min} min ago`;
+  const hours = Math.round(min / 60);
+  if (hours < 48) return `${hours} h ago`;
+  return `${Math.round(hours / 24)} d ago`;
+}
+
+export function formatDateTime(value: Date | string, timeZone?: string): string {
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return "unknown";
+  return d.toLocaleString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone,
+  });
+}
+
+export function formatDate(value: Date | string): string {
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return "unknown";
+  return d.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
+}
+
+/** "possibly_ill" becomes "Possibly ill". */
+export function humanize(key: string): string {
+  const spaced = key.replace(/_/g, " ").trim();
+  return spaced.charAt(0).toUpperCase() + spaced.slice(1);
+}

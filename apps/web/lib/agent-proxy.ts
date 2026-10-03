@@ -3,6 +3,8 @@
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+const ME_SEGMENT = "me";
+
 export type PathCheck =
   | { ok: true; path: string }
   | { ok: false; status: 400 | 403; error: string };
@@ -10,6 +12,7 @@ export type PathCheck =
 /**
  * Builds the agent path from the catch-all segments.
  * It rejects dot segments. It rejects a path segment that holds another user's uuid.
+ * The literal segment "me" becomes the session user id. The browser never learns the uuid.
  */
 export function buildAgentPath(segments: string[], userId: string): PathCheck {
   if (segments.length === 0) {
@@ -29,7 +32,8 @@ export function buildAgentPath(segments: string[], userId: string): PathCheck {
       return { ok: false, status: 403, error: "Path user does not match session." };
     }
   }
-  return { ok: true, path: "/" + segments.map(encodeURIComponent).join("/") };
+  const out = segments.map((raw) => (raw === ME_SEGMENT ? userId : raw));
+  return { ok: true, path: "/" + out.map(encodeURIComponent).join("/") };
 }
 
 /** Copies the query string. It drops any client user_id and sets the session user id. */
