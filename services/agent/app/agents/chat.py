@@ -8,6 +8,7 @@ import time
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import UTC, date, datetime, timedelta
+from datetime import time as dtime
 from typing import Any, Protocol, cast, get_args
 from uuid import UUID
 
@@ -269,7 +270,8 @@ def decision_text(res: dict[str, Any]) -> str:
 
 def detect_intent(text: str) -> str | None:
     t = text.lower()
-    rules = [("calendar", r"calendar|event|schedule|meeting|appointment|agenda"),
+    rules = [("block", r"\bblock\b.*\b(sleep|bed|night|tonight)\b|\bprotect\b.*\bsleep\b|sleep block"),
+             ("calendar", r"calendar|event|schedule|meeting|appointment|agenda"),
              ("goal", r"\bgoals?\b|target"),
              ("sleep", r"sleep|slept|bed ?time|rest\b"),
              ("heart", r"heart|pulse|bpm|\bhr\b"),
@@ -625,9 +627,10 @@ class GeminiChat:
                 types.Part.from_function_response(name=n, response={"result": r}) for n, r in results]))
         llm_budget._count_call()
         resp = await asyncio.wait_for(
-            self._client.aio.models.generate_content(
-                model=settings().gemini_model_fast, contents=self.contents, config=self._config(allow_tools)),
-            timeout=CALL_TIMEOUT_S + 2)
+            llm_budget.generate_with_fallback(
+                self._client, settings().gemini_model_fast, contents=self.contents,
+                config=self._config(allow_tools)),
+            timeout=(CALL_TIMEOUT_S + 2) * 2)
         if resp.candidates and resp.candidates[0].content is not None:
             self.contents.append(resp.candidates[0].content)
         calls = [ToolCall(fc.name or "", dict(fc.args or {})) for fc in (resp.function_calls or [])]
@@ -657,9 +660,40 @@ def llm_enabled() -> bool:
     return bool(s.gemini_api_key) and not s.llm_fake and llm_budget.calls_today() < llm_budget.DAILY_LIMIT
 
 
+async def tonight_sleep_window(tools: Toolbox) -> tuple[datetime, datetime]:
+    """Tonight from the user's bed time to tomorrow's wake time (defaults 22:00 to 06:30)."""
+    bed, wake = dtime(22, 0), dtime(6, 30)
+    try:
+        async with db.neon() as conn:
+            cur = await conn.execute(
+                "select bed_time, wake_time from profiles where user_id = %s", (tools.user_id,))
+            row = await cur.fetchone()
+        if row:
+            bed, wake = row["bed_time"] or bed, row["wake_time"] or wake
+    except Exception as exc:
+        log.warning("chat.profile_read_failed err=%s", type(exc).__name__)
+    now = local_now(tools.tz)
+    start = datetime.combine(now.date(), bed, tzinfo=now.tzinfo)
+    if start <= now:
+        start = now.replace(second=0, microsecond=0) + timedelta(minutes=15 - now.minute % 15)
+    end = datetime.combine(start.date() + timedelta(days=1 if wake <= bed else 0), wake, tzinfo=now.tzinfo)
+    return start, end
+
+
 async def fallback_reply(tools: Toolbox, text: str) -> tuple[str, list[dict[str, Any]]]:
     """Deterministic answer by keyword. Uses the same tools as the LLM."""
     intent = detect_intent(text)
+    if intent == "block":
+        start, end = await tonight_sleep_window(tools)
+        args = {"title": "Sleep block (Pulse)", "start_iso": start.isoformat(), "end_iso": end.isoformat(),
+                "rationale": "You asked to protect tonight's sleep."}
+        r = await tools.call("propose_calendar_block", args)
+        if not r.get("ok"):
+            return ("I couldn't set that up right now. Try again in a minute.",
+                    [{"name": "propose_calendar_block"}])
+        return (f'I proposed "{r["title"]}" for {r["when"]}. '
+                "Reply YES to add it to your calendar or NO to skip.",
+                [{"name": "propose_calendar_block", "args": args}])
     if intent == "steps":
         s = await tools.call("get_status", None)
         return fmt_steps(s), [{"name": "get_status", "args": {}}]

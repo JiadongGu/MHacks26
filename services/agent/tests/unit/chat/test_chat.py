@@ -483,3 +483,11 @@ async def test_gemini_adapter_manual_loop(store, monkeypatch):
     assert [c.role for c in second] == ["user", "model", "user"]
     assert second[2].parts[0].function_response.name == "get_status"
     assert llm_budget.calls_today() == 2
+
+
+def test_block_sleep_intent_beats_sleep_intent():
+    from app.agents.chat import detect_intent
+
+    assert detect_intent("block sleep tonight") == "block"
+    assert detect_intent("can you protect my sleep?") == "block"
+    assert detect_intent("how did I sleep?") == "sleep"
