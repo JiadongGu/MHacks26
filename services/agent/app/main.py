@@ -65,3 +65,6 @@ from app.integrations.apple_sim.router import router as sim_router  # noqa: E402
 
 app.include_router(ingest_router)
 app.include_router(sim_router)
+from app.vitals.router import router as vitals_router  # noqa: E402
+
+app.include_router(vitals_router)

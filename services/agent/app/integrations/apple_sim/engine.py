@@ -19,6 +19,18 @@ CATCHUP_MAX_MIN = 60
 DAILY_BACKFILL_DAYS = 6
 # History emitted when the caller gives no fast_forward_min, so a rule can fire immediately.
 DEFAULT_FAST_FORWARD = {"workout_now": 14, "low_spo2": 3, "sedentary_day": 190}
+# The web demo panel sends 30 for every scenario. A 20-minute workout is over after 30 minutes, and the
+# inactivity rule needs 150 minutes of coverage, so those two scenarios bound the caller's value.
+WORKOUT_FAST_FORWARD = (12, 18)
+
+
+def effective_fast_forward(scenario: str, requested: int | None) -> int:
+    ff = DEFAULT_FAST_FORWARD.get(scenario, 0) if requested is None else max(0, requested)
+    if scenario == "workout_now":
+        return min(max(ff, WORKOUT_FAST_FORWARD[0]), WORKOUT_FAST_FORWARD[1])
+    if scenario == "sedentary_day":
+        return max(ff, DEFAULT_FAST_FORWARD["sedentary_day"])
+    return ff
 
 
 @dataclass
@@ -121,7 +133,7 @@ def _range(start: datetime, end: datetime) -> list[datetime]:
 async def activate(user_id: UUID, scenario: str, fast_forward_min: int | None = None) -> int:
     """Start or switch the simulation. History is emitted immediately so judges do not wait."""
     now = _floor(datetime.now(UTC))
-    ff = DEFAULT_FAST_FORWARD.get(scenario, 0) if fast_forward_min is None else fast_forward_min
+    ff = effective_fast_forward(scenario, fast_forward_min)
     first = user_id not in _states
     tz = await user_timezone(user_id)
     state = SimState(scenario, now - timedelta(minutes=ff), tz, await baselines(user_id))

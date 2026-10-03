@@ -192,3 +192,43 @@ async def test_tick_emits_new_minutes_once(emitted, monkeypatch):
         NOW + timedelta(minutes=1), later
     )
     assert not [s for s in batch.samples if s.metric == "sleep_total_min"]  # daily values only once a day
+
+
+def test_effective_fast_forward_bounds():
+    ff = engine.effective_fast_forward
+    assert [ff("workout_now", v) for v in (None, 3, 14, 30)] == [14, 12, 14, 18]
+    assert [ff("sedentary_day", v) for v in (None, 30, 300)] == [190, 190, 300]
+    assert ff("low_spo2", 30) == 30 and ff("normal", None) == 0 and ff("normal", -5) == 0
+
+
+@pytest.mark.parametrize(
+    ("scenario", "rule"),
+    [("workout_now", "workout_detected"), ("sedentary_day", "inactivity"), ("low_spo2", "low_spo2")],
+)
+def test_the_web_demo_panels_fixed_30_minutes_still_triggers_each_rule(scenario, rule):
+    ff = engine.effective_fast_forward(scenario, 30)
+    assert rule in kinds(scenario, NOW - timedelta(minutes=ff))
+
+
+@pytest.mark.parametrize("path", ["/sim/scenario", "/demo/scenario"])
+def test_demo_and_sim_routes_share_one_handler(monkeypatch, path):
+    from fastapi import FastAPI
+    from fastapi.testclient import TestClient
+
+    from app.core.auth import require_internal
+    from app.integrations.apple_sim import router as sim_router
+
+    calls = []
+
+    async def fake_activate(user_id, scenario, ff):
+        calls.append((user_id, scenario, ff))
+        return 7
+
+    monkeypatch.setattr(sim_router.engine, "activate", fake_activate)
+    app = FastAPI()
+    app.include_router(sim_router.router)
+    app.dependency_overrides[require_internal] = lambda: None
+    body = {"user_id": str(UID), "scenario": "workout_now", "fast_forward_min": 30}
+    r = TestClient(app).post(path, json=body)
+    assert r.status_code == 200 and r.json()["emitted"] == 7
+    assert calls == [(UID, "workout_now", 30)]
