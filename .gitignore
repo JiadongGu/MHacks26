@@ -22,5 +22,6 @@ build/
 
 # Claude Code local settings
 .claude/settings.local.json
+.data/
 .neon
 .claude/worktrees/
