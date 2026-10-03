@@ -1,0 +1,170 @@
+[
+ {
+  "user_id": "00000000-0000-0000-0000-000000000001",
+  "metric": "sleep_total_min",
+  "value": 430,
+  "unit": "min",
+  "ts": "2026-10-08T11:00:00Z",
+  "source": "apple_watch_sim"
+ },
+ {
+  "user_id": "00000000-0000-0000-0000-000000000001",
+  "metric": "hrv_sdnn",
+  "value": 48,
+  "unit": "ms",
+  "ts": "2026-10-08T11:30:00Z",
+  "source": "apple_watch_sim"
+ },
+ {
+  "user_id": "00000000-0000-0000-0000-000000000001",
+  "metric": "resting_heart_rate",
+  "value": 62,
+  "unit": "bpm",
+  "ts": "2026-10-08T12:00:00Z",
+  "source": "apple_watch_sim"
+ },
+ {
+  "user_id": "00000000-0000-0000-0000-000000000001",
+  "metric": "sleep_total_min",
+  "value": 445,
+  "unit": "min",
+  "ts": "2026-10-09T11:00:00Z",
+  "source": "apple_watch_sim"
+ },
+ {
+  "user_id": "00000000-0000-0000-0000-000000000001",
+  "metric": "hrv_sdnn",
+  "value": 50,
+  "unit": "ms",
+  "ts": "2026-10-09T11:30:00Z",
+  "source": "apple_watch_sim"
+ },
+ {
+  "user_id": "00000000-0000-0000-0000-000000000001",
+  "metric": "resting_heart_rate",
+  "value": 61,
+  "unit": "bpm",
+  "ts": "2026-10-09T12:00:00Z",
+  "source": "apple_watch_sim"
+ },
+ {
+  "user_id": "00000000-0000-0000-0000-000000000001",
+  "metric": "sleep_total_min",
+  "value": 420,
+  "unit": "min",
+  "ts": "2026-10-10T11:00:00Z",
+  "source": "apple_watch_sim"
+ },
+ {
+  "user_id": "00000000-0000-0000-0000-000000000001",
+  "metric": "hrv_sdnn",
+  "value": 47,
+  "unit": "ms",
+  "ts": "2026-10-10T11:30:00Z",
+  "source": "apple_watch_sim"
+ },
+ {
+  "user_id": "00000000-0000-0000-0000-000000000001",
+  "metric": "resting_heart_rate",
+  "value": 62,
+  "unit": "bpm",
+  "ts": "2026-10-10T12:00:00Z",
+  "source": "apple_watch_sim"
+ },
+ {
+  "user_id": "00000000-0000-0000-0000-000000000001",
+  "metric": "sleep_total_min",
+  "value": 438,
+  "unit": "min",
+  "ts": "2026-10-11T11:00:00Z",
+  "source": "apple_watch_sim"
+ },
+ {
+  "user_id": "00000000-0000-0000-0000-000000000001",
+  "metric": "hrv_sdnn",
+  "value": 49,
+  "unit": "ms",
+  "ts": "2026-10-11T11:30:00Z",
+  "source": "apple_watch_sim"
+ },
+ {
+  "user_id": "00000000-0000-0000-0000-000000000001",
+  "metric": "resting_heart_rate",
+  "value": 63,
+  "unit": "bpm",
+  "ts": "2026-10-11T12:00:00Z",
+  "source": "apple_watch_sim"
+ },
+ {
+  "user_id": "00000000-0000-0000-0000-000000000001",
+  "metric": "sleep_total_min",
+  "value": 440,
+  "unit": "min",
+  "ts": "2026-10-12T11:00:00Z",
+  "source": "apple_watch_sim"
+ },
+ {
+  "user_id": "00000000-0000-0000-0000-000000000001",
+  "metric": "hrv_sdnn",
+  "value": 48,
+  "unit": "ms",
+  "ts": "2026-10-12T11:30:00Z",
+  "source": "apple_watch_sim"
+ },
+ {
+  "user_id": "00000000-0000-0000-0000-000000000001",
+  "metric": "resting_heart_rate",
+  "value": 62,
+  "unit": "bpm",
+  "ts": "2026-10-12T12:00:00Z",
+  "source": "apple_watch_sim"
+ },
+ {
+  "user_id": "00000000-0000-0000-0000-000000000001",
+  "metric": "sleep_total_min",
+  "value": 425,
+  "unit": "min",
+  "ts": "2026-10-13T11:00:00Z",
+  "source": "apple_watch_sim"
+ },
+ {
+  "user_id": "00000000-0000-0000-0000-000000000001",
+  "metric": "hrv_sdnn",
+  "value": 47,
+  "unit": "ms",
+  "ts": "2026-10-13T11:30:00Z",
+  "source": "apple_watch_sim"
+ },
+ {
+  "user_id": "00000000-0000-0000-0000-000000000001",
+  "metric": "resting_heart_rate",
+  "value": 62,
+  "unit": "bpm",
+  "ts": "2026-10-13T12:00:00Z",
+  "source": "apple_watch_sim"
+ },
+ {
+  "user_id": "00000000-0000-0000-0000-000000000001",
+  "metric": "sleep_total_min",
+  "value": 312,
+  "unit": "min",
+  "ts": "2026-10-14T11:00:00Z",
+  "source": "apple_watch_sim"
+ },
+ {
+  "user_id": "00000000-0000-0000-0000-000000000001",
+  "metric": "hrv_sdnn",
+  "value": 36,
+  "unit": "ms",
+  "ts": "2026-10-14T11:30:00Z",
+  "source": "apple_watch_sim"
+ },
+ {
+  "user_id": "00000000-0000-0000-0000-000000000001",
+  "metric": "resting_heart_rate",
+  "value": 72,
+  "unit": "bpm",
+  "ts": "2026-10-14T12:00:00Z",
+  "source": "apple_watch_sim"
+ }
+]
