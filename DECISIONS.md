@@ -18,3 +18,4 @@ One line each: choice, reason.
 - Skipped: Presage (Node sidecar, 4-6h), Relay, Tiger, Nessie, Solana, SpaceXAI, Free-WILi.
 - Google Calendar integration owned by J (moved from P, 2026-10-03): it closes J's approval loop (proposal -> apply) without a cross-owner dependency.
 - Spacetime module owned by J (moved from P, 2026-10-03): J owns both the module and every reader (rules, dashboard views); P only calls the `ingest` reducer.
+- FinchNode integration owned by P (moved from J, 2026-10-03): client, record → twin mapping, import endpoints, fixtures, FinchNode sponsor track. J keeps the twin model (baselines, thresholds, versions) that the rules depend on.
