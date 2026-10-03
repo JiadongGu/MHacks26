@@ -1,4 +1,5 @@
 import time
+from datetime import timedelta
 from uuid import UUID
 
 import httpx
@@ -300,3 +301,42 @@ def test_callback_success(monkeypatch):
     fakes = CallbackFakes()
     assert _callback(monkeypatch, fakes) == "?fitbit=connected"
     assert fakes.saved == [UID] and fakes.deleted == []
+
+
+def test_steps_and_active_minutes_cover_whole_local_days_but_heart_rate_stays_short(monkeypatch):
+    from datetime import UTC, datetime
+    from zoneinfo import ZoneInfo
+
+    calls = {}
+
+    class FakeClient:
+        refreshed = False
+        row = {}
+
+        def __init__(self, row):
+            pass
+
+        def _rec(self, name):
+            def f(start, end):
+                calls[name] = (start, end)
+                return []
+
+            return f
+
+        def __getattr__(self, name):
+            if name in ("heart_rate", "steps", "spo2", "active_minutes"):
+                return self._rec(name)
+            return lambda *a, **k: []
+
+    monkeypatch.setattr(sync, "HealthClient", FakeClient)
+    sync._fetch({}, UID, 30, 2, "America/Detroit")
+    now_local = datetime.now(UTC).astimezone(ZoneInfo("America/Detroit"))
+    local_midnight_yesterday = (now_local - timedelta(days=1)).replace(
+        hour=0, minute=0, second=0, microsecond=0
+    )
+    for name in ("steps", "active_minutes"):
+        start, end = calls[name]
+        assert start == local_midnight_yesterday and (end - start) > timedelta(hours=24)
+    for name in ("heart_rate", "spo2"):
+        start, end = calls[name]
+        assert end - start == timedelta(minutes=30)
