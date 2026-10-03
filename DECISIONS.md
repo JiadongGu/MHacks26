@@ -17,3 +17,4 @@ One line each: choice, reason.
 - Contracts: Pydantic is the source of truth; JSON Schema exported; TS types generated; CI fails on drift. Frozen at hour 2, additive only after.
 - Skipped: Presage (Node sidecar, 4-6h), Relay, Tiger, Nessie, Solana, SpaceXAI, Free-WILi.
 - Google Calendar integration owned by J (moved from P, 2026-10-03): it closes J's approval loop (proposal -> apply) without a cross-owner dependency.
+- Spacetime module owned by J (moved from P, 2026-10-03): J owns both the module and every reader (rules, dashboard views); P only calls the `ingest` reducer.

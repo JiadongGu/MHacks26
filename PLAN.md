@@ -153,7 +153,7 @@ MHacks26/
 
 ## 5. Data model
 
-### 5.1 ~~Tiger~~ → **SpacetimeDB** (short-term live pool) (P)
+### 5.1 ~~Tiger~~ → **SpacetimeDB** (short-term live pool) (J owns the module since 2026-10-03; P writes via `ingest`)
 **Superseded 2026-10-03: the live pool is SpacetimeDB. Contract: `contracts/SPACETIME.md`. The Tiger DDL below is kept for reference only.**
 
 ```sql

@@ -17,7 +17,7 @@ Personal AI health agent: wearable vitals -> two data pools -> rules + Gemini ag
 
 ## Layout
 - `apps/web` web app (J) · `services/agent` FastAPI agents + integrations (split by package) · `services/gateway` Photon (J)
-- `contracts/` shared schemas + fixtures, frozen after hour 2 · `infra/` Spacetime module, Dockerfiles, Railway (P) · `scripts/` export, seed, smoke
+- `contracts/` shared schemas + fixtures, frozen after hour 2 · `infra/spacetime` Spacetime module (J) · `infra/` Dockerfiles, Railway (P) · `scripts/` export, seed, smoke
 - Ownership table and merge rules: PLAN.md §4. Endpoint contracts: PLAN.md §6 / contracts/README.md.
 
 ## Context files
