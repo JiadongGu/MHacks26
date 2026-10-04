@@ -20,7 +20,7 @@ import {
 import { buildTrends } from "@/lib/trends";
 import { STATUS_LABEL, readTwin, type TwinStatus } from "@/lib/twin";
 import { getVitalsPanel } from "@/lib/vitals";
-import { TONE_COLORS, clockLabel, explainChips, firstSentence, signalChips, type Tone } from "@/lib/vitals-card";
+import { TONE_COLORS, clockLabel, explainChips, signalChips, type Tone } from "@/lib/vitals-card";
 import { AlertsFeed } from "./alerts-feed";
 import { HrSparkline } from "./hr-sparkline";
 import { ProposalsPanel, type ProposalExtras } from "./proposals-panel";
@@ -36,6 +36,13 @@ const TWIN_TONE: Record<TwinStatus, Tone> = {
 };
 
 const CHIP_ICON: Partial<Record<Tone, LucideIcon>> = { borderline: TriangleAlert, out: TriangleAlert };
+
+const STATUS_HEADLINE: Record<TwinStatus, string> = {
+  normal: "Your numbers are in your usual range.",
+  recovering: "You are recovering. Keep today easy.",
+  strained: "Your body is under extra strain today.",
+  possibly_ill: "Your body may be fighting something. Rest tonight.",
+};
 
 export async function StatusHero({ userId, timeZone }: { userId: string; timeZone: string | null }) {
   let twin;
@@ -68,9 +75,9 @@ export async function StatusHero({ userId, timeZone }: { userId: string; timeZon
   const chips = signalChips(buildTrends(rows, today, 7, view.baselines));
   const why = alerts.find((a) => !CHECKIN_KINDS.includes(a.kind) && canExplain(a.kind, a.explain));
   const insights = view.insights.slice(0, 2);
-  const headline = twin.summary
-    ? firstSentence(twin.summary)
-    : (view.insights[0] ?? "Pulse has not written a summary yet.");
+  const headline = view.status
+    ? STATUS_HEADLINE[view.status]
+    : (view.insights[0] ?? "Pulse has not rated your numbers yet.");
 
   return (
     <section aria-labelledby="h-status" className="rounded-lg border border-border bg-card p-5 md:p-6">

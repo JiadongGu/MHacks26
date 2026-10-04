@@ -12,14 +12,14 @@ export function CountUp({ metricKey, value, unit }: { metricKey: string; value: 
 
   useEffect(() => {
     const el = ref.current;
-    if (!el || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (!el || document.hidden || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     let raf = 0;
     const io = new IntersectionObserver(([entry]) => {
       if (!entry?.isIntersecting) return;
       io.disconnect();
       const start = performance.now();
       const step = (now: number) => {
-        const p = Math.min(1, (now - start) / DURATION_MS);
+        const p = Math.min(1, Math.max(0, (now - start) / DURATION_MS));
         setT(1 - Math.pow(1 - p, 3));
         if (p < 1) raf = requestAnimationFrame(step);
       };

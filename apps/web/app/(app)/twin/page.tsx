@@ -13,7 +13,6 @@ import { requireUser } from "@/lib/session";
 import { formatHeight, formatWeight } from "@/lib/units";
 import {
   BASELINE_LABEL,
-  STATUS_LABEL,
   readTwin,
   sourceLabel,
   type TwinView,
@@ -353,9 +352,7 @@ export default async function TwinPage() {
           </Button>
         }
       >
-        {view?.status
-          ? `Status: ${STATUS_LABEL[view.status]}. ${twin?.summary ?? ""}`
-          : "What Pulse knows about you, and where each fact comes from."}
+        What Pulse knows about you, and where each fact comes from.
       </PageHeader>
 
       {loadFailed && <ErrorNote className="max-w-[60ch]">Could not load your twin. Reload the page to try again.</ErrorNote>}
