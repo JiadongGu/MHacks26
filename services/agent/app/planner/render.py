@@ -2,6 +2,8 @@
 
 from datetime import datetime
 
+from app.focus.catalog import BY_KEY
+
 HEADLINES = {
     "light": "{when} looks open.",
     "normal": "{when} is a steady day.",
@@ -51,3 +53,58 @@ def plan_text(
     if calendar_written and items:
         lines.append("Added to your Pulse Health calendar.")
     return "\n".join(lines)
+
+
+def _count(n: int, one: str, many: str) -> str:
+    return one if n == 1 else f"{n} {many}"
+
+
+def _plural_has(keys: list[str], items: list[dict]) -> int:
+    return sum(1 for i in items if i["key"] in keys)
+
+
+# What each focus area looks like today, with no clock times. The calendar and Today's plan hold the times.
+def _summary(key: str, items: list[dict], bed: datetime | None) -> str | None:
+    n = lambda *keys: _plural_has(list(keys), items)  # noqa: E731
+    if key in ("sleep", "unplug", "routine"):
+        has_wind = any(i["key"] == "wind_down" for i in items)
+        if bed is not None and has_wind:
+            return f"a wind-down, lights out around {clock(bed)}"
+        return None
+    if key == "steps" and n("steps"):
+        return _count(n("steps"), "a walk", "walks")
+    if key == "workouts" and n("workouts"):
+        return _count(n("workouts"), "a workout", "workouts")
+    if key == "heart" and n("heart"):
+        return "an easy heart-health walk"
+    if key == "stress" and n("stress"):
+        return "a breathing break"
+    if key == "balance" and n("balance"):
+        return "a real break"
+    if key == "study" and n("study"):
+        return _count(n("study"), "a study block", "study blocks")
+    if key == "hydration" and n("hydration"):
+        return _count(n("hydration"), "a water reminder", "water reminders")
+    if key == "sun":
+        parts = []
+        if n("sun"):
+            parts.append("sunscreen")
+        if n("sun_reapply"):
+            parts.append("a reapply")
+        if n("skin_check"):
+            parts.append("a skin check")
+        return ", ".join(parts) if parts else None
+    return None
+
+
+def focus_lines(picks: list[str], items: list[dict], bed: datetime | None) -> list[str]:
+    """One bullet per focus area: its name and what is planned for it, in broad terms. Sun care is added
+    when the plan holds sun items even if it was not picked."""
+    keys = [k for k in picks if k in BY_KEY]
+    if "sun" not in keys and any(i["key"] in ("sun", "sun_reapply", "skin_check") for i in items):
+        keys.append("sun")
+    out = []
+    for key in keys:
+        what = _summary(key, items, bed)
+        out.append(f"• {BY_KEY[key].label}: {what if what else 'nothing needed today'}")
+    return out

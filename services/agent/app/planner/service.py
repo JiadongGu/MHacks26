@@ -1,7 +1,7 @@
 """Build a person's plan for one day from their calendar and focus areas, and put it on their calendar."""
 
 import asyncio
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import date, datetime, time, timedelta
 from typing import Any
 from uuid import UUID
@@ -38,6 +38,7 @@ class Plan:
     shifted_min: int = 0
     reason: str = ""
     why: str = ""
+    focus_lines: list[str] = field(default_factory=list)
 
     def as_json(self) -> dict[str, Any]:
         return {
@@ -49,6 +50,7 @@ class Plan:
             "wake_time": self.wake.strftime("%H:%M"),
             "calendar_written": self.calendar_written,
             "why": self.why,
+            "focus_lines": self.focus_lines,
             "items": [_item_json(i) for i in self.items],
         }
 
@@ -191,6 +193,7 @@ async def build_plan(user_id: UUID, day: date, now: datetime, write_calendar: bo
         night.shifted_min,
         night.reason,
         render.why_text(load, night.shifted_min, night.reason),
+        render.focus_lines(picks, items, night.bed),
     )
 
 

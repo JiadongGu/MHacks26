@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { BriefingSection } from "@/components/dashboard/briefing-section";
-import { EveningSection } from "@/components/dashboard/evening-section";
+import { CheckinsSection } from "@/components/dashboard/checkins-section";
 import { FocusSection } from "@/components/dashboard/focus-section";
 import { NumbersSection } from "@/components/dashboard/numbers-section";
 import { PlanSection } from "@/components/dashboard/plan-section";
@@ -41,27 +40,15 @@ export default async function DashboardPage() {
             </Suspense>
           </Section>
 
-          <Section title="Your numbers" headingId="h-numbers">
-            <Suspense fallback={<Skeleton role="status" aria-label="Loading your numbers" className="h-40" />}>
-              <NumbersSection userId={user.id} timeZone={profile.timezone} hidden={profile.hidden_metrics} />
-            </Suspense>
-          </Section>
-
-          <Section title="Morning briefing" headingId="h-briefing">
-            <Suspense fallback={<ListSkeleton rows={1} label="Loading briefing" />}>
-              <BriefingSection userId={user.id} timeZone={profile.timezone} />
+          <Section title="Check-ins" headingId="h-checkins">
+            <Suspense fallback={<ListSkeleton rows={2} label="Loading check-ins" />}>
+              <CheckinsSection userId={user.id} timeZone={profile.timezone} />
             </Suspense>
           </Section>
 
           <Section title="Today's plan" headingId="h-plan">
             <Suspense fallback={<ListSkeleton rows={2} label="Loading plan" />}>
               <PlanSection userId={user.id} timeZone={profile.timezone} />
-            </Suspense>
-          </Section>
-
-          <Section title="Evening check" headingId="h-evening">
-            <Suspense fallback={<ListSkeleton rows={1} label="Loading evening check" />}>
-              <EveningSection userId={user.id} />
             </Suspense>
           </Section>
 
@@ -84,7 +71,12 @@ export default async function DashboardPage() {
           </Section>
         </div>
 
-        <aside className="space-y-12" aria-label="Goals and calendar">
+        <aside className="space-y-12" aria-label="Numbers and calendar">
+          <Section title="Your numbers" headingId="h-numbers">
+            <Suspense fallback={<Skeleton role="status" aria-label="Loading your numbers" className="h-40" />}>
+              <NumbersSection userId={user.id} timeZone={profile.timezone} hidden={profile.hidden_metrics} />
+            </Suspense>
+          </Section>
 
           <Section title="Next 48 hours" headingId="h-events">
             <Suspense fallback={<ListSkeleton rows={2} label="Loading events" />}>
