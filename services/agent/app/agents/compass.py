@@ -115,25 +115,33 @@ def recommend(facts: dict[str, Any]) -> str:
     return "Keep your routine steady and drink water."
 
 
+def first_name(name: str | None) -> str:
+    return (name or "").split()[0] if (name or "").strip() else ""
+
+
 def compose_briefing(facts: dict[str, Any]) -> str:
-    name = facts.get("name")
-    parts = [f"Good morning{', ' + name if name else ''}."]
+    """Short labelled sections: the takeaway, what is coming up, what is planned, and why."""
+    who = first_name(facts.get("name"))
+    out = [f"Good morning{', ' + who if who else ''}.", ""]
     if facts.get("sleep_min") is not None:
-        parts.append(f"You slept {chat.minutes_text(facts['sleep_min'])} last night.")
+        out.append(f"Last night: you slept {chat.minutes_text(facts['sleep_min'])}.")
     else:
-        parts.append("I have no sleep data for last night.")
-    parts.append(f"Status: {str(facts.get('status', 'unknown')).replace('_', ' ')}.")
+        out.append("Last night: I have no sleep data.")
+    out.append(f"Status: {str(facts.get('status', 'unknown')).replace('_', ' ')}.")
+    short_night = (facts.get("sleep_min") or 999) < 360
+    if facts.get("status") == "possibly_ill" or short_night or not facts.get("plan_text"):
+        out.append(f"Takeaway: {recommend(facts)}")
     focus = facts.get("focus", [])
     if focus:
-        parts.append("Your focus: " + ", ".join(focus) + ".")
+        out.append("Focus: " + ", ".join(focus) + ".")
     events = [e for e in facts.get("events", []) if e["important"]][:3]
     if events:
-        parts.append("Important soon: " + "; ".join(f"{e['title']} ({e['when']})" for e in events) + ".")
+        out += ["", "Coming up:"] + [f"• {e['when']}: {e['title']}" for e in events]
     if facts.get("plan_text"):
-        parts.append(facts["plan_text"])
-    else:
-        parts.append(recommend(facts))
-    return chat.clip(" ".join(parts), MAX_BRIEFING_CHARS)
+        out += ["", facts["plan_text"]]
+    if facts.get("plan_why"):
+        out += ["", "Why: " + facts["plan_why"]]
+    return chat.clip_lines("\n".join(out), MAX_BRIEFING_CHARS)
 
 
 def sleep_recommendation(facts: dict[str, Any]) -> str:
@@ -159,19 +167,21 @@ def goal_result(g: dict[str, Any]) -> str:
 
 
 def compose_evening(facts: dict[str, Any]) -> str:
-    parts = ["Evening check."]
+    out = ["Evening check.", ""]
     day_goals = [g for g in facts.get("goals", []) if g["period"] == "day"]
     if day_goals:
-        parts.append("Today: " + "; ".join(goal_result(g) for g in day_goals[:3]) + ".")
+        out.append("Today: " + "; ".join(goal_result(g) for g in day_goals[:3]) + ".")
     events = facts.get("tomorrow_events", [])[:3]
     if events:
-        parts.append("Tomorrow: " + "; ".join(f"{e['title']} ({e['when']})" for e in events) + ".")
+        out += ["", "Tomorrow:"] + [f"• {e['when']}: {e['title']}" for e in events]
     else:
-        parts.append("Nothing on your calendar tomorrow.")
+        out += ["", "Tomorrow: nothing on your calendar."]
     if facts.get("plan_text"):
-        parts.append(facts["plan_text"])
-    parts.append(sleep_recommendation(facts))
-    return chat.clip(" ".join(parts), MAX_BRIEFING_CHARS)
+        out += ["", facts["plan_text"]]
+    if facts.get("plan_why"):
+        out += ["", "Why: " + facts["plan_why"]]
+    out += ["", "Tonight: " + sleep_recommendation(facts)]
+    return chat.clip_lines("\n".join(out), MAX_BRIEFING_CHARS)
 
 
 def wants_sleep_block(facts: dict[str, Any]) -> bool:
@@ -297,6 +307,7 @@ async def _briefing_body(user_id: UUID, now: datetime) -> None:
     try:
         today_plan, _tomorrow = await planner.build_plans(user_id, now)
         facts["plan_text"] = today_plan.text
+        facts["plan_why"] = today_plan.why
     except Exception as exc:  # the briefing still goes out without a plan
         log.warning("compass.plan_failed job=briefing user=%s err=%s", user_id, type(exc).__name__)
     text = compose_briefing(facts)
@@ -334,6 +345,7 @@ async def _evening_body(user_id: UUID, now: datetime) -> None:
         facts["tonight_bed"] = plan_render.clock(tonight.bed)
         facts["tonight_reason"] = tonight.reason if tonight.shifted_min > 0 else ""
         facts["plan_text"] = tomorrow.text
+        facts["plan_why"] = tomorrow.why
     except Exception as exc:  # the evening message still goes out without a plan
         log.warning("compass.plan_failed job=evening user=%s err=%s", user_id, type(exc).__name__)
     text = compose_evening(facts)

@@ -54,7 +54,7 @@ export function EveningPanel({ alert }: { alert: AlertView | null }) {
           {timeAgo(alert.created_at)}
         </time>
       </p>
-      <p className="mt-2 max-w-[60ch] text-base">{alert.body}</p>
+      <p className="mt-2 max-w-[60ch] whitespace-pre-line text-base">{alert.body}</p>
       <div className="mt-3">{button}</div>
     </div>
   );

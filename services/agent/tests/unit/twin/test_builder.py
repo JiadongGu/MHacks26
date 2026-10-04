@@ -83,7 +83,7 @@ def test_sparse_record_does_not_fail(jonah):
     assert twin["conditions"] == [] and twin["medications"] == [] and twin["labs"] == []
     assert twin["allergies"] == [] and twin["risk_flags"] == []
     assert twin["baselines"]["sources"]["resting_hr"] == "default"
-    assert "No active conditions" in builder.summarize(twin)
+    assert "Conditions: none on record" in builder.summarize(twin)
 
 
 def test_messy_coding_record():
@@ -262,9 +262,10 @@ def test_summarize_is_deterministic_and_mentions_key_facts(morgan):
     twin = build(morgan)
     text = builder.summarize(twin)
     assert text == builder.summarize(copy.deepcopy(twin))
-    assert "\n" not in text
+    assert text.count("\n") >= 4  # one labelled line each
+    assert "Conditions: " in text and "Medications: " in text and "Allergies: " in text
     for needle in (
-        "38-year-old female",
+        "38, female",
         "Hypertensive disorder",
         "Lisinopril",
         "HbA1c 6.4",

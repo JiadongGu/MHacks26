@@ -115,7 +115,7 @@ export function AlertsFeed({ initial, limit, pollMs = 15_000, emptyHint }: Props
                 <h3 className={cn("mt-2 text-base", isNew ? "font-semibold" : "font-medium")}>
                   {a.title}
                 </h3>
-                <p className="mt-1 max-w-[65ch] text-sm text-muted-foreground">{a.body}</p>
+                <p className="mt-1 max-w-[65ch] whitespace-pre-line text-sm text-muted-foreground">{a.body}</p>
                 {canExplain(a.kind, a.explain) && (
                   <AlertWhy alertId={a.id} title={a.title} explain={a.explain} />
                 )}

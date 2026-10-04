@@ -109,8 +109,9 @@ TEMPLATES: dict[str, Template] = {
         10,
         10,
         10,
-        [(8, 10)],
+        [(7, 12)],
         "Daily sun protection is the habit that matters most for your skin.",
+        strict=True,
     ),
     "sun_reapply": _t(
         "Reapply sunscreen if you are outside",

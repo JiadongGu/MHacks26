@@ -37,6 +37,7 @@ class Plan:
     calendar_written: bool
     shifted_min: int = 0
     reason: str = ""
+    why: str = ""
 
     def as_json(self) -> dict[str, Any]:
         return {
@@ -47,6 +48,7 @@ class Plan:
             "bed_time": self.bed.strftime("%H:%M"),
             "wake_time": self.wake.strftime("%H:%M"),
             "calendar_written": self.calendar_written,
+            "why": self.why,
             "items": [_item_json(i) for i in self.items],
         }
 
@@ -188,6 +190,7 @@ async def build_plan(user_id: UUID, day: date, now: datetime, write_calendar: bo
         ids is not None,
         night.shifted_min,
         night.reason,
+        render.why_text(load, night.shifted_min, night.reason),
     )
 
 

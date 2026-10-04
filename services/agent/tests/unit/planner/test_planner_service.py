@@ -119,7 +119,7 @@ async def test_a_normal_day_is_planned_around_meetings_and_written_to_the_calend
         plan.calendar_written and w.written["day_key"] == "2026-10-05" and w.written["calendar_id"] == "cal-1"
     )
     assert [i["event_id"] for i in plan.items] == [f"evt-{n}" for n in range(len(plan.items))]
-    assert "I added these to your Pulse Health calendar." in plan.text
+    assert "Added to your Pulse Health calendar." in plan.text
     assert w.saved["load"] == "normal" and len(w.saved["items"]) == len(plan.items)
     assert all(isinstance(i["start"], str) for i in w.saved["items"])  # stored as ISO text
 
@@ -213,8 +213,8 @@ def test_plan_text_is_plain_and_has_no_scores():
     ]
     text = render.plan_text("tomorrow", "normal", items, at(22, 45), 15, True)
     assert text == (
-        "Tomorrow is a steady day. Plan: 12:40 pm walk; 2:00 pm study block. "
-        "Aim for lights out by 10:45 pm. I added these to your Pulse Health calendar."
+        "Tomorrow is a steady day. Here is the plan:\n• 12:40 pm walk\n• 2:00 pm study block\n"
+        "Lights out by 10:45 pm.\nAdded to your Pulse Health calendar."
     )
     assert render.plan_text("today", "light", [], at(23), 0, False) == "Today looks open."
 
