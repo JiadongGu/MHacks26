@@ -35,6 +35,12 @@ export default async function DashboardPage() {
             <StatusHero userId={user.id} />
           </Suspense>
 
+          <Section title="Your numbers" headingId="h-numbers">
+            <Suspense fallback={<Skeleton role="status" aria-label="Loading your numbers" className="h-40" />}>
+              <NumbersSection userId={user.id} timeZone={profile.timezone} hidden={profile.hidden_metrics} />
+            </Suspense>
+          </Section>
+
           <Section title="Morning briefing" headingId="h-briefing">
             <Suspense fallback={<ListSkeleton rows={1} label="Loading briefing" />}>
               <BriefingSection userId={user.id} timeZone={profile.timezone} />
@@ -56,12 +62,6 @@ export default async function DashboardPage() {
           <Section title="Waiting on you" headingId="h-proposals">
             <Suspense fallback={<ListSkeleton rows={1} label="Loading proposals" />}>
               <ProposalsSection userId={user.id} />
-            </Suspense>
-          </Section>
-
-          <Section title="Your numbers" headingId="h-numbers">
-            <Suspense fallback={<Skeleton role="status" aria-label="Loading your numbers" className="h-40" />}>
-              <NumbersSection userId={user.id} timeZone={profile.timezone} hidden={profile.hidden_metrics} />
             </Suspense>
           </Section>
 
