@@ -7,31 +7,48 @@
 - **Devpost deadline: 12:00 PM EDT Sunday** (rules page; the main page says 12:15, go by 12:00).
 
 ## Roles
-- **J narrates** and drives the laptop. **P holds the phone** (iMessage thread open, screen turned to the judge) and takes the record/agent questions.
-- If a judge asks a question mid-demo, answer in one sentence and keep going.
+- **J** narrates and drives the laptop. **Gavin** holds the phone toward the judge, hands it to them for the YES, and takes record and agent questions.
+- If a judge asks something mid-demo, answer in one sentence and keep going.
 
-## Table setup (before the first judge, and after every judge)
-- Laptop tabs, in order: landing · /dashboard · /demo · /twin · /alerts · /trends · /share · ASI:One chat. Browser zoom 110%.
-- Phone: unlocked, Do Not Disturb with Messages allowed, blue Pulse iMessage thread open, volume up.
-- Hotspot ready. Backup video downloaded locally.
-- **Between judges: press Reset demo on /demo** (clears cooldowns and leftover approvals; nothing is deleted). Delete the "Sleep block (Pulse)" event from Google Calendar if a judge approved one.
-- Robin's calendar needs an exam or interview in the next 48 h (dashboard "Next 48 hours"), or the alert comes without a sleep-block proposal.
+## Process
+
+### Once, before judging (about 30 min before)
+1. Robin's data: Setup → Focus: **Sleep, Steps, Sun care**. Setup → Health history: add **Skin cancer (melanoma)**. Check the dashboard shows a filled plan with sunscreen and the reapply.
+2. Robin's Google Calendar has an exam or interview in the next 48 h (dashboard "Next 48 hours"); otherwise the illness alert comes without a sleep-block proposal.
+3. Laptop tabs, in order: landing · /demo · /twin · /dashboard · /alerts · /trends · ASI:One. Browser zoom 110%. Signed in as Robin.
+4. ASI:One tab: pre-type (don't send) the agent address plus "I have crushing chest pain and my left arm is numb".
+5. Phone: unlocked, Do Not Disturb with Messages allowed, blue Pulse iMessage thread open, volume up.
+6. Hotspot on standby, backup video saved on the laptop.
+7. Rehearse the 3:00 twice with a timer, pressing **Reset demo** before each run.
+
+### Every judge
+1. **Greet (5 s):** "Hi, we're Jiadong and Gavin. This is Pulse. Can we show you a 3-minute demo?" Ask: "Are you judging a sponsor prize?" If yes, add that sponsor's 30-second cut at the end.
+2. **Run the 3:00 below.**
+3. **Questions (about 1 min):** answers below. End with "It's live at pulse-mhacks.vercel.app, and the Devpost has the video."
+4. **Reset (after they leave):**
+   - Press **Reset demo** on /demo.
+   - Delete the "Sleep block (Pulse)" event the judge approved from Google Calendar.
+   - Re-type the emergency message in the ASI:One input.
+   - Go back to the landing tab.
+
+### If the main flow fails
+- No text after about 20 s: keep talking over /dashboard and show the alert on **/conversations**.
+- Illness alert won't fire (cooldown or no event): run **Workout now** instead; its text arrives in seconds.
+- Something breaks: say what broke in one sentence and switch to the backup video. Never say "it normally works".
 
 ## The 3 minutes
-The trick: **press "Illness onset" at 0:30 and talk about the twin while the text is on its way.**
+The trick: **press "Illness onset" at 0:20 and talk while the text is on its way.**
 
-| Time | On screen | Say |
-|---|---|---|
-| 0:00–0:20 | Landing page, move the cursor over the pulsing field | Your watch, your medical record and your calendar each know something about you, but none of them talk. Your watch can see your resting heart rate climb the night before a midterm and do nothing. Pulse is a health agent that texts you first, and asks before it acts. |
-| 0:20–0:30 | /demo | This is Robin. Robin wears a watch; today we're streaming from our Apple Watch simulator. I'm going to make Robin get sick. *(press Illness onset)* |
-| 0:30–1:05 | /twin | While that runs: Pulse built a digital twin from Robin's health record through FinchNode: type 2 diabetes, hypertension, metformin, lisinopril, HbA1c 6.4. Because of the hypertension, the blood pressure alert is tightened to 130/80. It also learned Robin's own normal: resting heart rate 74, HRV 60, about 7 hours of sleep. Pulse grows with you: the more it sees, the more personal the thresholds get. |
-| 1:05–1:40 | Phone (P holds it up) → /dashboard | *(phone buzzes)* Here's the text. Resting heart rate is up, sleep was short, and Robin has a midterm tomorrow, so Pulse proposes blocking tonight for sleep. The rules engine found that from live data in SpacetimeDB within seconds; Gemini only writes the words. On the web the status just flipped to "Possibly ill". |
-| 1:40–2:00 | Phone: reply YES → Google Calendar | Nothing happens until Robin says yes. *(reply YES)* Now it's on Robin's Pulse Health calendar, and Pulse confirms. |
-| 2:00–2:25 | /alerts → Why Pulse flagged this; /trends | Every alert explains itself: today's numbers against Robin's baseline, which part of the record mattered, what data it used. No black box. Trends shows 7 to 90 days against Robin's normal range, and Share with clinician prints a one-page summary for the doctor. |
-| 2:25–2:45 | ASI:One tab | It's one agent everywhere: the same Pulse answers in iMessage, on the web, and in ASI:One through our Fetch.ai agent. *(ask "how did I sleep?")* Emergency words get a fixed 911 message before any AI runs, and calendar changes always wait for a clear yes. |
-| 2:45–3:00 | /dashboard | Under the hood: a FastAPI agent on Railway, SpacetimeDB for live vitals, Neon Postgres for history, Gemini for language, Photon for iMessage, Next.js on Vercel. Pulse grows with you: it learns your normal, and acts only with your yes. |
-
-If the text is slow: keep talking over /dashboard, then show it in **/conversations**. If something breaks: say what broke in one sentence and switch to the backup video. Never say "it normally works".
+| Time | Who | On screen | Say |
+|---|---|---|---|
+| 0:00–0:20 | J | Landing; move the cursor over the pulsing field | Your watch, your medical record and your calendar each know something about you, but none of them talk. Your watch can see your resting heart rate climb the night before a midterm and do nothing. Pulse is a health agent that texts you first, and asks before it acts. |
+| 0:20–0:30 | J | /demo, press **Illness onset** | This is Robin. Today Robin's vitals come from our Apple Watch simulator. I'm going to make Robin get sick. |
+| 0:30–1:05 | J | /twin, then /dashboard plan | While that runs: Pulse built a digital twin from Robin's health record through FinchNode: type 2 diabetes, hypertension, metformin, lisinopril. The hypertension tightens the blood pressure alert to 130 over 80. A skin cancer history puts sunscreen and a reapply into Robin's day, which is exactly what Gavin wished he'd had. And it learns Robin's own normal. Pulse grows with you. |
+| 1:05–1:35 | Gavin | Phone toward the judge, then /dashboard | Here's the text. Resting heart rate is up, sleep was short, and there's a midterm tomorrow, so Pulse proposes blocking tonight for sleep. The rules engine caught that from live data in SpacetimeDB within seconds; Gemini only writes the words. On the web, Robin's status just flipped to "Possibly ill". |
+| 1:35–1:55 | Judge | Hand them the phone, then show Google Calendar | Nothing changes until Robin says yes. Want to reply YES? *(judge sends YES)* It's now on Robin's Pulse Health calendar, and Pulse confirms. |
+| 1:55–2:20 | J | /alerts, expand **Why Pulse flagged this**, then /trends | Every alert explains itself: today's numbers against Robin's baseline, which part of the record mattered, what data it used. No black box. Trends shows Robin's vitals against their normal range, and one click prints a summary for the doctor. |
+| 2:20–2:45 | Gavin | ASI:One, press Enter on the pre-typed message | Same agent, everywhere: this is ASI:One through our Fetch.ai agent. And safety first: if you text something like this, Pulse doesn't ask an AI. It answers right away with 911 guidance. |
+| 2:45–3:00 | J | /dashboard | Under the hood: a FastAPI agent on Railway, SpacetimeDB for live vitals, Neon Postgres for history, Gemini for language, Photon for iMessage, Next.js on Vercel. Pulse grows with you: it learns your normal, and acts only with your yes. |
 
 ## 30-second sponsor cuts
 Open with one line of what Pulse is, then show exactly where the sponsor's tool sits.
