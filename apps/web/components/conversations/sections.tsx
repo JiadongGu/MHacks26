@@ -1,7 +1,8 @@
 // Async Server Component for /conversations. It reads Neon on the server and handles its own error.
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { EmptyState, ErrorNote } from "@/components/ui-bits";
+import { MessagesSquare } from "lucide-react";
+import { Chip, EmptyState, ErrorNote } from "@/components/ui-bits";
 import { LinkStatus, ThreadList } from "@/components/conversations/thread-list";
 import { ThreadPanel } from "@/components/conversations/thread-panel";
 import { buildThreads, pickChannel } from "@/lib/conversations";
@@ -9,7 +10,7 @@ import { listChannelLinks, listChannelMessages, listThreadSummaries } from "@/li
 
 export function ReplyHint({ photonNumber }: { photonNumber: string | null }) {
   return (
-    <p className="mt-4 max-w-[60ch] text-sm text-muted-foreground">
+    <p className="mt-3 max-w-[60ch] text-sm text-muted-foreground">
       Reply from iMessage or ASI:One.
       {photonNumber ? (
         <>
@@ -50,6 +51,7 @@ export async function ConversationsSection({
     return (
       <div>
         <EmptyState
+          icon={MessagesSquare}
           title="No conversations yet"
           action={
             <Button asChild variant="outline" size="sm">
@@ -66,19 +68,24 @@ export async function ConversationsSection({
 
   const current = threads.find((t) => t.channel === selected)!;
   return (
-    <div className="grid gap-8 lg:grid-cols-[18rem_minmax(0,1fr)] lg:gap-12">
+    <div className="grid gap-4 lg:grid-cols-[19rem_minmax(0,1fr)]">
       <ThreadList threads={threads} selected={selected} />
-      <section aria-labelledby="thread-title" className="min-w-0 max-w-3xl">
-        <div className="mb-4 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-          <h2 id="thread-title" className="text-xl">
+      <section
+        aria-labelledby="thread-title"
+        className="min-w-0 max-w-3xl overflow-hidden rounded-lg border border-border bg-card"
+      >
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-b border-border px-4 py-3">
+          <h2 id="thread-title" className="text-base font-semibold">
             {current.label}
           </h2>
-          <p className="text-xs text-muted-foreground">
+          <Chip>
             <LinkStatus row={current} />
-          </p>
+          </Chip>
         </div>
         <ThreadPanel key={selected} channel={selected} label={current.label} initial={initial} timeZone={timeZone} />
-        <ReplyHint photonNumber={photonNumber} />
+        <div className="border-t border-border px-4 pb-3">
+          <ReplyHint photonNumber={photonNumber} />
+        </div>
       </section>
     </div>
   );

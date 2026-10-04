@@ -116,7 +116,7 @@ export function GoalsManager({ initial }: { initial?: GoalView[] }) {
   const inactive = list.filter((g) => !g.active);
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-8">
       <div>
         {list.length === 0 ? (
           <EmptyState title="No goals yet">
@@ -138,7 +138,7 @@ export function GoalsManager({ initial }: { initial?: GoalView[] }) {
               }
             />
             {inactive.length > 0 && (
-              <div className="mt-10">
+              <div className="mt-6">
                 <GoalList
                   label="Turned off"
                   goals={inactive}
@@ -180,8 +180,8 @@ function GoalList({
   if (goals.length === 0) return null;
   return (
     <section aria-label={label}>
-      <h3 className="mb-2 text-xs font-medium uppercase tracking-widest text-muted-foreground">{label}</h3>
-      <ul className="divide-y divide-border border-y border-border">
+      <h3 className="mb-2 px-1 text-xs font-medium uppercase tracking-widest text-muted-foreground">{label}</h3>
+      <ul className="divide-y divide-border overflow-hidden rounded-lg border border-border bg-card">
         {goals.map((g) => (
           <GoalRow
             key={`${g.id}-${g.target}-${g.period}-${g.direction}`}
@@ -222,11 +222,11 @@ function GoalRow({
   const problem = validateGoal({ metric: goal.metric, target: Number(draft.target) });
 
   return (
-    <li className="py-4">
+    <li className="reveal px-4 py-4">
       <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
         <div className="min-w-0">
           <p className={cn("text-base font-medium", !goal.active && "text-muted-foreground")}>{info.label}</p>
-          <p className="text-sm text-muted-foreground">
+          <p className="num text-sm text-muted-foreground">
             {describeGoal(goal)}
             {!goal.active && " (off)"}
           </p>
@@ -338,7 +338,7 @@ function AddGoal({ onAdded }: { onAdded: () => Promise<void> }) {
   }
 
   return (
-    <section aria-labelledby="add-goal" className="border-t border-border pt-4">
+    <section aria-labelledby="add-goal" className="rounded-lg border border-border bg-card p-4 md:p-5">
       <h2 id="add-goal" className="mb-4 text-xl">
         Add a goal
       </h2>

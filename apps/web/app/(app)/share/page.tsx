@@ -155,7 +155,9 @@ export default async function SharePage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
-                    {data.trends.map((t) => (
+                    {data.trends
+                      .filter((t) => t.latest !== null)
+                      .map((t) => (
                       <tr key={t.key}>
                         <th scope="row" className="py-1.5 pr-4 font-normal">{t.label}</th>
                         <td className="py-1.5 pr-4 font-mono">{withUnit(t.unit, t.key, t.latest)}</td>

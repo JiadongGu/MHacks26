@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorNote } from "@/components/ui-bits";
+import { ConnectionPill } from "@/components/onboarding/google-status";
 import { agent, errorText, isEndpointMissing } from "@/lib/api-client";
 import { timeAgo } from "@/lib/format";
 
@@ -43,10 +44,10 @@ export function FitbitStatusCard({ returnTo = "settings" }: { returnTo?: "onboar
     };
   }, [attempt]);
 
-  if (loading) return <Skeleton role="status" aria-label="Loading Fitbit status" className="h-16 max-w-xl" />;
+  if (loading) return <Skeleton role="status" aria-label="Loading Fitbit status" className="h-14 w-full" />;
   if (missing) {
     return (
-      <p className="max-w-xl border-y border-border py-5 text-sm text-muted-foreground">
+      <p className="text-sm text-muted-foreground">
         The Fitbit connection is not deployed yet.
       </p>
     );
@@ -54,7 +55,6 @@ export function FitbitStatusCard({ returnTo = "settings" }: { returnTo?: "onboar
   if (error && !status) {
     return (
       <ErrorNote
-        className="max-w-xl"
         action={
           <Button
             variant="outline"
@@ -75,19 +75,24 @@ export function FitbitStatusCard({ returnTo = "settings" }: { returnTo?: "onboar
   }
 
   return (
-    <div className="flex max-w-xl flex-wrap items-center justify-between gap-4 border-y border-border py-5">
-      <div className="min-w-0">
-        <p className="flex items-center gap-2 text-base font-semibold">
-          <Watch className="size-4" aria-hidden="true" />
-          {status?.connected ? "Connected" : "Not connected"}
-        </p>
-        <p className="mt-1 max-w-[50ch] text-sm text-muted-foreground">
-          {status?.connected
-            ? status.last_sync
-              ? `Synced ${timeAgo(status.last_sync)}.`
-              : "Connected. Waiting for the first sync."
-            : "Heart rate, steps, sleep, and more. Sign in with the Google account your Fitbit uses and approve read access."}
-        </p>
+    <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="flex min-w-0 items-center gap-3">
+        <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-secondary text-foreground/70">
+          <Watch className="size-5" aria-hidden="true" />
+        </span>
+        <div className="min-w-0">
+          <p className="flex flex-wrap items-center gap-2 text-sm font-semibold">
+            Fitbit
+            <ConnectionPill connected={!!status?.connected} />
+          </p>
+          <p className="mt-0.5 max-w-[50ch] text-sm text-muted-foreground">
+            {status?.connected
+              ? status.last_sync
+                ? `Synced ${timeAgo(status.last_sync)}.`
+                : "Connected. Waiting for the first sync."
+              : "Heart rate, steps, sleep, and more. Sign in with the Google account your Fitbit uses and approve read access."}
+          </p>
+        </div>
       </div>
       <Button asChild variant={status?.connected ? "outline" : "default"}>
         {/* A full page navigation. The proxy passes the 302 to Google through. */}

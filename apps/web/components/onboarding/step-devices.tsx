@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Watch } from "lucide-react";
 import { toast } from "sonner";
 import { agent, errorText, isEndpointMissing } from "@/lib/api-client";
-import { cn } from "@/lib/utils";
+import { Switch } from "@/components/ui/switch";
 import { FitbitStatusCard } from "./fitbit-status";
 
 export function StepDevices({
@@ -41,50 +41,38 @@ export function StepDevices({
   }
 
   return (
-    <div className="max-w-xl divide-y divide-border border-y border-border">
-      <div className="py-5">
-        <h3 className="text-base font-semibold">Fitbit</h3>
-        <p className="mb-4 mt-1 text-sm text-muted-foreground">
+    <div className="space-y-4">
+      <div className="rounded-lg border border-border p-4">
+        <h3 className="sr-only">Fitbit</h3>
+        <p className="mb-4 text-sm text-muted-foreground">
           Pulse reads your watch data through Google Health. You sign in with Google and approve read access.
         </p>
         <FitbitStatusCard returnTo={returnTo} />
       </div>
 
-      <div className="py-5">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="min-w-0">
-            <h3 className="flex items-center gap-2 text-base font-semibold">
-              <Watch className="size-4" aria-hidden="true" />
-              Simulate Apple Watch
-            </h3>
-            <p id="sim-desc" className="mt-1 max-w-[50ch] text-sm text-muted-foreground">
-              For the demo, Pulse can generate watch data for you. It sends normal vitals until you pick
-              a scenario.
-            </p>
+      <div className="rounded-lg border border-border p-4">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex min-w-0 items-center gap-3">
+            <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-secondary text-foreground/70">
+              <Watch className="size-5" aria-hidden="true" />
+            </span>
+            <div className="min-w-0">
+              <h3 className="text-sm font-semibold">Simulate Apple Watch</h3>
+              <p id="sim-desc" className="mt-0.5 max-w-[50ch] text-sm text-muted-foreground">
+                For the demo, Pulse can generate watch data for you. It sends normal vitals until you pick
+                a scenario.
+              </p>
+            </div>
           </div>
-          <button
-            type="button"
-            role="switch"
-            aria-checked={simulate}
+          <Switch
+            checked={simulate}
             aria-label="Simulate Apple Watch"
             aria-describedby="sim-desc"
             disabled={busy}
-            onClick={() => void toggleSim()}
-            className={cn(
-              "relative inline-flex h-7 w-12 shrink-0 items-center rounded-full border border-input transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-50",
-              simulate ? "bg-foreground" : "bg-muted",
-            )}
-          >
-            <span
-              className={cn(
-                "inline-block size-5 rounded-full transition-transform motion-reduce:transition-none",
-                simulate ? "translate-x-6 bg-background" : "translate-x-1 bg-muted-foreground",
-              )}
-            />
-            <span className="sr-only">{simulate ? "On" : "Off"}</span>
-          </button>
+            onCheckedChange={() => void toggleSim()}
+          />
         </div>
-        <p className="mt-2 text-xs text-muted-foreground" aria-live="polite">
+        <p className="mt-2 pl-[3.25rem] text-xs text-muted-foreground" aria-live="polite">
           {simulate ? "On" : "Off"}
           {simNote ? `. ${simNote}` : ""}
         </p>

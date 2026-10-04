@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Check } from "lucide-react";
 import { toast } from "sonner";
 import { advanceStepAction } from "@/app/(app)/onboarding/actions";
 import { Button } from "@/components/ui/button";
@@ -90,77 +91,85 @@ export function OnboardingFlow({
   const optional = step === 3;
 
   return (
-    <div className="grid gap-8 md:grid-cols-[13rem_minmax(0,1fr)] md:gap-16">
-      <nav aria-label="Setup steps">
-        <p className="text-sm text-muted-foreground md:hidden">
-          Step {step} of {LAST_STEP}: <span className="text-foreground">{current.label}</span>
+    <div className="max-w-3xl">
+      <header className="reveal mb-6 max-w-[60ch]">
+        <p className="mb-2 text-xs font-medium uppercase tracking-widest text-muted-foreground">
+          Step {step} of {LAST_STEP}
         </p>
+        <h1 ref={headingRef} tabIndex={-1} className="text-3xl outline-none">
+          {current.label}
+        </h1>
+        <p className="mt-2 text-base text-muted-foreground">{BLURB[step]}</p>
+      </header>
+
+      <nav aria-label="Setup steps" className="mb-6">
         <div
-          className="mt-2 h-1 w-full overflow-hidden rounded-full bg-muted md:hidden"
+          className="h-1 w-full overflow-hidden rounded-full bg-secondary md:hidden"
           role="progressbar"
           aria-label="Setup progress"
           aria-valuemin={1}
           aria-valuemax={LAST_STEP}
           aria-valuenow={step}
         >
-          <div className="h-full bg-foreground" style={{ width: `${(step / LAST_STEP) * 100}%` }} />
+          <div
+            className="h-full rounded-full bg-primary transition-[width] duration-300"
+            style={{ width: `${(step / LAST_STEP) * 100}%` }}
+          />
         </div>
-        <ol className="hidden flex-col gap-1 md:flex">
-          {STEPS.map((s) => {
+        <ol className="hidden items-center md:flex">
+          {STEPS.map((s, i) => {
             const reachable = s.id <= highest;
             const active = s.id === step;
+            const done = s.id < highest || (s.id === highest && complete);
             return (
-              <li key={s.id}>
+              <li key={s.id} className={cn("flex items-center", i < STEPS.length - 1 && "flex-1")}>
                 <button
                   type="button"
                   disabled={!reachable || saving}
                   aria-current={active ? "step" : undefined}
                   onClick={() => setStep(s.id)}
                   className={cn(
-                    "flex h-9 w-full items-center gap-3 rounded-md px-3 text-left text-sm font-medium transition-colors",
-                    "hover:bg-muted disabled:pointer-events-none disabled:opacity-60",
-                    active ? "bg-muted text-foreground" : "text-muted-foreground",
+                    "group flex shrink-0 items-center gap-2 rounded-full py-1 pr-3 pl-1 text-sm font-medium transition-colors",
+                    "hover:bg-card disabled:pointer-events-none disabled:opacity-60",
+                    active ? "text-foreground" : "text-muted-foreground",
                   )}
                 >
                   <span
                     className={cn(
-                      "grid size-5 shrink-0 place-items-center rounded-full border font-mono text-xs",
-                      s.id < highest || (s.id === highest && complete)
-                        ? "border-foreground bg-foreground text-background"
-                        : "border-border",
+                      "num grid size-7 shrink-0 place-items-center rounded-full border text-xs font-semibold transition-colors",
+                      done && "border-primary bg-primary text-primary-foreground",
+                      active && !done && "border-primary bg-card text-sidebar-accent-foreground ring-4 ring-primary/15",
+                      !done && !active && "border-input bg-card",
                     )}
                     aria-hidden="true"
                   >
-                    {s.id}
+                    {done ? <Check className="size-3.5" /> : s.id}
                   </span>
                   {s.label}
-                  {s.id < highest && <span className="sr-only"> (reached)</span>}
+                  {done && <span className="sr-only"> (reached)</span>}
                 </button>
+                {i < STEPS.length - 1 && (
+                  <span
+                    aria-hidden="true"
+                    className={cn("mx-1 h-px flex-1 transition-colors", s.id < highest ? "bg-primary" : "bg-border")}
+                  />
+                )}
               </li>
             );
           })}
         </ol>
       </nav>
 
-      <div className="min-w-0">
-        {complete && (
-          <p className="mb-6 max-w-[60ch] rounded-lg border border-border bg-card px-4 py-3 text-sm">
-            Setup is complete. You can change any step.{" "}
-            <Link href="/dashboard" className="underline underline-offset-4">
-              Back to the dashboard
-            </Link>
-          </p>
-        )}
-        <header className="mb-8 max-w-[60ch]">
-          <p className="mb-2 text-xs font-medium uppercase tracking-widest text-muted-foreground">
-            Step {step} of {LAST_STEP}
-          </p>
-          <h1 ref={headingRef} tabIndex={-1} className="text-3xl outline-none">
-            {current.label}
-          </h1>
-          <p className="mt-3 text-base text-muted-foreground">{BLURB[step]}</p>
-        </header>
+      {complete && (
+        <p className="mb-4 max-w-[60ch] rounded-lg border border-border bg-card px-4 py-3 text-sm">
+          Setup is complete. You can change any step.{" "}
+          <Link href="/dashboard" className="font-medium text-sidebar-accent-foreground underline underline-offset-4">
+            Back to the dashboard
+          </Link>
+        </p>
+      )}
 
+      <div key={step} className="reveal min-w-0 rounded-lg border border-border bg-card p-5 md:p-8">
         {step === 1 && (
           <StepProfile
             initial={profileState}
@@ -192,7 +201,7 @@ export function OnboardingFlow({
         )}
 
         {step > 1 && (
-          <div className="mt-10 flex flex-wrap items-center gap-4 border-t border-border pt-6">
+          <div className="mt-8 flex flex-wrap items-center gap-3 border-t border-border pt-5">
             <Button variant="ghost" onClick={back} disabled={saving}>
               Back
             </Button>

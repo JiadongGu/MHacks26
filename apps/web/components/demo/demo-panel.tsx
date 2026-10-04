@@ -1,23 +1,37 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowDownLeft, ArrowUpRight, RefreshCw } from "lucide-react";
+import {
+  Activity,
+  ArrowDownLeft,
+  ArrowUpRight,
+  Armchair,
+  Dumbbell,
+  LoaderCircle,
+  Moon,
+  Play,
+  RefreshCw,
+  Thermometer,
+  Wind,
+  type LucideIcon,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { EmptyState, ErrorNote, ListSkeleton, SeverityBadge } from "@/components/ui-bits";
+import { Chip, EmptyState, ErrorNote, ListSkeleton, SeverityBadge, stagger } from "@/components/ui-bits";
 import { agent, errorText, isEndpointMissing, me } from "@/lib/api-client";
 import { formatDateTime, timeAgo } from "@/lib/format";
 import type { AlertView, MessageView } from "@/lib/queries";
 import { usePolling } from "@/lib/use-polling";
+import { cn } from "@/lib/utils";
 
-const SCENARIOS = [
-  { id: "normal", label: "Normal day", hint: "Resting vitals, nothing unusual." },
-  { id: "workout_now", label: "Workout now", hint: "Heart rate climbs. Expect a nice-workout text." },
-  { id: "illness_onset", label: "Illness onset", hint: "Resting heart rate up, sleep down. Proposes a sleep block." },
-  { id: "great_sleep", label: "Great sleep", hint: "A long, deep night." },
-  { id: "sedentary_day", label: "Sedentary day", hint: "Almost no steps for hours." },
-  { id: "low_spo2", label: "Low SpO2", hint: "Oxygen saturation drops below the threshold." },
-] as const;
+const SCENARIOS: { id: string; label: string; hint: string; icon: LucideIcon; tone: string }[] = [
+  { id: "normal", label: "Normal day", hint: "Resting vitals, nothing unusual.", icon: Activity, tone: "text-labs bg-labs/10" },
+  { id: "workout_now", label: "Workout now", hint: "Heart rate climbs. Expect a nice-workout text.", icon: Dumbbell, tone: "text-activity bg-activity/10" },
+  { id: "illness_onset", label: "Illness onset", hint: "Resting heart rate up, sleep down. Proposes a sleep block.", icon: Thermometer, tone: "text-heart bg-heart/10" },
+  { id: "great_sleep", label: "Great sleep", hint: "A long, deep night.", icon: Moon, tone: "text-sleep bg-sleep/10" },
+  { id: "sedentary_day", label: "Sedentary day", hint: "Almost no steps for hours.", icon: Armchair, tone: "text-activity bg-activity/10" },
+  { id: "low_spo2", label: "Low SpO2", hint: "Oxygen saturation drops below the threshold.", icon: Wind, tone: "text-respiratory bg-respiratory/10" },
+];
 
 type Outcome = { at: string; text: string; ok: boolean };
 
@@ -54,39 +68,57 @@ export function DemoPanel({
   }
 
   return (
-    <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,26rem)] lg:gap-16">
-      <div className="space-y-10">
+    <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(0,26rem)]">
+      <div className="space-y-8">
         <section aria-labelledby="demo-scenarios">
           <h2 id="demo-scenarios" className="mb-1 text-xl">
             Scenarios
           </h2>
           <p className="mb-4 max-w-[60ch] text-sm text-muted-foreground">
-            Each button sends the scenario to the simulator and fast-forwards 30 minutes.
+            Each tile sends the scenario to the simulator and fast-forwards 30 minutes.
           </p>
-          <ul className="divide-y divide-border border-y border-border">
-            {SCENARIOS.map((s) => (
-              <li key={s.id} className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 py-3">
-                <div className="min-w-0">
-                  <p className="text-base font-medium">{s.label}</p>
-                  <p className="text-sm text-muted-foreground">{s.hint}</p>
-                </div>
-                <Button
-                  variant={s.id === "illness_onset" ? "default" : "outline"}
-                  disabled={busy !== null}
-                  aria-label={`Run scenario: ${s.label}`}
-                  onClick={() =>
-                    void run(s.id, s.label, "/demo/scenario", { scenario: s.id, fast_forward_min: 30 })
-                  }
-                >
-                  {busy === s.id ? "Running..." : "Run"}
-                </Button>
-              </li>
-            ))}
+          <ul className="grid gap-3 sm:grid-cols-2 2xl:grid-cols-3">
+            {SCENARIOS.map((s, i) => {
+              const Icon = s.icon;
+              const running = busy === s.id;
+              return (
+                <li key={s.id} style={stagger(i)} className="reveal">
+                  <button
+                    type="button"
+                    disabled={busy !== null}
+                    aria-label={`Run scenario: ${s.label}`}
+                    onClick={() =>
+                      void run(s.id, s.label, "/demo/scenario", { scenario: s.id, fast_forward_min: 30 })
+                    }
+                    className={cn(
+                      "card-interactive flex h-full w-full flex-col items-start gap-3 rounded-lg border bg-card p-4 text-left outline-none focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50",
+                      s.id === "illness_onset" ? "border-primary/40" : "border-border",
+                    )}
+                  >
+                    <span className={cn("grid size-10 place-items-center rounded-lg", s.tone)}>
+                      <Icon className="size-5" aria-hidden="true" />
+                    </span>
+                    <span className="block">
+                      <span className="block text-base font-semibold">{s.label}</span>
+                      <span className="mt-0.5 block text-sm text-muted-foreground">{s.hint}</span>
+                    </span>
+                    <span className="mt-auto inline-flex items-center gap-1.5 text-sm font-medium text-sidebar-accent-foreground">
+                      {running ? (
+                        <LoaderCircle className="size-3.5 animate-spin motion-reduce:animate-none" aria-hidden="true" />
+                      ) : (
+                        <Play className="size-3.5" aria-hidden="true" />
+                      )}
+                      {running ? "Running..." : "Run"}
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
           </ul>
         </section>
 
         <section aria-labelledby="demo-twin">
-          <h2 id="demo-twin" className="mb-4 text-xl">
+          <h2 id="demo-twin" className="mb-3 text-xl">
             Twin
           </h2>
           <Button
@@ -102,7 +134,7 @@ export function DemoPanel({
         <div aria-live="polite" className="space-y-3">
           {last && (
             <p className="text-sm">
-              <span className="font-mono text-xs text-muted-foreground">{formatDateTime(last.at)}</span>{" "}
+              <span className="num text-xs text-muted-foreground">{formatDateTime(last.at)}</span>{" "}
               {last.text}
             </p>
           )}
@@ -115,7 +147,7 @@ export function DemoPanel({
         </div>
       </div>
 
-      <div className="space-y-10">
+      <div className="space-y-8">
         <AlertLog initial={initialAlerts} />
         <MessageLog initial={initialMessages} />
       </div>
@@ -133,11 +165,13 @@ function LogShell({
   children: React.ReactNode;
 }) {
   return (
-    <section aria-labelledby={id}>
-      <h2 id={id} className="mb-1 text-xl">
-        {title}
-      </h2>
-      <p className="mb-3 text-xs text-muted-foreground">Last 10. Refreshes every 5 seconds.</p>
+    <section aria-labelledby={id} className="rounded-lg border border-border bg-card p-4">
+      <div className="mb-3 flex items-baseline justify-between gap-3">
+        <h2 id={id} className="text-xl">
+          {title}
+        </h2>
+        <p className="text-xs text-muted-foreground">Last 10. Refreshes every 5 seconds.</p>
+      </div>
       {children}
     </section>
   );
@@ -165,9 +199,9 @@ function AlertLog({ initial }: { initial?: AlertView[] }) {
       ) : (data ?? []).length === 0 ? (
         <EmptyState title="No alerts yet">Run a scenario. Alerts appear here within a minute.</EmptyState>
       ) : (
-        <ol className="divide-y divide-border border-y border-border">
+        <ol className="-mx-4 divide-y divide-border border-y border-border">
           {(data ?? []).map((a) => (
-            <li key={a.id} className="py-3">
+            <li key={a.id} className="px-4 py-3">
               <div className="flex items-center gap-2">
                 <SeverityBadge severity={a.severity} />
                 <time
@@ -211,9 +245,9 @@ function MessageLog({ initial }: { initial?: MessageView[] }) {
       ) : (data ?? []).length === 0 ? (
         <EmptyState title="No messages yet">Messages between you and Pulse appear here.</EmptyState>
       ) : (
-        <ol className="divide-y divide-border border-y border-border">
+        <ol className="-mx-4 divide-y divide-border border-y border-border">
           {(data ?? []).map((m) => (
-            <li key={m.id} className="py-3">
+            <li key={m.id} className="px-4 py-3">
               <p className="flex items-center gap-2 text-xs text-muted-foreground">
                 {m.direction === "out" ? (
                   <ArrowUpRight className="size-3" aria-hidden="true" />
@@ -223,11 +257,12 @@ function MessageLog({ initial }: { initial?: MessageView[] }) {
                 <span className="font-medium text-foreground">
                   {m.direction === "out" ? "Pulse to you" : "You to Pulse"}
                 </span>
-                <span>{m.channel}</span>
+                <Chip>{m.channel}</Chip>
                 <time
                   dateTime={m.created_at}
                   title={formatDateTime(m.created_at)}
                   suppressHydrationWarning
+                  className="num"
                 >
                   {timeAgo(m.created_at)}
                 </time>
