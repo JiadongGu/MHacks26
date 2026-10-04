@@ -193,7 +193,7 @@ async def build_plan(user_id: UUID, day: date, now: datetime, write_calendar: bo
         night.shifted_min,
         night.reason,
         render.why_text(load, night.shifted_min, night.reason),
-        render.focus_lines(picks, items, night.bed),
+        render.focus_lines(picks, kept + items, night.bed),
     )
 
 
