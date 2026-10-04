@@ -25,11 +25,11 @@ def _env(monkeypatch):
 def briefing_calls(monkeypatch):
     calls = []
 
-    async def run_briefing(user_id, force=False):
-        calls.append((user_id, force))
+    async def run_checkin(user_id):
+        calls.append(user_id)
         return True
 
-    monkeypatch.setattr(compass, "run_briefing", run_briefing)
+    monkeypatch.setattr(compass, "run_checkin", run_checkin)
     return calls
 
 
@@ -52,14 +52,14 @@ async def test_scenario_calls_simulator_in_process(sim_calls):
     assert sim_calls == [(USER, "illness_onset", 30)]
 
 
-async def test_great_sleep_forces_briefing(sim_calls, briefing_calls):
+async def test_great_sleep_runs_a_checkin(sim_calls, briefing_calls):
     out = await demo.scenario(demo.ScenarioRequest(user_id=USER, scenario="great_sleep"))
-    assert out["forwarded"] is True and out["briefing"] is True and briefing_calls == [(USER, True)]
+    assert out["forwarded"] is True and out["checkin"] is True and briefing_calls == [USER]
 
 
-async def test_other_scenarios_do_not_force_briefing(sim_calls, briefing_calls):
+async def test_other_scenarios_do_not_run_a_checkin(sim_calls, briefing_calls):
     out = await demo.scenario(demo.ScenarioRequest(user_id=USER, scenario="workout_now"))
-    assert "briefing" not in out and briefing_calls == []
+    assert "checkin" not in out and briefing_calls == []
 
 
 async def test_simulator_errors_become_502(monkeypatch):
@@ -78,25 +78,19 @@ def test_endpoints_require_internal_token_and_validate(briefing_calls, monkeypat
 
     monkeypatch.setattr(compass, "run_rebuild", run_rebuild)
     c = TestClient(app)
-    assert c.post(f"/demo/briefing?user_id={USER}").status_code == 401
-    assert c.post(f"/demo/briefing?user_id={USER}", headers=HEADERS).json() == {"ran": True}
-    assert briefing_calls == [(USER, True)]
+    assert c.post(f"/demo/checkin?user_id={USER}").status_code == 401
+    assert c.post(f"/demo/checkin?user_id={USER}", headers=HEADERS).json() == {"ran": True}
+    assert briefing_calls == [USER]
     assert c.post(f"/demo/rebuild?user_id={USER}", headers=HEADERS).json() == {"ran": True}
-    assert c.post("/demo/briefing?user_id=not-a-uuid", headers=HEADERS).status_code == 422
+    assert c.post("/demo/checkin?user_id=not-a-uuid", headers=HEADERS).status_code == 422
     assert c.post("/demo/scenario", headers=HEADERS,
                   json={"user_id": str(USER), "scenario": "bogus"}).status_code == 422
 
 
-async def test_evening_endpoint_forces_the_evening_job(monkeypatch):
-    calls = []
-
-    async def run_evening(user_id, force=False):
-        calls.append((user_id, force))
-        return True
-
-    monkeypatch.setattr(compass, "run_evening", run_evening)
-    assert await demo.evening(USER) == {"ran": True}
-    assert calls == [(USER, True)]
+def test_briefing_and_evening_cannot_be_forced():
+    with TestClient(app) as c:
+        for path in ("briefing", "evening"):
+            assert c.post(f"/demo/{path}?user_id={USER}", headers=HEADERS).status_code == 404
 
 
 def test_reset_calls_compass(monkeypatch):

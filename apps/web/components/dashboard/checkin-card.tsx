@@ -2,7 +2,7 @@
 
 import { useRef, useState, useTransition, type CSSProperties } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Moon, Pause, Play, Sun } from "lucide-react";
+import { Loader2, Moon, Pause, Play, Sparkles, Sun } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ErrorNote } from "@/components/ui-bits";
@@ -17,23 +17,30 @@ const WAVE = [30, 55, 40, 75, 50, 90, 60, 35, 70, 45, 85, 55, 30, 65, 95, 50, 40
 
 const AUDIO_SRC = "/api/me/briefing-audio";
 
-type Kind = "morning" | "evening";
+type Kind = "morning" | "evening" | "checkin";
 type PlayState = "idle" | "loading" | "playing" | "error";
 
-const COPY: Record<Kind, { title: string; endpoint: string; empty: string; busy: string; done: string }> = {
+const COPY: Record<Kind, { title: string; endpoint: string | null; empty: string; busy: string; done: string }> = {
   morning: {
     title: "Morning check",
-    endpoint: "/demo/briefing",
-    empty: "Pulse writes it every morning at 7. You can also make one now.",
-    busy: "Could not generate the morning check.",
-    done: "Morning check ready.",
+    endpoint: null,
+    empty: "Pulse writes it and texts it every morning at 7.",
+    busy: "",
+    done: "",
   },
   evening: {
     title: "Evening check",
-    endpoint: "/demo/evening",
+    endpoint: null,
     empty: "Around 9 pm Pulse looks at tomorrow and tells you when to wind down and what the day holds.",
-    busy: "Could not run the evening check.",
-    done: "Evening check ready.",
+    busy: "",
+    done: "",
+  },
+  checkin: {
+    title: "Check-in",
+    endpoint: "/demo/checkin",
+    empty: "Make one any time. It is not texted and does not replace the morning or evening check.",
+    busy: "Could not make the check-in.",
+    done: "Check-in ready.",
   },
 };
 
@@ -48,7 +55,7 @@ export function CheckinCard({
   createdAt: string | null;
 }) {
   const copy = COPY[kind];
-  const Icon = kind === "morning" ? Sun : Moon;
+  const Icon = kind === "morning" ? Sun : kind === "evening" ? Moon : Sparkles;
   const router = useRouter();
   const audioRef = useRef<HTMLAudioElement>(null);
   const [play, setPlay] = useState<PlayState>("idle");
@@ -58,6 +65,7 @@ export function CheckinCard({
   const busy = running || refreshing;
 
   async function run() {
+    if (!copy.endpoint) return;
     setRunning(true);
     try {
       const res = await agent<{ ran: boolean }>(copy.endpoint, { method: "POST", body: {} });
@@ -177,9 +185,11 @@ export function CheckinCard({
       )}
 
       <div className="mt-4 flex flex-wrap items-center gap-3">
-        <Button variant="outline" size="sm" onClick={() => void run()} disabled={busy} aria-busy={busy}>
-          {busy ? "Working..." : text === null ? "Run it now" : "Run it again"}
-        </Button>
+        {copy.endpoint && (
+          <Button variant="outline" size="sm" onClick={() => void run()} disabled={busy} aria-busy={busy}>
+            {busy ? "Working..." : text === null ? "Make one now" : "Make another"}
+          </Button>
+        )}
         <p className="sr-only" role="status">
           {play === "loading" ? "Loading audio" : play === "playing" ? "Playing" : ""}
         </p>

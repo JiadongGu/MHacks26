@@ -163,13 +163,13 @@ def heads_up(facts: dict[str, Any]) -> str | None:
     return None
 
 
-def compose_briefing(facts: dict[str, Any]) -> str:
+def compose_briefing(facts: dict[str, Any], greeting: str = "Good morning") -> str:
     """Broad strokes: how you are, what you are working on today, what is coming up, and why.
 
     Exact times live on the calendar and in Today's plan, so none appear here.
     """
     who = first_name(facts.get("name"))
-    out = [f"Good morning{', ' + who if who else ''}.", ""]
+    out = [f"{greeting}{', ' + who if who else ''}.", ""]
     if facts.get("sleep_min") is not None:
         out.append(f"Last night: you slept {chat.minutes_text(facts['sleep_min'])}. "
                    f"Status: {str(facts.get('status', 'unknown')).replace('_', ' ')}.")
@@ -396,6 +396,22 @@ def _to_time(value: Any) -> dtime | None:
         return None
 
 
+async def _checkin_body(user_id: UUID, now: datetime) -> None:
+    """An on-demand check-in: the same picture as the morning one, any time of day. Never texted."""
+    facts = await _facts(user_id, now)
+    try:
+        today_plan, _tomorrow = await planner.build_plans(user_id, now)
+        facts["plan_text"] = today_plan.text
+        facts["focus_lines"] = today_plan.focus_lines
+        facts["plan_load"] = today_plan.load
+        facts["tonight_early"] = today_plan.shifted_min > 0
+        facts["plan_why"] = today_plan.why
+    except Exception as exc:  # the check-in still shows without a plan
+        log.warning("compass.plan_failed job=checkin user=%s err=%s", user_id, type(exc).__name__)
+    await persist_alert(user_id, "checkin", "Check-in", compose_briefing(facts, "Hi"),
+                        {"facts": {"status": facts["status"], "sleep_min": facts["sleep_min"]}})
+
+
 async def _evening_body(user_id: UUID, now: datetime) -> None:
     facts = await _facts(user_id, now)
     today = facts["local"].date()
@@ -427,7 +443,8 @@ async def _rebuild_body(user_id: UUID, now: datetime) -> None:
 
 
 BODIES: dict[str, Callable[[UUID, datetime], Awaitable[None]]] = {
-    "briefing": _briefing_body, "evening": _evening_body, "rebuild": _rebuild_body}
+    "briefing": _briefing_body, "evening": _evening_body, "rebuild": _rebuild_body,
+    "checkin": _checkin_body}
 
 
 # ------------------------------------------------------------------ runner
@@ -468,12 +485,20 @@ async def _run_for_user(job: str, user_id: UUID, force: bool) -> bool:
     return await _run(job, user_id, key, manual=force)
 
 
-async def run_briefing(user_id: UUID, force: bool = False) -> bool:
-    return await _run_for_user("briefing", user_id, force)
+async def run_briefing(user_id: UUID) -> bool:
+    """The scheduled 7 am briefing only. It cannot be forced; use run_checkin for one on demand."""
+    return await _run_for_user("briefing", user_id, False)
 
 
-async def run_evening(user_id: UUID, force: bool = False) -> bool:
-    return await _run_for_user("evening", user_id, force)
+async def run_evening(user_id: UUID) -> bool:
+    """The scheduled 9 pm evening check only. It cannot be forced; use run_checkin for one on demand."""
+    return await _run_for_user("evening", user_id, False)
+
+
+async def run_checkin(user_id: UUID) -> bool:
+    """A check-in on demand: saved as an alert, never texted, any time of day, any number of times."""
+    tz = (await load_profile(user_id)).get("timezone") or DEFAULT_TIMEZONE
+    return await _run("checkin", user_id, period_key(local_now(tz)), manual=True)
 
 
 async def run_rebuild(user_id: UUID, force: bool = False) -> bool:

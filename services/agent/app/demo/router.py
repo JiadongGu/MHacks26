@@ -1,4 +1,4 @@
-"""Demo controls. Drive the simulator and force Compass jobs."""
+"""Demo controls. Drive the simulator and run Compass jobs."""
 
 import logging
 from typing import Any
@@ -29,19 +29,14 @@ async def forward_scenario(body: ScenarioRequest) -> dict[str, Any]:
 async def scenario(body: ScenarioRequest) -> dict[str, Any]:
     out = await forward_scenario(body)
     if body.scenario == "great_sleep":
-        out["briefing"] = await compass.run_briefing(body.user_id, force=True)
+        out["checkin"] = await compass.run_checkin(body.user_id)
     return out
 
 
-@router.post("/briefing")
-async def briefing(user_id: UUID) -> dict[str, bool]:
-    return {"ran": await compass.run_briefing(user_id, force=True)}
-
-
-@router.post("/evening")
-async def evening(user_id: UUID) -> dict[str, bool]:
-    """Run the 9 pm evening check now: tonight's bedtime, tomorrow's plan, and the calendar events."""
-    return {"ran": await compass.run_evening(user_id, force=True)}
+@router.post("/checkin")
+async def checkin(user_id: UUID) -> dict[str, bool]:
+    """A check-in now, any time of day. Saved to the dashboard, never texted."""
+    return {"ran": await compass.run_checkin(user_id)}
 
 
 @router.post("/rebuild")

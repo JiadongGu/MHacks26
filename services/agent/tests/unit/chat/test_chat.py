@@ -203,7 +203,7 @@ def test_aggregate_minutes_weights_by_count():
 
 def test_build_status_and_format():
     rows = [{"day": TODAY, "metric": "steps", "sum": 4000.0, "avg": None},
-            {"day": TODAY - timedelta(days=1), "metric": "sleep_total_min", "sum": 420.0, "avg": None},
+            {"day": TODAY, "metric": "sleep_total_min", "sum": 420.0, "avg": None},
             {"day": TODAY, "metric": "resting_heart_rate", "sum": None, "avg": 61.6}]
     goals = [{"metric": "steps", "period": "day", "target": 8000.0}]
     s = chat.build_status({"model": {"status": "possibly_ill"}}, rows, goals, TODAY)
@@ -212,6 +212,9 @@ def test_build_status_and_format():
     text = chat.fmt_status(s)
     assert "possibly ill" in text and "4,000 of 8,000 (50%)" in text and "7.0 h" in text
     assert "None" not in chat.fmt_status(chat.build_status(None, [], [], TODAY))
+    old = [{"day": TODAY - timedelta(days=1), "metric": "sleep_total_min", "sum": 420.0, "avg": None}]
+    assert chat.build_status(None, old, [], TODAY)["sleep_min"] is None
+    assert chat.build_status({"model": {"baselines": {"steps": 6770.7}}}, [], [], TODAY)["steps_goal"] == 6771
 
 
 # ------------------------------------------------------------------ inbound handler
