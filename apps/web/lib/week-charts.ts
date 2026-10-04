@@ -9,6 +9,7 @@ export const TRENDS: TrendDef[] = [
   { key: "steps", label: "Steps", kind: "bars" },
   { key: "resting_heart_rate", label: "Resting heart rate", kind: "line" },
   { key: "hrv_sdnn", label: "Heart rate variability", kind: "line" },
+  { key: "spo2", label: "Blood oxygen", kind: "line" },
 ];
 
 export type Trend = {
