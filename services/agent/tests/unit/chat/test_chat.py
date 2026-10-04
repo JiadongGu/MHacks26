@@ -79,8 +79,8 @@ class Store:
                 ends_at=self.pending["ends_at"], rationale="r",
                 status="rejected" if body.decision == "rejected" else self.decide_status)
 
-        async def symptom(user_id, text):
-            self.symptoms.append((user_id, text))
+        async def symptom(user_id, text, urgent=False):
+            self.symptoms.append((user_id, text, urgent) if urgent else (user_id, text))
 
         async def latest_twin(user_id):
             return self.twin
@@ -503,3 +503,9 @@ def test_block_sleep_intent_beats_sleep_intent():
     assert detect_intent("block sleep tonight") == "block"
     assert detect_intent("can you protect my sleep?") == "block"
     assert detect_intent("how did I sleep?") == "sleep"
+
+
+async def test_emergency_words_reply_911_and_log_an_urgent_entry(store):
+    reply = await chat.handle(msg("I have crushing chest pain and my left arm is numb"))
+    assert reply.reply == chat.EMERGENCY_TEXT
+    assert store.symptoms == [(USER, "I have crushing chest pain and my left arm is numb", True)]
