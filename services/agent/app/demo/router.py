@@ -47,3 +47,9 @@ async def evening(user_id: UUID) -> dict[str, bool]:
 @router.post("/rebuild")
 async def rebuild(user_id: UUID) -> dict[str, bool]:
     return {"ran": await compass.run_rebuild(user_id, force=True)}
+
+
+@router.post("/reset")
+async def reset(user_id: UUID) -> dict[str, int]:
+    """Clear cooldowns and leftover approvals so the next scenario fires on stage."""
+    return await compass.reset_demo(user_id)

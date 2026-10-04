@@ -504,6 +504,31 @@ async def _heartbeat(job: str, status: str, detail: str) -> None:
         log.warning("compass.heartbeat_failed job=%s err=%s", job, type(exc).__name__)
 
 
+# ------------------------------------------------------------------ demo reset
+
+
+async def reset_demo(user_id: UUID) -> dict[str, int]:
+    """Let scenarios fire again: expire pending proposals, clear rule cooldowns, status back to normal.
+    Nothing is deleted; cleared alerts keep their history and only stop counting toward cooldowns."""
+    async with db.neon() as conn:
+        cur = await conn.execute(
+            "update calendar_proposals set status = 'expired' where user_id = %s and status = 'pending' "
+            "returning id", (user_id,))
+        proposals = len(await cur.fetchall())
+        cur = await conn.execute(
+            "update alerts set payload = coalesce(payload, '{}'::jsonb) "
+            "|| '{\"cooldown_cleared\": true}'::jsonb "
+            "where user_id = %s and created_at > now() - interval '48 hours' and kind <> 'symptom_log' "
+            "returning id", (user_id,))
+        alerts = len(await cur.fetchall())
+        await conn.execute(
+            "update digital_twin set model = jsonb_set(model, '{status}', '\"normal\"'::jsonb) "
+            "where user_id = %s and version = (select max(version) from digital_twin where user_id = %s)",
+            (user_id, user_id))
+    log.info("compass.reset_demo user=%s proposals=%d alerts=%d", user_id, proposals, alerts)
+    return {"proposals_expired": proposals, "alerts_cleared": alerts}
+
+
 # ------------------------------------------------------------------ proposal sweep
 
 

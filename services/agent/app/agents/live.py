@@ -142,7 +142,8 @@ async def _load(user_id: UUID, now: datetime) -> tuple[RuleContext, str]:
             (user_id, now + timedelta(hours=48), now))
         event_rows = await cur.fetchall()
         cur = await conn.execute(
-            "select kind, created_at from alerts where user_id = %s and created_at > %s",
+            "select kind, created_at from alerts where user_id = %s and created_at > %s "
+            "and not coalesce((payload->>'cooldown_cleared')::boolean, false)",
             (user_id, now - timedelta(hours=48)))
         alert_rows = await cur.fetchall()
     series_rows = await _series(user_id, now)
