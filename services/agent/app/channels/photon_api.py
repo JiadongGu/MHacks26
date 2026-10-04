@@ -103,12 +103,14 @@ async def welcome(body: WelcomeIn) -> dict[str, bool]:
         body.user_id, "welcome", "Welcome to Pulse", welcome_text(first[0] if first else None, picks), {}
     )
     await dispatch(body.user_id, alert)
-    # A first check-in right after: the evening one when it is already late in the day.
+    # A first check-in right after, matched to the time of day.
     async with db.neon() as conn:
         cur = await conn.execute("select timezone from profiles where user_id = %s", (body.user_id,))
         tz = ((await cur.fetchone()) or {}).get("timezone") or "America/Detroit"
-    if local_now(tz).hour >= 17:
-        await compass.run_evening(body.user_id, force=True)
-    else:
+    hour = local_now(tz).hour
+    if 7 <= hour < 17:
         await compass.run_briefing(body.user_id, force=True)
+    elif 17 <= hour < 22:
+        await compass.run_evening(body.user_id, force=True)
+    # In the small hours a "good morning" would be wrong. The scheduled 7 am check-in covers it.
     return {"sent": True}

@@ -433,11 +433,15 @@ BODIES: dict[str, Callable[[UUID, datetime], Awaitable[None]]] = {
 # ------------------------------------------------------------------ runner
 
 
-async def _run(job: str, user_id: UUID, key: str) -> bool:
-    """Run one job with a job_runs row. Never raises. Returns True on success."""
+async def _run(job: str, user_id: UUID, key: str, manual: bool = False) -> bool:
+    """Run one job with a job_runs row. Never raises. Returns True on success.
+
+    A manual run (a button, the welcome) is logged as "<job>:manual". The scheduler only counts rows named for
+    the job itself, so a manual run never makes it skip the real 7 am or 9 pm run.
+    """
     started = time.monotonic()
     try:
-        run_id = await start_run(job, user_id, key)
+        run_id = await start_run(f"{job}:manual" if manual else job, user_id, key)
     except Exception as exc:
         log.warning("compass.run_start_failed job=%s err=%s", job, type(exc).__name__)
         return False
@@ -461,7 +465,7 @@ async def _run_for_user(job: str, user_id: UUID, force: bool) -> bool:
     key = period_key(local_now(tz))
     if not force and (job, user_id, key) in await done_runs([user_id]):
         return False
-    return await _run(job, user_id, key)
+    return await _run(job, user_id, key, manual=force)
 
 
 async def run_briefing(user_id: UUID, force: bool = False) -> bool:
