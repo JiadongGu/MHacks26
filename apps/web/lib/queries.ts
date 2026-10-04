@@ -1,9 +1,10 @@
 // Server-only reads from Neon through Drizzle. Every function takes the session user id.
 // Dates leave this file as ISO strings so client components can take them as props.
-import { and, asc, desc, eq, gte, inArray, isNull, lte, max } from "drizzle-orm";
+import { and, asc, count, desc, eq, gt, gte, inArray, isNull, lt, lte, max } from "drizzle-orm";
 import { db, schema } from "@/lib/db";
 import { parseExplain, type Explain } from "@/lib/explain";
 import { LINK_CODE_TTL_MS, type LinkChannel } from "@/lib/link-code";
+import { parseToolCalls, type LinkRow, type ThreadMessage, type ThreadSummary } from "@/lib/conversations";
 import { parseItems, type PlanView } from "@/lib/plan";
 
 export type AlertView = {
@@ -336,4 +337,166 @@ export async function hasLinkedChannel(userId: string): Promise<boolean> {
     )
     .limit(1);
   return rows.length > 0;
+}
+
+// ---------------------------------------------------------------- calendar page
+
+export type ProposalDetailView = ProposalView & {
+  google_event_id: string | null;
+  decided_at: string | null;
+  applied_at: string | null;
+};
+
+function toProposalDetail(r: typeof schema.calendar_proposals.$inferSelect): ProposalDetailView {
+  return {
+    id: r.id,
+    title: r.title,
+    starts_at: r.starts_at.toISOString(),
+    ends_at: r.ends_at.toISOString(),
+    rationale: r.rationale,
+    status: r.status,
+    created_at: r.created_at.toISOString(),
+    google_event_id: r.google_event_id,
+    decided_at: iso(r.decided_at),
+    applied_at: iso(r.applied_at),
+  };
+}
+
+/** Every cached event that overlaps [from, to). Not only the important ones. */
+export async function listEventsBetween(userId: string, from: Date, to: Date): Promise<EventView[]> {
+  const rows = await db
+    .select()
+    .from(schema.calendar_events_cache)
+    .where(
+      and(
+        eq(schema.calendar_events_cache.user_id, userId),
+        lt(schema.calendar_events_cache.starts_at, to),
+        gt(schema.calendar_events_cache.ends_at, from),
+      ),
+    )
+    .orderBy(asc(schema.calendar_events_cache.starts_at))
+    .limit(300);
+  return rows.map((r) => ({
+    event_id: r.event_id,
+    title: r.title,
+    starts_at: r.starts_at.toISOString(),
+    ends_at: r.ends_at.toISOString(),
+    is_important: r.is_important,
+  }));
+}
+
+/** Pending, approved, and applied proposals that overlap [from, to). These are the Pulse blocks of the week. */
+export async function listProposalsBetween(userId: string, from: Date, to: Date): Promise<ProposalDetailView[]> {
+  const rows = await db
+    .select()
+    .from(schema.calendar_proposals)
+    .where(
+      and(
+        eq(schema.calendar_proposals.user_id, userId),
+        inArray(schema.calendar_proposals.status, ["pending", "approved", "applied"]),
+        lt(schema.calendar_proposals.starts_at, to),
+        gt(schema.calendar_proposals.ends_at, from),
+      ),
+    )
+    .orderBy(asc(schema.calendar_proposals.starts_at))
+    .limit(100);
+  return rows.map(toProposalDetail);
+}
+
+/** Every proposal, newest first. */
+export async function listProposalHistory(userId: string, limit = 50): Promise<ProposalDetailView[]> {
+  const rows = await db
+    .select()
+    .from(schema.calendar_proposals)
+    .where(eq(schema.calendar_proposals.user_id, userId))
+    .orderBy(desc(schema.calendar_proposals.created_at))
+    .limit(limit);
+  return rows.map(toProposalDetail);
+}
+
+/** Saved plans for local days fromDay to toDay, both YYYY-MM-DD, both included. */
+export async function listDailyPlansBetween(userId: string, fromDay: string, toDay: string): Promise<PlanView[]> {
+  const rows = await db
+    .select()
+    .from(schema.daily_plans)
+    .where(
+      and(
+        eq(schema.daily_plans.user_id, userId),
+        gte(schema.daily_plans.day, fromDay),
+        lte(schema.daily_plans.day, toDay),
+      ),
+    )
+    .orderBy(asc(schema.daily_plans.day));
+  return rows.map((r) => ({
+    day: r.day,
+    load: r.load,
+    headline: r.headline,
+    bed_time: r.bed_time,
+    wake_time: r.wake_time,
+    items: parseItems(r.items),
+  }));
+}
+
+// ---------------------------------------------------------------- conversations page
+
+/** One summary per channel: the message count and the newest message. */
+export async function listThreadSummaries(userId: string): Promise<ThreadSummary[]> {
+  const counts = await db
+    .select({ channel: schema.messages.channel, n: count() })
+    .from(schema.messages)
+    .where(eq(schema.messages.user_id, userId))
+    .groupBy(schema.messages.channel);
+  const newest = await db
+    .selectDistinctOn([schema.messages.channel], {
+      channel: schema.messages.channel,
+      text: schema.messages.text,
+      direction: schema.messages.direction,
+      created_at: schema.messages.created_at,
+    })
+    .from(schema.messages)
+    .where(eq(schema.messages.user_id, userId))
+    .orderBy(schema.messages.channel, desc(schema.messages.created_at));
+  const last = new Map(newest.map((r) => [r.channel, r]));
+  return counts.map((c) => {
+    const r = last.get(c.channel);
+    return {
+      channel: c.channel,
+      count: Number(c.n),
+      last: r ? { text: r.text, direction: r.direction, created_at: r.created_at.toISOString() } : null,
+    };
+  });
+}
+
+export async function listChannelLinks(userId: string): Promise<LinkRow[]> {
+  const rows = await db
+    .select()
+    .from(schema.channel_links)
+    .where(eq(schema.channel_links.user_id, userId))
+    .orderBy(desc(schema.channel_links.created_at))
+    .limit(50);
+  return rows.map((r) => ({
+    channel: r.channel,
+    external_id: r.external_id,
+    status: r.status,
+    linked_at: iso(r.linked_at),
+    created_at: r.created_at.toISOString(),
+  }));
+}
+
+/** The newest `limit` messages of one channel, newest first, with their tool calls. */
+export async function listChannelMessages(userId: string, channel: string, limit = 100): Promise<ThreadMessage[]> {
+  const rows = await db
+    .select()
+    .from(schema.messages)
+    .where(and(eq(schema.messages.user_id, userId), eq(schema.messages.channel, channel)))
+    .orderBy(desc(schema.messages.created_at))
+    .limit(limit);
+  return rows.map((r) => ({
+    id: r.id,
+    channel: r.channel,
+    direction: r.direction,
+    text: r.text,
+    created_at: r.created_at.toISOString(),
+    tools: parseToolCalls(r.tool_calls),
+  }));
 }

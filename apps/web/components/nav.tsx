@@ -4,20 +4,30 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Bell,
+  CalendarDays,
   FlaskConical,
   HeartPulse,
   LayoutDashboard,
   ListChecks,
+  MessageSquare,
   Settings,
   Target,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export type NavItem = { href: string; label: string; icon: LucideIcon };
+export type NavItem = {
+  href: string;
+  label: string;
+  /** Shorter text for the mobile bottom bar, where seven items share the width. */
+  shortLabel?: string;
+  icon: LucideIcon;
+};
 
 export const MAIN_NAV: NavItem[] = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/conversations", label: "Conversations", shortLabel: "Chats", icon: MessageSquare },
+  { href: "/calendar", label: "Calendar", icon: CalendarDays },
   { href: "/twin", label: "Twin", icon: HeartPulse },
   { href: "/goals", label: "Goals", icon: Target },
   { href: "/alerts", label: "Alerts", icon: Bell },
@@ -86,8 +96,9 @@ function BottomLink({ item }: { item: NavItem }) {
     <Link
       href={item.href}
       aria-current={active ? "page" : undefined}
+      aria-label={item.label}
       className={cn(
-        "flex min-h-14 flex-1 flex-col items-center justify-center gap-1 text-xs font-medium text-muted-foreground transition-colors",
+        "flex min-h-14 min-w-0 flex-1 flex-col items-center justify-center gap-1 px-0.5 text-[11px] font-medium text-muted-foreground transition-colors",
         "hover:text-foreground active:bg-sidebar-accent",
         active && "text-foreground",
       )}
@@ -97,7 +108,7 @@ function BottomLink({ item }: { item: NavItem }) {
         aria-hidden="true"
       />
       <span className={cn(active && "underline decoration-primary decoration-2 underline-offset-4")}>
-        {item.label}
+        {item.shortLabel ?? item.label}
       </span>
     </Link>
   );
