@@ -159,6 +159,11 @@ def num(value: float | None) -> str:
     return f"{value:,.0f}" if abs(value) >= 100 or float(value).is_integer() else f"{value:.1f}"
 
 
+def _whole(v: float | None) -> float | None:
+    """Big numbers go to the model as whole numbers, so 6770.7 can never be read as 67,707."""
+    return round(v) if isinstance(v, int | float) and abs(v) >= 100 else v
+
+
 def minutes_text(minutes: float | None) -> str:
     return "?" if minutes is None else f"{minutes / 60:.1f} h"
 
@@ -211,7 +216,7 @@ def build_status(twin: dict[str, Any] | None, rows: list[dict[str, Any]], goals:
     """Pure. Twin status, today's steps against the step goal, and last night's sleep."""
     model = (twin or {}).get("model") or {}
     steps_row = next((r for r in rows if r["metric"] == "steps" and r["day"] == today), None)
-    steps = None if steps_row is None else (steps_row["sum"] if steps_row["sum"] is not None else None)
+    steps = None if steps_row is None or steps_row["sum"] is None else round(steps_row["sum"])
     goal = next((g for g in goals if g["metric"] == "steps" and g["period"] == "day"), None)
     target = float(goal["target"]) if goal else (model.get("baselines") or {}).get("steps")
     target = None if target is None else round(target)
@@ -485,8 +490,8 @@ class Toolbox:
             p = progress.get(g["id"])
             if p is None:
                 continue
-            items.append({"metric": g["metric"], "target": g["target"], "period": g["period"],
-                          "direction": g["direction"], "current": p.current, "pct": p.pct,
+            items.append({"metric": g["metric"], "target": _whole(g["target"]), "period": g["period"],
+                          "direction": g["direction"], "current": _whole(p.current), "pct": p.pct,
                           "on_track": p.on_track})
         return {"goals": items}
 
