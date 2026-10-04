@@ -6,8 +6,8 @@ export const metadata: Metadata = {
   description: "What Pulse collects, why, who processes it, how long it is kept, and how to delete it.",
 };
 
-// Replace before launch. This address is shown to the public.
-const CONTACT = "REPLACE-WITH-CONTACT-EMAIL";
+// Shown to the public.
+const CONTACT = "gavinmo@umich.edu";
 const UPDATED = "October 3, 2026";
 
 export default function Privacy() {
