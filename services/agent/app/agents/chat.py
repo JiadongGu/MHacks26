@@ -31,6 +31,8 @@ from app.contracts import (
 from app.core import db, spacetime
 from app.core.auth import require_internal
 from app.core.config import settings
+from app.focus import store as focus_store
+from app.focus.guide import guide_for
 from app.goals import service as goals_service
 from app.goals import store as goals_store
 from app.proposals import api as proposals_api
@@ -421,7 +423,13 @@ class Toolbox:
         rows = await twin_store.daily_rows(self.user_id, today - timedelta(days=1), today,
                                            ["steps", "sleep_total_min", "resting_heart_rate"])
         goals = await goals_store.list_goals(self.user_id)
-        return build_status(twin, rows, goals, today)
+        out = build_status(twin, rows, goals, today)
+        try:
+            flags = set(((twin or {}).get("model") or {}).get("risk_flags") or [])
+            out.update(guide_for(await focus_store.list_picks(self.user_id), flags))
+        except Exception as exc:  # the guide is extra context; status must still answer
+            log.warning("chat.focus_guide_failed err=%s", type(exc).__name__)
+        return out
 
     async def t_get_vitals_summary(self, metric: str, hours: float = 24) -> dict[str, Any]:
         if metric not in METRICS:

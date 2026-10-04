@@ -11,8 +11,8 @@ from app.focus.catalog import BY_KEY, CATALOG, MAX_PICKS, adaptive_target, valid
 UID = UUID("00000000-0000-0000-0000-000000000001")
 
 
-def test_catalog_has_ten_unique_areas_across_body_mind_and_habits():
-    assert len(CATALOG) == 10 and len({f.key for f in CATALOG}) == 10
+def test_catalog_has_eleven_unique_areas_across_body_mind_and_habits():
+    assert len(CATALOG) == 11 and len({f.key for f in CATALOG}) == 11
     assert {f.area for f in CATALOG} == {"body", "mind", "habits"}
     assert MAX_PICKS == 3
 
@@ -145,7 +145,7 @@ def client(monkeypatch, fakes):
 
 def test_catalog_endpoint_lists_every_area_and_the_limit(client):
     body = client.get("/focus/catalog").json()
-    assert body["max_picks"] == 3 and len(body["items"]) == 10
+    assert body["max_picks"] == 3 and len(body["items"]) == 11
     steps = next(i for i in body["items"] if i["key"] == "steps")
     assert (
         steps["measurable"] is True
