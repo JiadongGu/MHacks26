@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
+import { AlertWhy } from "@/components/dashboard/alert-why";
 import { Button } from "@/components/ui/button";
 import { EmptyState, ErrorNote, ListSkeleton, SeverityBadge } from "@/components/ui-bits";
 import { errorText, me } from "@/lib/api-client";
+import { canExplain } from "@/lib/explain";
 import { formatDateTime, timeAgo } from "@/lib/format";
 import type { AlertView } from "@/lib/queries";
 import { usePolling } from "@/lib/use-polling";
@@ -114,6 +116,9 @@ export function AlertsFeed({ initial, limit, pollMs = 15_000, emptyHint }: Props
                   {a.title}
                 </h3>
                 <p className="mt-1 max-w-[65ch] text-sm text-muted-foreground">{a.body}</p>
+                {canExplain(a.kind, a.explain) && (
+                  <AlertWhy alertId={a.id} title={a.title} explain={a.explain} />
+                )}
               </div>
               {isNew && (
                 <div className="sm:self-start">

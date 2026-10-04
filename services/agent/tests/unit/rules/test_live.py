@@ -59,8 +59,9 @@ def pipeline(monkeypatch):
     async def load(user_id, now):
         return rec["ctx"], "Summary"
 
-    async def persist(user_id, finding, title, body):
+    async def persist(user_id, finding, title, body, explained=None):
         rec["persisted"].append((finding, title, body))
+        rec.setdefault("explained", []).append(explained)
         return {"id": UUID(int=len(rec["persisted"])), "kind": finding.kind, "severity": finding.severity,
                 "title": title, "body": body, "proposal_id": None}
 
@@ -82,6 +83,7 @@ async def test_evaluate_user_persists_and_dispatches(pipeline):
     assert (finding.kind, title) == ("workout_detected", "Workout detected")
     assert "166" in body
     assert pipeline["dispatched"][0]["kind"] == "workout_detected"
+    assert pipeline["explained"][0]["rule"] == "workout_detected"
 
 
 async def test_evaluate_user_with_proposal_finding(pipeline):

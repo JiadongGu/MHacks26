@@ -89,3 +89,6 @@ app.include_router(focus_router)
 from app.planner.api import router as plan_router  # noqa: E402
 
 app.include_router(plan_router)
+from app.rules.api import router as alerts_router  # noqa: E402
+
+app.include_router(alerts_router)
