@@ -12,3 +12,13 @@ Setup: `/demo` panel open on laptop, team iPhone mirrored via QuickTime, Google 
 Fallbacks: if iMessage is slow, show the alert on the dashboard and the `messages` log in `/demo`. If Gemini 429s, templates fire (say nothing). If Calendar insert fails, show the proposal state in `/demo` and the apply error.
 
 Talking points: wellness guidance not diagnosis; every autonomous action is approval-gated; data is synthetic (FinchNode) plus one real Fitbit.
+
+## iMessage on Photon's free plan (read before demoing)
+- Only phones registered as users on the Photon project can text Pulse, and each user gets their **own** assigned Pulse line:
+  - J (+1 425-300-7915) texts **+1 (628) 999-4232**
+  - P (+1 858-866-6676) texts **+1 (415) 603-5536**
+- Register another phone: `npx @photon-ai/cli spectrum users add -p 0798a828-2dd6-4e93-b944-b623e195ca25 --first-name X --last-name Y --email E --phone +1...` (max 10 on the free plan). `spectrum users ls --json` shows each user's `assignedPhoneNumber`.
+- Text from an iPhone as a **blue iMessage**; a green SMS never reaches Photon. Delete any old SMS thread first.
+- The user texts first (link code); after that Pulse can send proactive alerts to them.
+- Onboarding shows J's line to everyone (PHOTON_NUMBER_DISPLAY), so run the iMessage part of the demo from J's phone. Say it on stage: "on Photon's free plan testers are allowlisted; production would use a dedicated line."
+- ASI:One: message `@pulse-health` (once the Agentverse handle is published) or start a message with `@agent1qw9glwdgrmg9tmd7fj9u6wst50d38hwcaat09nck0aml3jvdkrrf6n7pxcv`.

@@ -10,6 +10,7 @@ import { EmptyState, ErrorNote } from "@/components/ui-bits";
 import { agent, errorText } from "@/lib/api-client";
 import type { DigitalTwin } from "@/lib/contracts";
 import { formatDate } from "@/lib/format";
+import { ALLERGY_SUGGESTIONS, CONDITION_SUGGESTIONS, addItem, buildEdits, removeItem } from "@/lib/history";
 import { conditionKey, medicationKey, readTwin, type TwinView } from "@/lib/twin";
 import { cn } from "@/lib/utils";
 import { EMPTY_HISTORY, type HistoryState } from "./history-seed";
@@ -92,11 +93,7 @@ export function StepHistory({ state, setState, profile, onDone }: Props) {
         body: {
           profile: twinProfile(profile),
           family_history: state.family.map(({ relation: r, condition: c }) => ({ relation: r, condition: c })),
-          edits: {
-            conditions: { add: [], remove: state.removed.conditions },
-            medications: { add: [], remove: state.removed.medications },
-            allergies: { add: [], remove: state.removed.allergies },
-          },
+          edits: buildEdits(state.removed, state.added),
         },
       });
       onDone();
@@ -116,8 +113,9 @@ export function StepHistory({ state, setState, profile, onDone }: Props) {
           {patients === null ? (
             <div className="max-w-[60ch] space-y-4">
               <p className="text-base">
-                Pulse can read your medical record from FinchNode, a demo record service. You choose which
-                record to connect. You can remove anything it finds before you continue.
+                Pulse tunes its alerts to your health. Tell it about your own history, or try a demo record from
+                FinchNode, a service with synthetic patients, to see how a record is read. You can change or
+                remove anything before you continue.
               </p>
               {listError && (
                 <ErrorNote
@@ -131,12 +129,12 @@ export function StepHistory({ state, setState, profile, onDone }: Props) {
                 </ErrorNote>
               )}
               <div className="flex flex-wrap items-center gap-4">
-                <Button size="lg" className="h-10 px-5" onClick={() => void loadPatients()} disabled={loadingList}>
-                  <FileHeart aria-hidden="true" />
-                  {loadingList ? "Looking for records..." : "Import my records"}
+                <Button size="lg" className="h-10 px-5" onClick={() => setState({ ...state, twin: readTwin({}) })}>
+                  Enter my own history
                 </Button>
-                <Button variant="ghost" onClick={() => setState({ ...state, twin: readTwin({}) })}>
-                  Enter my history by hand
+                <Button variant="outline" onClick={() => void loadPatients()} disabled={loadingList}>
+                  <FileHeart aria-hidden="true" />
+                  {loadingList ? "Looking for records..." : "Try a demo record"}
                 </Button>
               </div>
             </div>
@@ -192,6 +190,33 @@ export function StepHistory({ state, setState, profile, onDone }: Props) {
       {twin && (
         <>
           <ImportedLists twin={twin} removed={state.removed} onToggle={toggleRemoved} imported={state.scenario !== null} />
+
+          <AddList
+            id="add-conditions"
+            title="Add a condition"
+            hint="Anything a doctor has told you about, like asthma or diabetes."
+            placeholder="for example, migraine"
+            suggestions={CONDITION_SUGGESTIONS}
+            items={state.added.conditions}
+            onChange={(conditions) => setState({ ...state, added: { ...state.added, conditions } })}
+          />
+          <AddList
+            id="add-medications"
+            title="Add a medication"
+            hint="Include the dose if you know it, like 'Albuterol inhaler' or 'Metformin 500 mg'."
+            placeholder="medication name"
+            items={state.added.medications}
+            onChange={(medications) => setState({ ...state, added: { ...state.added, medications } })}
+          />
+          <AddList
+            id="add-allergies"
+            title="Add an allergy"
+            hint="Medicines, foods, or anything else that gives you a reaction."
+            placeholder="for example, penicillin"
+            suggestions={ALLERGY_SUGGESTIONS}
+            items={state.added.allergies}
+            onChange={(allergies) => setState({ ...state, added: { ...state.added, allergies } })}
+          />
 
           <section aria-labelledby="fh-heading" className="max-w-xl">
             <h3 id="fh-heading" className="text-xl font-semibold">
@@ -269,7 +294,7 @@ export function StepHistory({ state, setState, profile, onDone }: Props) {
               disabled={saving}
               onClick={() => setState({ ...EMPTY_HISTORY })}
             >
-              Choose a different record
+              Start over
             </Button>
           </div>
         </>
@@ -293,8 +318,8 @@ function ImportedLists({
     twin.conditions.length + twin.medications.length + twin.allergies.length + twin.labs.length === 0;
   if (nothing) {
     return (
-      <EmptyState title={imported ? "The record has no conditions, medications, allergies, or labs." : "No history entered"}>
-        You can still add family history below. Pulse works with what you give it.
+      <EmptyState title={imported ? "The record has no conditions, medications, allergies, or labs." : "No history entered yet"}>
+        Add anything that applies below. If nothing does, you can continue. Pulse works with what you give it.
       </EmptyState>
     );
   }
@@ -398,6 +423,86 @@ function RemovableList({
           })}
         </ul>
       )}
+    </section>
+  );
+}
+
+function AddList({
+  id,
+  title,
+  hint,
+  placeholder,
+  suggestions,
+  items,
+  onChange,
+}: {
+  id: string;
+  title: string;
+  hint: string;
+  placeholder: string;
+  suggestions?: readonly string[];
+  items: string[];
+  onChange: (next: string[]) => void;
+}) {
+  const [text, setText] = useState("");
+  const noun = title.replace(/^Add an? /, "");
+  const open = (suggestions ?? []).filter((s) => !items.some((x) => x.toLowerCase() === s.toLowerCase()));
+  return (
+    <section aria-labelledby={`${id}-h`} className="max-w-xl">
+      <h3 id={`${id}-h`} className="text-base font-semibold">
+        {title}
+      </h3>
+      <p className="mt-1 text-sm text-muted-foreground">{hint}</p>
+      {items.length > 0 && (
+        <ul className="mt-3 flex flex-wrap gap-2">
+          {items.map((item) => (
+            <li key={item} className="flex items-center gap-1 rounded-md border border-border py-1 pl-3 pr-1 text-sm">
+              <span>{item}</span>
+              <Button
+                variant="ghost"
+                size="icon-xs"
+                aria-label={`Remove ${noun}: ${item}`}
+                onClick={() => onChange(removeItem(items, item))}
+              >
+                <X aria-hidden="true" />
+              </Button>
+            </li>
+          ))}
+        </ul>
+      )}
+      {open.length > 0 && (
+        <div className="mt-3 flex flex-wrap gap-2" role="group" aria-label={`Common ${noun}s`}>
+          {open.map((s) => (
+            <button
+              key={s}
+              type="button"
+              onClick={() => onChange(addItem(items, s))}
+              className="rounded-full border border-border px-3 py-1 text-sm outline-none transition-colors hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50"
+            >
+              {s}
+            </button>
+          ))}
+        </div>
+      )}
+      <form
+        className="mt-3 flex items-end gap-3"
+        onSubmit={(e) => {
+          e.preventDefault();
+          onChange(addItem(items, text));
+          setText("");
+        }}
+      >
+        <div className="flex min-w-0 flex-1 flex-col gap-2">
+          <label htmlFor={`${id}-in`} className="sr-only">
+            {title}
+          </label>
+          <Input id={`${id}-in`} value={text} maxLength={100} placeholder={placeholder} onChange={(e) => setText(e.target.value)} />
+        </div>
+        <Button type="submit" variant="outline" disabled={text.trim() === ""}>
+          <Plus aria-hidden="true" />
+          Add
+        </Button>
+      </form>
     </section>
   );
 }
