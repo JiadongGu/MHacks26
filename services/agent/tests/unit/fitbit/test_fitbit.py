@@ -303,7 +303,7 @@ def test_callback_success(monkeypatch):
     assert fakes.saved == [UID] and fakes.deleted == []
 
 
-def test_steps_and_active_minutes_cover_whole_local_days_but_heart_rate_stays_short(monkeypatch):
+def test_steps_active_minutes_and_spo2_cover_whole_local_days_but_heart_rate_stays_short(monkeypatch):
     from datetime import UTC, datetime
     from zoneinfo import ZoneInfo
 
@@ -334,12 +334,12 @@ def test_steps_and_active_minutes_cover_whole_local_days_but_heart_rate_stays_sh
     local_midnight_yesterday = (now_local - timedelta(days=1)).replace(
         hour=0, minute=0, second=0, microsecond=0
     )
-    for name in ("steps", "active_minutes"):
+    # Blood oxygen is read overnight, so it covers whole days too.
+    for name in ("steps", "active_minutes", "spo2"):
         start, end = calls[name]
         assert start == local_midnight_yesterday and (end - start) > timedelta(hours=24)
-    for name in ("heart_rate", "spo2"):
-        start, end = calls[name]
-        assert end - start == timedelta(minutes=30)
+    start, end = calls["heart_rate"]
+    assert end - start == timedelta(minutes=30)
 
 
 async def test_sync_all_removes_a_connection_whose_account_is_not_linked(monkeypatch):
