@@ -24,10 +24,19 @@ class Template:
     why: str
     repeat: dict[str, int]  # blocks per day, by load
     strict: bool = False  # only inside the preferred hours; skip the day rather than place it elsewhere
+    after: tuple[str, int] | None = None  # (key, minutes): only start this long after that item ended
 
 
 def _t(
-    title: str, light: int, normal: int, packed: int, prefer, why: str, repeat=(1, 1, 1), strict=False
+    title: str,
+    light: int,
+    normal: int,
+    packed: int,
+    prefer,
+    why: str,
+    repeat=(1, 1, 1),
+    strict=False,
+    after=None,
 ) -> Template:
     return Template(
         title,
@@ -36,6 +45,7 @@ def _t(
         why,
         {"light": repeat[0], "normal": repeat[1], "packed": repeat[2]},
         strict,
+        after,
     )
 
 
@@ -110,6 +120,7 @@ TEMPLATES: dict[str, Template] = {
         [(12, 15)],
         "Sunscreen wears off in about two hours outdoors. Shade and a hat help too.",
         strict=True,
+        after=("sun", 120),
     ),
     "skin_check": _t(
         "Monthly skin check, head to toe",
@@ -132,10 +143,10 @@ def planned_keys(picks: list[str], flags: set[str], day: date) -> list[str]:
     Sun protection is standing care for that history whether or not it was picked. A skin check is added on
     the first Sunday of the month.
     """
-    keys = [k for k in picks if not (k == "hydration" and flags & FLUID_LIMITED)]
-    sun_on = "sun" in picks or "skin_cancer" in flags
-    if sun_on:
-        keys += [k for k in SUN_KEYS if k not in keys]
+    keys = [k for k in picks if not (k == "hydration" and flags & FLUID_LIMITED) and k not in SUN_KEYS]
+    if "sun" in picks or "skin_cancer" in flags:
+        # Short and time-sensitive, so they choose their time before the longer blocks do.
+        keys = list(SUN_KEYS) + keys
         if day.weekday() == 6 and day.day <= 7:
             keys.append("skin_check")
     return keys
@@ -184,6 +195,14 @@ def _choose(
     return None
 
 
+def _from(slots: list[Slot], earliest: datetime | None) -> list[Slot]:
+    """The slots, cut so nothing starts before `earliest`."""
+    if earliest is None:
+        return slots
+    cut = [Slot(max(s.start, earliest), s.end) for s in slots if s.end > earliest]
+    return [s for s in cut if s.minutes >= MIN_FREE_MIN]
+
+
 def place(focus: list[str], slots: list[Slot], load: str) -> list[PlanItem]:
     """Greedy: the person's first pick gets first choice of time. Skips what does not fit."""
     items: list[PlanItem] = []
@@ -193,10 +212,16 @@ def place(focus: list[str], slots: list[Slot], load: str) -> list[PlanItem]:
         if tpl is None:
             continue
         minutes = tpl.minutes[load]
+        earliest = None
+        if tpl.after is not None:
+            prior = [i.end for i in items if i.key == tpl.after[0]]
+            if not prior:
+                continue  # nothing to follow, so nothing to remind about
+            earliest = max(prior) + timedelta(minutes=tpl.after[1])
         spread = list(free)  # the same free time, with room kept around blocks of this kind already placed
         for _ in range(tpl.repeat[load]):
-            spot = _choose(spread, minutes, tpl.prefer, tpl.strict) or _choose(
-                free, minutes, tpl.prefer, tpl.strict
+            spot = _choose(_from(spread, earliest), minutes, tpl.prefer, tpl.strict) or _choose(
+                _from(free, earliest), minutes, tpl.prefer, tpl.strict
             )
             if spot is None:
                 break
