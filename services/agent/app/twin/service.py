@@ -115,8 +115,11 @@ async def rebuild(user_id: UUID) -> DigitalTwin:
     if previous is None:
         raise TwinNotFound(str(user_id))
     now = datetime.now(UTC)
-    model = previous["model"]
-    today = local_now(model.get("profile", {}).get("timezone"), now).date()
+    profile = await store.profile_row(user_id)
+    today = local_now((profile or {}).get("timezone") or previous["model"].get("profile", {}).get("timezone"),
+                      now).date()
+    # Profile edits made in setup reach the twin on the next rebuild.
+    model = builder.apply_profile(previous["model"], profile, today=today)
     twin = builder.finalize(model, await _daily(user_id, today), today=today, now=now, rebuild=True)
     summary = builder.summarize(twin)
     version = await store.insert_twin(user_id, twin, summary)
