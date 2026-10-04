@@ -68,7 +68,7 @@ export async function ConversationsSection({
 
   const current = threads.find((t) => t.channel === selected)!;
   return (
-    <div className="grid gap-4 lg:grid-cols-[19rem_minmax(0,1fr)]">
+    <div className="grid grid-cols-1 gap-4 lg:grid-cols-[19rem_minmax(0,1fr)]">
       <ThreadList threads={threads} selected={selected} />
       <section
         aria-labelledby="thread-title"

@@ -69,7 +69,7 @@ export function DemoPanel({
   }
 
   return (
-    <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(0,26rem)]">
+    <div className="grid grid-cols-1 gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(0,26rem)]">
       <div className="space-y-8">
         <section aria-labelledby="demo-scenarios">
           <h2 id="demo-scenarios" className="mb-1 text-xl">

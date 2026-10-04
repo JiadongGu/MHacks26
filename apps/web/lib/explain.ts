@@ -111,9 +111,29 @@ export function sourceLabel(source: string): string {
   return spaced ? spaced.charAt(0).toUpperCase() + spaced.slice(1) : "Unknown";
 }
 
-/** "resting_hr baseline" becomes "Resting hr baseline". */
+const METRIC_NAMES: Record<string, string> = {
+  spo2: "Blood oxygen",
+  heart_rate: "Heart rate",
+  hr: "Heart rate",
+  resting_hr: "Resting heart rate",
+  resting_heart_rate: "Resting heart rate",
+  hrv: "Heart rate variability",
+  hrv_sdnn: "Heart rate variability",
+  sleep: "Sleep",
+  sleep_min: "Sleep",
+  sleep_total_min: "Sleep",
+  steps: "Steps",
+  active_minutes: "Active minutes",
+  active_energy_kcal: "Calories burned",
+  bp_systolic: "Systolic blood pressure",
+  bp_diastolic: "Diastolic blood pressure",
+};
+
+/** "resting_hr baseline" becomes "Resting heart rate baseline"; unknown keys are spaced and capitalized. */
 export function metricLabel(metric: string): string {
-  const spaced = metric.replace(/_/g, " ").trim();
+  const [head = "", ...rest] = metric.trim().split(/\s+/);
+  const named = METRIC_NAMES[head.toLowerCase()];
+  const spaced = named ? [named, ...rest].join(" ") : metric.replace(/_/g, " ").trim();
   return spaced ? spaced.charAt(0).toUpperCase() + spaced.slice(1) : "Unknown";
 }
 
