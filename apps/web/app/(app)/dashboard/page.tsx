@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { BriefingSection } from "@/components/dashboard/briefing-section";
 import { EveningSection } from "@/components/dashboard/evening-section";
-import { GoalRings } from "@/components/dashboard/goal-rings";
+import { FocusSection } from "@/components/dashboard/focus-section";
 import { NumbersSection } from "@/components/dashboard/numbers-section";
 import { PlanSection } from "@/components/dashboard/plan-section";
 import {
@@ -34,6 +34,12 @@ export default async function DashboardPage() {
           <Suspense fallback={<Skeleton role="status" aria-label="Loading status" className="h-40" />}>
             <StatusHero userId={user.id} />
           </Suspense>
+
+          <Section title="Your focus today" headingId="h-focus">
+            <Suspense fallback={<Skeleton role="status" aria-label="Loading your focus" className="h-32" />}>
+              <FocusSection userId={user.id} timeZone={profile.timezone} />
+            </Suspense>
+          </Section>
 
           <Section title="Your numbers" headingId="h-numbers">
             <Suspense fallback={<Skeleton role="status" aria-label="Loading your numbers" className="h-40" />}>
@@ -79,9 +85,6 @@ export default async function DashboardPage() {
         </div>
 
         <aside className="space-y-12" aria-label="Goals and calendar">
-          <Section title="Goals" headingId="h-goals">
-            <GoalRings />
-          </Section>
 
           <Section title="Next 48 hours" headingId="h-events">
             <Suspense fallback={<ListSkeleton rows={2} label="Loading events" />}>

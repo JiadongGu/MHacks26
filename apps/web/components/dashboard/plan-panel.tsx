@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { CalendarCheck, Check } from "lucide-react";
+import { CalendarCheck } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui-bits";
@@ -31,6 +31,19 @@ export function PlanPanel({
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [refreshing, startRefresh] = useTransition();
+  // Ticks the person made this visit, by item start, so the box responds before the save comes back.
+  const [ticked, setTicked] = useState<Record<string, boolean>>({});
+
+  async function tick(start: string, done: boolean) {
+    setTicked((t) => ({ ...t, [start]: done }));
+    try {
+      await agent("/plan/done", { body: { day: plan?.day, start, done } });
+      startRefresh(() => router.refresh());
+    } catch (err) {
+      setTicked((t) => ({ ...t, [start]: !done }));
+      toast.error(`Could not save that: ${errorText(err)}`);
+    }
+  }
 
   async function replan() {
     setBusy(true);
@@ -73,21 +86,27 @@ export function PlanPanel({
         <ol className="mt-3 divide-y divide-border border-y border-border">
           {plan.items.map((item) => {
             const state = itemState(item, now);
+            const done = ticked[item.start] ?? item.done === true;
             return (
               <li key={`${item.key}-${item.start}`} className="flex gap-4 py-3">
                 <span className="w-36 shrink-0 font-mono text-xs text-muted-foreground">
                   {timeRange(item.start, item.end, timeZone)}
                 </span>
-                <div className={cn("min-w-0", state === "done" && "text-muted-foreground")}>
-                  <p className="flex flex-wrap items-center gap-2 text-sm font-medium">
-                    {item.title}
-                    {state === "done" && <Check className="size-3.5" aria-label="Done" />}
+                <div className={cn("min-w-0", done && "text-muted-foreground")}>
+                  <label className="flex cursor-pointer flex-wrap items-center gap-2 text-sm font-medium">
+                    <input
+                      type="checkbox"
+                      checked={done}
+                      onChange={(e) => void tick(item.start, e.target.checked)}
+                      className="size-4 accent-[var(--foreground)]"
+                    />
+                    <span className={cn(done && "line-through")}>{item.title}</span>
                     {state === "now" && (
                       <span className="rounded-full bg-foreground px-2 py-0.5 text-[0.65rem] font-medium uppercase tracking-wide text-background">
                         Now
                       </span>
                     )}
-                  </p>
+                  </label>
                   {item.why && <p className="text-xs text-muted-foreground">{item.why}</p>}
                 </div>
               </li>

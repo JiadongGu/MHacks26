@@ -3,12 +3,13 @@ from typing import Literal
 from uuid import UUID
 from zoneinfo import ZoneInfo
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
 
 from app.core.auth import require_internal
 from app.twin.tz import DEFAULT_TIMEZONE
 
-from . import service, store
+from . import checkin, service, store
 
 router = APIRouter(prefix="/plan", tags=["plan"], dependencies=[Depends(require_internal)])
 
@@ -35,3 +36,23 @@ async def rebuild(user_id: UUID, day: Literal["today", "tomorrow", "both"] = "to
     local_day = now.astimezone(ZoneInfo(tz)).date()
     plan = await service.build_plan(user_id, local_day + timedelta(days=1 if day == "tomorrow" else 0), now)
     return plan.as_json()
+
+
+class DoneIn(BaseModel):
+    user_id: UUID
+    day: date
+    start: datetime
+    done: bool = True
+
+
+@router.post("/done")
+async def mark_done(body: DoneIn) -> dict:
+    """Tick (or untick) one planned item, found by its start time."""
+    row = await store.get_plan(body.user_id, body.day)
+    if row is None:
+        raise HTTPException(404, "no plan for that day")
+    items, found = checkin.mark_done(list(row["items"] or []), body.start, body.done)
+    if not found:
+        raise HTTPException(404, "no planned item starts then")
+    await store.set_items(body.user_id, body.day, items)
+    return {"ok": True, "done": body.done}

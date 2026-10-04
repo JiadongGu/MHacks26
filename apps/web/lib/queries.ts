@@ -521,3 +521,13 @@ export async function getDailyMetricRows(userId: string, fromDay: string): Promi
     );
   return rows;
 }
+
+/** The focus area keys the session user picked, in the order they were picked. */
+export async function getFocusPicks(userId: string): Promise<string[]> {
+  const rows = await db
+    .select({ key: schema.focus_areas.key })
+    .from(schema.focus_areas)
+    .where(eq(schema.focus_areas.user_id, userId))
+    .orderBy(asc(schema.focus_areas.picked_at));
+  return rows.map((r) => r.key);
+}
