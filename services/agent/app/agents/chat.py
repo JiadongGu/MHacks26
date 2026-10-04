@@ -400,12 +400,13 @@ async def minute_rows(user_id: UUID, metric: str, hours: int) -> list[dict[str, 
         f"AND metric = '{metric}'")
 
 
-async def insert_symptom(user_id: UUID, text: str) -> None:
+async def insert_symptom(user_id: UUID, text: str, urgent: bool = False) -> None:
+    severity, title = ("urgent", "Emergency words in a message") if urgent else ("info", "Symptom logged")
     async with db.neon() as conn:
         await conn.execute(
             "insert into alerts (user_id, kind, severity, title, body, payload, channels) "
-            "values (%s, 'symptom_log', 'info', 'Symptom logged', %s, %s, %s)",
-            (user_id, text, Jsonb({"source": "chat"}), Jsonb([])))
+            "values (%s, 'symptom_log', %s, %s, %s, %s, %s)",
+            (user_id, severity, title, text, Jsonb({"source": "chat", "emergency": urgent}), Jsonb([])))
 
 
 async def last_alert(user_id: UUID) -> dict[str, Any] | None:
@@ -817,7 +818,7 @@ async def respond(user_id: UUID, channel: str, text: str, history: list[dict[str
                   ) -> tuple[str, list[dict[str, Any]], list[ReplyAction]]:
     tools = Toolbox(user_id, channel, await tz_of(user_id))
     if EMERGENCY_RE.search(text):
-        await tools.call("log_symptom", {"text": text})
+        await insert_symptom(user_id, " ".join(text.split())[:500], urgent=True)
         return EMERGENCY_TEXT, [{"name": "emergency_guard"}], []
     intent = classify(text)
     if intent in ("approve", "reject"):
