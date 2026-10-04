@@ -7,38 +7,111 @@ import { createLinkCodeAction } from "@/app/(app)/onboarding/actions";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorNote } from "@/components/ui-bits";
-import { me } from "@/lib/api-client";
+import { Input } from "@/components/ui/input";
+import { agent, errorText, me } from "@/lib/api-client";
 import type { LinkChannel } from "@/lib/link-code";
 
 type LinkStatus = "pending" | "linked" | "expired" | "missing";
 
 export const ASI_ONE_AGENT_ADDRESS = "agent1qw9glwdgrmg9tmd7fj9u6wst50d38hwcaat09nck0aml3jvdkrrf6n7pxcv";
 
+type LineState =
+  | { kind: "idle" }
+  | { kind: "busy" }
+  | { kind: "ready"; line: string }
+  | { kind: "error"; message: string };
+
+/** "+14156035536" as "+1 (415) 603-5536" for a US number; anything else is returned as is. */
+export function prettyPhone(e164: string): string {
+  const m = e164.match(/^\+1(\d{3})(\d{3})(\d{4})$/);
+  return m ? `+1 (${m[1]}) ${m[2]}-${m[3]}` : e164;
+}
+
 export function StepImessage({
   photonNumber,
+  phone,
   alreadyLinked,
   onLinked,
 }: {
   photonNumber: string | null;
+  /** The phone saved on the profile, if any. */
+  phone: string;
   alreadyLinked: boolean;
   onLinked: () => void;
 }) {
+  const [typed, setTyped] = useState(phone);
+  const [state, setState] = useState<LineState>(phone && !alreadyLinked ? { kind: "busy" } : { kind: "idle" });
+
+  function getLine(withPhone: string) {
+    setState({ kind: "busy" });
+    void fetchLine(withPhone);
+  }
+
+  async function fetchLine(withPhone: string) {
+    try {
+      const res = await agent<{ line: string; phone: string }>("/channels/imessage/line", {
+        body: withPhone ? { phone: withPhone } : {},
+      });
+      setState({ kind: "ready", line: res.line });
+    } catch (err) {
+      setState({ kind: "error", message: errorText(err) });
+    }
+  }
+
+  // A phone already on the profile is registered as soon as this step opens.
+  useEffect(() => {
+    if (phone && !alreadyLinked) void fetchLine("");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <div className="max-w-xl space-y-10">
       <section aria-labelledby="link-imessage" className="space-y-4">
         <h3 id="link-imessage" className="text-lg font-semibold">iMessage</h3>
-        <LinkBlock
-          channel="imessage"
-          alreadyLinked={alreadyLinked}
-          onLinked={onLinked}
-          intro="Open Messages on your phone. Send this code to Pulse. Pulse links your number to your account when it gets the text."
-          targetLabel="Text to"
-          target={photonNumber}
-        />
-        <p className="max-w-[60ch] text-xs text-muted-foreground">
-          Got a reply saying your number was not recognized? On Photon&apos;s free plan each tester has their own
-          line. Ask the team which one is yours, then send the same code there.
-        </p>
+        {state.kind !== "ready" && !alreadyLinked && (
+          <form
+            className="space-y-3"
+            onSubmit={(e) => {
+              e.preventDefault();
+              getLine(typed.trim());
+            }}
+          >
+            <p className="max-w-[60ch] text-sm text-muted-foreground">
+              Pulse needs your phone number so it can message you and recognise your texts.
+            </p>
+            <div className="flex flex-wrap items-end gap-3">
+              <div className="flex flex-col gap-2">
+                <label htmlFor="imessage-phone" className="text-sm font-medium">
+                  Your phone number
+                </label>
+                <Input
+                  id="imessage-phone"
+                  type="tel"
+                  inputMode="tel"
+                  autoComplete="tel"
+                  placeholder="+13135550123"
+                  value={typed}
+                  onChange={(e) => setTyped(e.target.value)}
+                  className="w-56"
+                />
+              </div>
+              <Button type="submit" disabled={state.kind === "busy" || typed.trim() === ""}>
+                {state.kind === "busy" ? "Setting up..." : "Get my Pulse number"}
+              </Button>
+            </div>
+            {state.kind === "error" && <ErrorNote>{state.message}</ErrorNote>}
+          </form>
+        )}
+        {(state.kind === "ready" || alreadyLinked) && (
+          <LinkBlock
+            channel="imessage"
+            alreadyLinked={alreadyLinked}
+            onLinked={onLinked}
+            intro="Open Messages on your phone. Send this code to Pulse. Pulse links your number to your account when it gets the text."
+            targetLabel="Text to"
+            target={state.kind === "ready" ? prettyPhone(state.line) : photonNumber}
+          />
+        )}
       </section>
       <section aria-labelledby="link-asi-one" className="space-y-4">
         <h3 id="link-asi-one" className="text-lg font-semibold">ASI:One (optional)</h3>
