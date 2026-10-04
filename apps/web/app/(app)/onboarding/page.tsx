@@ -9,8 +9,13 @@ import { requireUser } from "@/lib/session";
 export const metadata: Metadata = { title: "Setup" };
 export const dynamic = "force-dynamic";
 
-export default async function OnboardingPage() {
+export default async function OnboardingPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ finchnode?: string }>;
+}) {
   const user = await requireUser();
+  const { finchnode } = await searchParams;
   const [profile, imessageLinked, twin] = await Promise.all([
     getProfile(user.id),
     hasLinkedChannel(user.id),
@@ -30,6 +35,7 @@ export default async function OnboardingPage() {
       initialHistory={historySeed(twin?.model)}
       photonNumber={process.env.PHOTON_NUMBER_DISPLAY?.trim() || null}
       imessageLinked={imessageLinked}
+      finchnodeReturned={finchnode === "returned"}
     />
   );
 }

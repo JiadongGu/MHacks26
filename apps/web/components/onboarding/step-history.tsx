@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { FileHeart, Plus, ShieldCheck, Undo2, X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { FileHeart, Link2, Plus, ShieldCheck, Undo2, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,11 @@ import { conditionKey, medicationKey, readTwin, type TwinView } from "@/lib/twin
 import { cn } from "@/lib/utils";
 import { EMPTY_HISTORY, type HistoryState } from "./history-seed";
 import { twinProfile, type ProfileInput } from "./types";
+
+type LiveStatus = { status: "none" | "pending" | "connected" | "revoked" | "expired"; imported: boolean };
+
+const POLL_MS = 2500;
+const POLL_TRIES = 24;
 
 type Patient = { id: string; scenario: string; displayName: string; birthDate: string | null };
 
@@ -31,9 +36,11 @@ type Props = {
   setState: (next: HistoryState) => void;
   profile: ProfileInput;
   onDone: () => void;
+  /** True when FinchNode just sent the person back (?finchnode=returned). */
+  returned?: boolean;
 };
 
-export function StepHistory({ state, setState, profile, onDone }: Props) {
+export function StepHistory({ state, setState, profile, onDone, returned = false }: Props) {
   const [patients, setPatients] = useState<Patient[] | null>(null);
   const [choice, setChoice] = useState<string>("");
   const [loadingList, setLoadingList] = useState(false);
@@ -42,6 +49,60 @@ export function StepHistory({ state, setState, profile, onDone }: Props) {
   const [saving, setSaving] = useState(false);
   const [relation, setRelation] = useState(RELATIONS[0]);
   const [condition, setCondition] = useState("");
+  const [connecting, setConnecting] = useState(false);
+  const [waiting, setWaiting] = useState(returned && !state.twin);
+  const [connectNote, setConnectNote] = useState<string | null>(null);
+
+  // FinchNode sends the person back with ?finchnode=returned. Wait for the import, then show the records.
+  useEffect(() => {
+    if (!returned || state.twin) return;
+    let stop = false;
+    void (async () => {
+      for (let i = 0; i < POLL_TRIES && !stop; i += 1) {
+        try {
+          const s = await agent<LiveStatus>("/twin/finchnode/status");
+          if (s.imported) {
+            const twin = await agent<DigitalTwin>("/twin/me");
+            if (stop) return;
+            setState({ ...state, scenario: null, twin: readTwin(twin.model), removed: EMPTY_HISTORY.removed });
+            setConnectNote(null);
+            toast.success("Your health record is connected.");
+            setWaiting(false);
+            return;
+          }
+          if (s.status === "revoked" || s.status === "expired" || s.status === "none") {
+            setConnectNote("The connection was not completed. You can try again, or enter your history by hand.");
+            break;
+          }
+        } catch (err) {
+          setConnectNote(`Could not check your connection: ${errorText(err)}`);
+          break;
+        }
+        await new Promise((r) => setTimeout(r, POLL_MS));
+      }
+      if (!stop) {
+        setConnectNote((n) => n ?? "Your records have not arrived yet. Try again in a minute, or enter your history by hand.");
+        setWaiting(false);
+      }
+    })();
+    return () => {
+      stop = true;
+    };
+    // Runs once on arrival. `state` and `setState` are read at the moment the import finishes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function connectRecord() {
+    setConnecting(true);
+    setConnectNote(null);
+    try {
+      const { url } = await agent<{ url: string }>("/twin/finchnode/connect", { body: {} });
+      window.location.assign(url);
+    } catch (err) {
+      setConnecting(false);
+      setConnectNote(`Could not start the connection: ${errorText(err)}`);
+    }
+  }
 
   async function loadPatients() {
     setLoadingList(true);
@@ -113,10 +174,23 @@ export function StepHistory({ state, setState, profile, onDone }: Props) {
           {patients === null ? (
             <div className="max-w-[60ch] space-y-4">
               <p className="text-base">
-                Pulse tunes its alerts to your health. Tell it about your own history, or try a demo record from
-                FinchNode, a service with synthetic patients, to see how a record is read. You can change or
-                remove anything before you continue.
+                Pulse tunes its alerts to your own health. The quickest way is to connect your health record:
+                you sign in to your health system through FinchNode, approve what to share, and Pulse reads your
+                conditions, medications, allergies, and lab results. Or enter your history by hand. You can
+                change anything before you continue.
               </p>
+              <p className="text-sm text-muted-foreground">
+                Only want to look around? The sample record is a made-up patient, not you. Its conditions will
+                shape your alerts until you remove them.
+              </p>
+              {waiting && (
+                <p role="status" className="text-sm">
+                  Waiting for your records from FinchNode. This takes a few seconds.
+                </p>
+              )}
+              {connectNote && (
+                <ErrorNote>{connectNote}</ErrorNote>
+              )}
               {listError && (
                 <ErrorNote
                   action={
@@ -129,10 +203,23 @@ export function StepHistory({ state, setState, profile, onDone }: Props) {
                 </ErrorNote>
               )}
               <div className="flex flex-wrap items-center gap-4">
-                <Button size="lg" className="h-10 px-5" onClick={() => setState({ ...state, twin: readTwin({}) })}>
+                <Button
+                  size="lg"
+                  className="h-10 px-5"
+                  onClick={() => void connectRecord()}
+                  disabled={connecting || waiting}
+                >
+                  <Link2 aria-hidden="true" />
+                  {connecting ? "Opening FinchNode..." : "Connect my health record"}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setState({ ...state, twin: readTwin({}) })}
+                  disabled={connecting || waiting}
+                >
                   Enter my own history
                 </Button>
-                <Button variant="outline" onClick={() => void loadPatients()} disabled={loadingList}>
+                <Button variant="ghost" onClick={() => void loadPatients()} disabled={loadingList || connecting || waiting}>
                   <FileHeart aria-hidden="true" />
                   {loadingList ? "Looking for records..." : "Try a demo record"}
                 </Button>
@@ -189,7 +276,7 @@ export function StepHistory({ state, setState, profile, onDone }: Props) {
 
       {twin && (
         <>
-          <ImportedLists twin={twin} removed={state.removed} onToggle={toggleRemoved} imported={state.scenario !== null} />
+          <ImportedLists twin={twin} removed={state.removed} onToggle={toggleRemoved} origin={twin.provenance.finchnode_live === true ? "live" : state.scenario !== null ? "sample" : "saved"} />
 
           <AddList
             id="add-conditions"
@@ -307,13 +394,14 @@ function ImportedLists({
   twin,
   removed,
   onToggle,
-  imported,
+  origin,
 }: {
   twin: TwinView;
   removed: HistoryState["removed"];
   onToggle: (kind: keyof HistoryState["removed"], key: string) => void;
-  imported: boolean;
+  origin: "live" | "sample" | "saved";
 }) {
+  const imported = origin !== "saved";
   const nothing =
     twin.conditions.length + twin.medications.length + twin.allergies.length + twin.labs.length === 0;
   if (nothing) {
