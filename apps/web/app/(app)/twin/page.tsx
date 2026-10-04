@@ -162,6 +162,28 @@ function Stat({ label, value }: { label: string; value: string }) {
   );
 }
 
+const THRESHOLD_LABEL: Record<string, string> = {
+  bp_warn: "Blood pressure alert above",
+  spo2_warn: "Blood oxygen alert below",
+  workout_hr: "Workout heart rate",
+  rhr_delta_warn: "Resting heart rate rise",
+  inactivity_steps_3h: "Inactive if under, in 3 h",
+};
+const THRESHOLD_UNIT: Record<string, string> = {
+  spo2_warn: "%",
+  workout_hr: " bpm",
+  rhr_delta_warn: " bpm",
+  inactivity_steps_3h: " steps",
+};
+const RISK_LABEL: Record<string, string> = {
+  t2dm: "type 2 diabetes",
+  hypertension: "hypertension",
+  afib: "atrial fibrillation",
+  ckd: "chronic kidney disease",
+  heart_failure: "heart failure",
+  skin_cancer: "skin cancer history",
+};
+
 function TwinBody({ view }: { view: TwinView }) {
   const p = view.profile;
   const days = typeof view.baselines.computed_from_days === "number" ? view.baselines.computed_from_days : 0;
@@ -301,11 +323,16 @@ function TwinBody({ view }: { view: TwinView }) {
           {Object.keys(view.thresholds).length === 0 ? (
             <None>Pulse sets thresholds when your twin is built.</None>
           ) : (
-            <Facts rows={Object.entries(view.thresholds).map(([k, v]) => [humanize(k), show(v)])} />
+            <Facts
+              rows={Object.entries(view.thresholds).map(([k, v]) => [
+                THRESHOLD_LABEL[k] ?? humanize(k),
+                Array.isArray(v) && v.length === 2 ? `${v[0]}/${v[1]} mmHg` : `${show(v)}${THRESHOLD_UNIT[k] ?? ""}`,
+              ])}
+            />
           )}
           {view.riskFlags.length > 0 && (
             <p className="mt-4 text-xs text-muted-foreground">
-              Tightened for: {view.riskFlags.map(humanize).join(", ")}.
+              Tightened for: {view.riskFlags.map((f) => RISK_LABEL[f] ?? humanize(f)).join(", ")}.
             </p>
           )}
         </Section>
