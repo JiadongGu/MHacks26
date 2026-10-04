@@ -46,7 +46,7 @@ export async function StatusHero({ userId }: { userId: string }) {
         Twin status
       </p>
       <h2 className="mt-2 text-5xl">{view.status ? STATUS_LABEL[view.status] : "Not rated yet"}</h2>
-      {twin.summary && <p className="mt-4 max-w-[60ch] text-base">{twin.summary}</p>}
+      {twin.summary && <p className="mt-4 max-w-[60ch] whitespace-pre-line text-base">{twin.summary}</p>}
       {insights.length > 0 && (
         <ul className="mt-3 max-w-[60ch] list-disc space-y-1 pl-5 text-sm text-muted-foreground">
           {insights.map((i) => (

@@ -120,6 +120,29 @@ def clip(text: str, limit: int = MAX_REPLY) -> str:
     return cut.rstrip(" ,;:") + "…"
 
 
+def clip_lines(text: str, limit: int = MAX_REPLY) -> str:
+    """Like clip, but keeps line breaks and single blank lines between sections. Cuts at a line boundary."""
+    lines = [" ".join(line.split()) for line in text.splitlines()]
+    out: list[str] = []
+    for line in lines:
+        if line == "" and (not out or out[-1] == ""):
+            continue
+        out.append(line)
+    while out and out[-1] == "":
+        out.pop()
+    joined = "\n".join(out)
+    if len(joined) <= limit:
+        return joined
+    kept: list[str] = []
+    for line in out:
+        if len("\n".join([*kept, line])) > limit - 1:
+            break
+        kept.append(line)
+    while kept and kept[-1] == "":
+        kept.pop()
+    return ("\n".join(kept) + "…") if kept else clip(text, limit)
+
+
 def fmt_dt(dt: datetime, tz: str) -> str:
     return local_now(tz, dt).strftime("%a %b %-d, %-I:%M %p")
 

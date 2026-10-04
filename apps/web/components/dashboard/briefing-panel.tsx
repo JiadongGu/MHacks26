@@ -101,7 +101,7 @@ export function BriefingPanel({ briefing }: { briefing: BriefingView | null }) {
         </EmptyState>
       ) : (
         <div className="rounded-lg border border-border p-4">
-          <p className="max-w-[65ch] text-base">{briefing.text}</p>
+          <p className="max-w-[65ch] whitespace-pre-line text-base">{briefing.text}</p>
           <div className="mt-4 flex flex-wrap items-center gap-3">
             <Button
               onClick={() => void toggle()}

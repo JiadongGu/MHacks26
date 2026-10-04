@@ -823,65 +823,60 @@ def _join(items: list[str]) -> str:
 
 
 def summarize(twin: Mapping[str, Any]) -> str:
-    """Deterministic one-paragraph summary. No LLM."""
+    """Deterministic summary, one labelled line each, so it reads at a glance. No LLM."""
     prof = _dict(twin.get("profile"))
-    parts: list[str] = []
+    lines: list[str] = []
     who = []
     if prof.get("age") is not None:
-        who.append(f"{prof['age']}-year-old")
+        who.append(str(prof["age"]))
     if prof.get("sex"):
         who.append(str(prof["sex"]))
-    parts.append((" ".join(who) if who else "Person of unknown age and sex") + ".")
+    lines.append(", ".join(who) if who else "Age and sex not given")
 
     conditions = [_dict(c) for c in _list(twin.get("conditions"))]
     active = [c for c in conditions if c.get("status") not in INACTIVE_STATUSES]
     if active:
         names = [str(c.get("display")) for c in active]
         shown = _join(names[:6]) + (f" and {len(names) - 6} more" if len(names) > 6 else "")
-        parts.append(f"Active conditions: {shown}.")
+        lines.append(f"Conditions: {shown}")
     else:
-        parts.append("No active conditions on record.")
+        lines.append("Conditions: none on record")
 
     meds = [_dict(m) for m in _list(twin.get("medications"))]
     if meds:
         classes = sorted({str(m["class"]) for m in meds if m.get("class")})
-        text = f"Takes {len(meds)} medication{'s' if len(meds) != 1 else ''}"
+        text = f"Medications: {len(meds)}"
         if len(meds) <= 4:
-            text += f": {_join([str(m.get('display')) for m in meds])}"
+            text = f"Medications: {_join([str(m.get('display')) for m in meds])}"
         elif classes:
             text += f", including {_join(classes[:6])}"
-        parts.append(text + ".")
+        lines.append(text)
     else:
-        parts.append("No medications on record.")
+        lines.append("Medications: none on record")
 
     allergies = _list(twin.get("allergies"))
-    if allergies:
-        parts.append(f"Allergies: {_join([str(a) for a in allergies])}.")
-    else:
-        parts.append("No known allergies on record.")
+    lines.append(
+        f"Allergies: {_join([str(a) for a in allergies])}" if allergies else "Allergies: none on record"
+    )
 
     fam = [_dict(f) for f in _list(twin.get("family_history"))]
     if fam:
-        parts.append(
+        lines.append(
             "Family history (self-reported): "
-            + _join([f"{f.get('relation')}: {f.get('condition')}" for f in fam])
-            + "."
+            + "; ".join(f"{f.get('relation')} ({f.get('condition')})" for f in fam)
         )
 
     all_labs = [_dict(lab) for lab in _list(twin.get("labs"))]
     rank = {code: i for i, code in enumerate(LAB_PRIORITY)}
     labs = sorted(all_labs, key=lambda lab: rank.get(lab.get("loinc"), len(rank)))[:3]
     if labs:
-        parts.append(
+        lines.append(
             "Recent labs: "
-            + _join(
-                [
-                    f"{lab.get('display')} {_fmt_num(lab.get('value'))} {lab.get('unit')}".strip()
-                    + (f" ({lab['date']})" if lab.get("date") else "")
-                    for lab in labs
-                ]
+            + "; ".join(
+                f"{lab.get('display')} {_fmt_num(lab.get('value'))} {lab.get('unit')}".strip()
+                + (f" ({lab['date']})" if lab.get("date") else "")
+                for lab in labs
             )
-            + "."
         )
 
     b = _dict(twin.get("baselines"))
@@ -893,24 +888,24 @@ def summarize(twin: Mapping[str, Any]) -> str:
     if b.get("sleep_min") is not None:
         base.append(f"sleep {b['sleep_min'] / 60:.1f} h")
     if b.get("steps") is not None:
-        base.append(f"{_fmt_num(b['steps'])} steps a day")
+        base.append(f"{round(b['steps']):,} steps a day")
     if base:
-        parts.append("Baselines: " + _join(base) + ".")
+        lines.append("Your usual: " + " · ".join(base))
     if b.get("clinical_bp"):
-        parts.append(f"Last clinic blood pressure {b['clinical_bp']}.")
+        lines.append(f"Last clinic blood pressure: {b['clinical_bp']}")
 
     t = _dict(twin.get("thresholds"))
     if t:
         bp = _list(t.get("bp_warn"))
-        text = (
-            f"Alerts: resting heart rate {_fmt_num(t.get('rhr_delta_warn'))} bpm above baseline, "
-            f"SpO2 below {_fmt_num(t.get('spo2_warn'))}%"
-        )
+        flags = [
+            f"resting heart rate {_fmt_num(t.get('rhr_delta_warn'))} bpm above your usual",
+            f"SpO2 below {_fmt_num(t.get('spo2_warn'))}%",
+        ]
         if len(bp) == 2:
-            text += f", blood pressure above {bp[0]}/{bp[1]}"
-        parts.append(text + ".")
+            flags.append(f"blood pressure above {bp[0]}/{bp[1]}")
+        lines.append("Pulse will flag: " + " · ".join(flags))
         if t.get("suppress_low_hr"):
-            parts.append("Low heart rate alerts are off because of a beta blocker.")
+            lines.append("Low heart rate alerts are off because of a beta blocker")
         if t.get("irregular_rhythm_wording"):
-            parts.append("Heart rhythm messages use irregular rhythm wording because of atrial fibrillation.")
-    return " ".join(parts)
+            lines.append("Heart rhythm messages use irregular rhythm wording because of atrial fibrillation")
+    return "\n".join(lines)
