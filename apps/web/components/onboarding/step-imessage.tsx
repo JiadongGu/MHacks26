@@ -35,6 +35,10 @@ export function StepImessage({
           targetLabel="Text to"
           target={photonNumber}
         />
+        <p className="max-w-[60ch] text-xs text-muted-foreground">
+          Got a reply saying your number was not recognized? On Photon&apos;s free plan each tester has their own
+          line. Ask the team which one is yours, then send the same code there.
+        </p>
       </section>
       <section aria-labelledby="link-asi-one" className="space-y-4">
         <h3 id="link-asi-one" className="text-lg font-semibold">ASI:One (optional)</h3>

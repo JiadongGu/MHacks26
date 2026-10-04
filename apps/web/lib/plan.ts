@@ -11,6 +11,8 @@ export type PlanItem = {
   why: string;
   /** Set when the item was written to the Pulse Health calendar. */
   event_id?: string;
+  /** True once the person ticked it off. */
+  done?: boolean;
 };
 
 export type PlanView = {
@@ -54,6 +56,7 @@ export function parseItems(raw: unknown): PlanItem[] {
       end: o.end,
       why: typeof o.why === "string" ? o.why : "",
       event_id: isString(o.event_id) ? o.event_id : undefined,
+      done: o.done === true ? true : undefined,
     });
   }
   return out.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());

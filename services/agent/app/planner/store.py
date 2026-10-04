@@ -47,3 +47,10 @@ async def save_plan(
             "wake_time = excluded.wake_time, items = excluded.items, created_at = now()",
             (user_id, day, load, headline, bed, wake, Jsonb(items)),
         )
+
+
+async def set_items(user_id: UUID, day: date, items: list[dict]) -> None:
+    async with db.neon() as conn:
+        await conn.execute(
+            "update daily_plans set items = %s where user_id = %s and day = %s", (Jsonb(items), user_id, day)
+        )
