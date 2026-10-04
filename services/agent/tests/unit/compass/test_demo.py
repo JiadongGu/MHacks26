@@ -97,3 +97,19 @@ async def test_evening_endpoint_forces_the_evening_job(monkeypatch):
     monkeypatch.setattr(compass, "run_evening", run_evening)
     assert await demo.evening(USER) == {"ran": True}
     assert calls == [(USER, True)]
+
+
+def test_reset_calls_compass(monkeypatch):
+    calls = []
+
+    async def reset_demo(user_id):
+        calls.append(user_id)
+        return {"proposals_expired": 1, "alerts_cleared": 3}
+
+    monkeypatch.setattr(compass, "reset_demo", reset_demo)
+    with TestClient(app) as c:
+        r = c.post(f"/demo/reset?user_id={USER}", headers=HEADERS)
+        assert c.post(f"/demo/reset?user_id={USER}").status_code == 401
+    assert r.status_code == 200
+    assert r.json() == {"proposals_expired": 1, "alerts_cleared": 3}
+    assert calls == [USER]

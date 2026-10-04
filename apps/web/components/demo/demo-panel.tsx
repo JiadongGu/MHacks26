@@ -11,6 +11,7 @@ import {
   Moon,
   Play,
   RefreshCw,
+  RotateCcw,
   Thermometer,
   Wind,
   type LucideIcon,
@@ -118,17 +119,30 @@ export function DemoPanel({
         </section>
 
         <section aria-labelledby="demo-twin">
-          <h2 id="demo-twin" className="mb-3 text-xl">
-            Twin
+          <h2 id="demo-twin" className="mb-1 text-xl">
+            Reset
           </h2>
-          <Button
-            variant="outline"
-            disabled={busy !== null}
-            onClick={() => void run("rebuild", "Rebuild twin", "/twin/me/rebuild", {})}
-          >
-            <RefreshCw aria-hidden="true" />
-            {busy === "rebuild" ? "Rebuilding..." : "Rebuild twin"}
-          </Button>
+          <p className="mb-3 max-w-[60ch] text-sm text-muted-foreground">
+            Alerts have cooldowns. Reset before a run so the scenario fires again. Nothing is deleted.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant="outline"
+              disabled={busy !== null}
+              onClick={() => void run("reset", "Reset demo", "/demo/reset", {})}
+            >
+              <RotateCcw aria-hidden="true" />
+              {busy === "reset" ? "Resetting..." : "Reset demo"}
+            </Button>
+            <Button
+              variant="outline"
+              disabled={busy !== null}
+              onClick={() => void run("rebuild", "Rebuild twin", "/twin/me/rebuild", {})}
+            >
+              <RefreshCw aria-hidden="true" />
+              {busy === "rebuild" ? "Rebuilding..." : "Rebuild twin"}
+            </Button>
+          </div>
         </section>
 
         <div aria-live="polite" className="space-y-3">

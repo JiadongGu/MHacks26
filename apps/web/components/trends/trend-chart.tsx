@@ -43,7 +43,8 @@ export function TrendChart({
   const domain = ([lo, hi]: readonly [number, number]): [number, number] => {
     const min = band ? Math.min(lo, band[0]) : lo;
     const max = band ? Math.max(hi, band[1]) : hi;
-    return kind === "bar" ? [0, Math.ceil(max)] : [Math.floor(min), Math.ceil(max)];
+    const pad = (max - min) * 0.25 || 1;
+    return kind === "bar" ? [0, Math.ceil(max)] : [Math.floor(min - pad), Math.ceil(max + pad)];
   };
   const common = { data: points, margin: { top: 4, right: 4, bottom: 0, left: 0 } };
   const parts = [
@@ -64,8 +65,8 @@ export function TrendChart({
         key="band"
         y1={band[0]}
         y2={band[1]}
-        fill="var(--muted-foreground)"
-        fillOpacity={0.14}
+        fill={color}
+        fillOpacity={0.08}
         ifOverflow="extendDomain"
       />
     ),

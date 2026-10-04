@@ -320,7 +320,7 @@
 .ambient-fade {
   position: absolute;
   inset: 0;
-  mask-image: linear-gradient(to bottom, #000 0%, #000 30%, transparent 85%);
+  mask-image: linear-gradient(to bottom, #000 0%, transparent 32%);
 }
 
 @media (prefers-reduced-motion: reduce) {
