@@ -70,13 +70,21 @@ export async function getSeries(
   return cleanSeries(raw);
 }
 
+const WIDE_HOURS = 24;
+
 /** The heart rate series plus the small tiles. A tile that fails to load is left out. */
 export async function getVitalsPanel(
   userId: string,
   hours: number = DEFAULT_HOURS,
 ): Promise<VitalsPayload> {
+  let covered = hours;
   const [series, latest, daily] = await Promise.allSettled([
-    getSeries(userId, { metric: "heart_rate", windowMin: hours * 60, bucketMin: 1 }),
+    getSeries(userId, { metric: "heart_rate", windowMin: hours * 60, bucketMin: 1 }).then(async (points) => {
+      // A watch that last synced this morning leaves the recent window empty. Show the last day instead.
+      if (points.length > 0 || hours >= WIDE_HOURS) return points;
+      covered = WIDE_HOURS;
+      return getSeries(userId, { metric: "heart_rate", windowMin: WIDE_HOURS * 60, bucketMin: 5 });
+    }),
     agentJson("/vitals/latest", { user_id: userId, metrics: "spo2,resting_heart_rate" }),
     agentJson("/vitals/daily", { user_id: userId, days: "1" }),
   ]);
@@ -87,5 +95,5 @@ export async function getVitalsPanel(
       : null;
   const dailyRows =
     daily.status === "fulfilled" && Array.isArray(daily.value) ? (daily.value as DailyRow[]) : null;
-  return { series: series.value, tiles: buildTiles(latestMap, dailyRows) };
+  return { series: series.value, tiles: buildTiles(latestMap, dailyRows), hours: covered };
 }

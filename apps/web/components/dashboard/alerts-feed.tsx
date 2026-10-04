@@ -17,16 +17,18 @@ type Props = {
   limit: number;
   pollMs?: number;
   emptyHint?: string;
+  /** Alert kinds to leave out, for kinds the dashboard shows elsewhere. */
+  hideKinds?: string[];
 };
 
-export function AlertsFeed({ initial, limit, pollMs = 15_000, emptyHint }: Props) {
+export function AlertsFeed({ initial, limit, pollMs = 15_000, emptyHint, hideKinds = [] }: Props) {
   const { data, setData, error, loading, refresh } = usePolling(
     async () => (await me<{ alerts: AlertView[] }>(`/alerts?limit=${limit}`)).alerts,
     { label: "Alerts", intervalMs: pollMs, initial },
   );
   const [busy, setBusy] = useState(false);
 
-  const alerts = data ?? [];
+  const alerts = (data ?? []).filter((a) => !hideKinds.includes(a.kind));
   const unread = alerts.filter((a) => !a.read_at).length;
 
   async function markRead(body: { ids: string[] } | { all: true }) {
