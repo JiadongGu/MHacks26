@@ -180,6 +180,7 @@ export async function listPendingProposals(userId: string): Promise<ProposalView
       and(
         eq(schema.calendar_proposals.user_id, userId),
         eq(schema.calendar_proposals.status, "pending"),
+        gt(schema.calendar_proposals.ends_at, new Date()),
       ),
     )
     .orderBy(desc(schema.calendar_proposals.created_at))

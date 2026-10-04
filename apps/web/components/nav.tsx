@@ -182,7 +182,7 @@ export function TopLinks({ extra }: { extra: NavItem[] }) {
           key={item.href}
           href={item.href}
           aria-current={pathname.startsWith(item.href) ? "page" : undefined}
-          className="text-muted-foreground underline-offset-4 hover:text-foreground hover:underline aria-[current=page]:text-foreground aria-[current=page]:underline"
+          className="hidden text-muted-foreground underline-offset-4 hover:text-foreground hover:underline aria-[current=page]:text-foreground aria-[current=page]:underline sm:inline"
         >
           {item.label}
         </Link>

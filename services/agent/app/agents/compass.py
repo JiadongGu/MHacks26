@@ -536,7 +536,8 @@ async def expire_pending() -> int:
     async with db.neon() as conn:
         cur = await conn.execute(
             "update calendar_proposals set status = 'expired' where status = 'pending' "
-            "and created_at < now() - make_interval(hours => %s) returning id", (SWEEP_EXPIRE_H,))
+            "and (created_at < now() - make_interval(hours => %s) or ends_at < now()) returning id",
+            (SWEEP_EXPIRE_H,))
         return len(await cur.fetchall())
 
 

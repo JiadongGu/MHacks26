@@ -64,7 +64,7 @@ export function MetricCard({
           <span className="truncate">{trend.label}</span>
         </h3>
         <span className="flex shrink-0 items-center gap-0.5 text-xs text-muted-foreground">
-          {!empty && dayLabel(trend.latestDay, today)}
+          {!empty && <span className="max-sm:hidden">{dayLabel(trend.latestDay, today)}</span>}
           {href && <ChevronRight className="size-3.5" aria-hidden="true" />}
         </span>
       </div>
