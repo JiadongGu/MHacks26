@@ -215,3 +215,16 @@ def test_a_strict_template_is_skipped_rather_than_moved_outside_its_hours():
     morning_only = [shape.Slot(at(8), at(10))]
     assert schedule.place(["sun_reapply"], morning_only, "normal") == []
     assert [i.key for i in schedule.place(["sun"], morning_only, "normal")] == ["sun"]
+
+
+def test_sunscreen_gets_the_morning_and_the_reapply_follows_two_hours_later():
+    day = [shape.Slot(at(8), at(18))]
+    items = schedule.place(schedule.planned_keys(["study"], {"skin_cancer"}, date(2026, 10, 5)), day, "light")
+    by_key = {i.key: i for i in items}
+    assert by_key["sun"].start.hour in (8, 9)
+    assert (by_key["sun_reapply"].start - by_key["sun"].end).total_seconds() >= 2 * 3600
+    assert 12 <= by_key["sun_reapply"].start.hour < 15
+
+
+def test_the_reapply_is_dropped_when_the_morning_item_could_not_be_placed():
+    assert schedule.place(["sun_reapply"], [shape.Slot(at(12), at(15))], "normal") == []
