@@ -118,7 +118,15 @@ RISK_RULES: dict[str, tuple[set[str], tuple[str, ...], re.Pattern[str]]] = {
         re.compile(r"hyperlipid|dyslipid|high cholesterol|hypercholesterol", re.I),
     ),
     "hypothyroidism": ({"40930008"}, ("E03",), re.compile(r"hypothyroid", re.I)),
+    # Melanoma, basal or squamous cell skin cancer, or a history of them (ICD-10 C43, C44, D03, Z85.8x).
+    "skin_cancer": (
+        set(),
+        ("C43", "C44", "D03", "Z85.82", "Z85.83"),
+        re.compile(r"melanoma|basal cell|squamous cell (carcinoma|cancer)|skin cancer|merkel", re.I),
+    ),
 }
+# Flags that stay on after the condition is resolved or in remission: sun protection matters for life.
+LIFELONG_FLAGS = {"skin_cancer"}
 
 INACTIVE_STATUSES = {"inactive", "resolved", "remission"}
 SKIP_MED_STATUSES = {"stopped", "cancelled", "completed", "entered-in-error", "draft"}
@@ -437,12 +445,11 @@ def risk_flags_for(twin: Mapping[str, Any]) -> list[str]:
     flags: list[str] = []
     for c in _list(twin.get("conditions")):
         c = _dict(c)
-        if c.get("status") in INACTIVE_STATUSES:
-            continue
+        inactive = c.get("status") in INACTIVE_STATUSES
         code = str(c.get("code") or "")
         text = str(c.get("display") or "")
         for flag, (snomed, icd, pattern) in RISK_RULES.items():
-            if flag in flags:
+            if flag in flags or (inactive and flag not in LIFELONG_FLAGS):
                 continue
             if code in snomed or (code and code.startswith(icd)) or pattern.search(text):
                 flags.append(flag)

@@ -14,6 +14,7 @@ export const CONDITION_SUGGESTIONS = [
   "Heart failure",
   "Chronic kidney disease",
   "Hypothyroidism",
+  "Skin cancer (melanoma)",
   "Anxiety",
   "Depression",
   "ADHD",

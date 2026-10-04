@@ -6,29 +6,25 @@ import { toast } from "sonner";
 import { advanceStepAction } from "@/app/(app)/onboarding/actions";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { GoogleStatusCard } from "./google-status";
-import { StepDevices } from "./step-devices";
-import { StepDone } from "./step-done";
+import { StepConnect } from "./step-connect";
+import { StepFinish } from "./step-finish";
 import { StepGoals } from "./step-goals";
 import { EMPTY_HISTORY, type HistoryState } from "./history-seed";
 import { StepHistory } from "./step-history";
-import { StepImessage } from "./step-imessage";
 import { StepProfile } from "./step-profile";
 import { LAST_STEP, STEPS, type ProfileInput } from "./types";
 
 const BLURB: Record<number, string> = {
   1: "Pulse needs the basics to read your numbers in context.",
-  2: "Connect your record so Pulse knows your conditions, medications, and allergies.",
-  3: "Connect a device, or run the simulator for the demo. You can skip this.",
-  4: "Pulse reads your calendar to spot exams and trips, and writes only with your approval. You can skip this.",
-  5: "Pick targets. Pulse tracks them and reports your progress.",
-  6: "Link iMessage so Pulse can text you and you can text back.",
-  7: "Pulse builds your twin and opens your dashboard.",
+  2: "Connect your health record, or tell Pulse about your conditions, medications, and allergies.",
+  3: "Connect your calendar so Pulse can plan around it. Add a watch for live health data.",
+  4: "Pick up to three things to work on. Pulse plans them into your free time.",
+  5: "Link your messages if you like, then Pulse builds your twin and opens your dashboard.",
 };
 
 type Props = {
   initialStep: number;
-  /** Highest step the user has reached. A finished user has reached step 7. */
+  /** Highest step the user has reached. A finished user has reached the last step. */
   highestStep: number;
   complete: boolean;
   profile: ProfileInput;
@@ -56,7 +52,7 @@ export function OnboardingFlow({
   const [profileState, setProfileState] = useState<ProfileInput>(profile);
   const [history, setHistory] = useState<HistoryState>(initialHistory);
   const [simulate, setSimulate] = useState(false);
-  const [linked, setLinked] = useState(imessageLinked);
+  const [, setLinked] = useState(imessageLinked);
   const headingRef = useRef<HTMLHeadingElement>(null);
   const first = useRef(true);
 
@@ -91,8 +87,7 @@ export function OnboardingFlow({
   const markLinked = useCallback(() => setLinked(true), []);
 
   const current = STEPS[step - 1];
-  const optional = step === 3 || step === 4 || step === 6;
-  const skipLabel = step === 6 && !linked ? "I'll do this later" : "Continue";
+  const optional = step === 3;
 
   return (
     <div className="grid gap-8 md:grid-cols-[13rem_minmax(0,1fr)] md:gap-16">
@@ -185,13 +180,11 @@ export function OnboardingFlow({
             returned={finchnodeReturned}
           />
         )}
-        {step === 3 && <StepDevices simulate={simulate} setSimulate={setSimulate} />}
-        {step === 4 && <GoogleStatusCard />}
-        {step === 5 && <StepGoals onDone={next} />}
-        {step === 6 && (
-          <StepImessage photonNumber={photonNumber} alreadyLinked={imessageLinked} onLinked={markLinked} />
+        {step === 3 && <StepConnect simulate={simulate} setSimulate={setSimulate} />}
+        {step === 4 && <StepGoals onDone={next} />}
+        {step === 5 && (
+          <StepFinish photonNumber={photonNumber} alreadyLinked={imessageLinked} onLinked={markLinked} />
         )}
-        {step === 7 && <StepDone />}
 
         {step > 1 && (
           <div className="mt-10 flex flex-wrap items-center gap-4 border-t border-border pt-6">
@@ -200,7 +193,7 @@ export function OnboardingFlow({
             </Button>
             {optional && (
               <Button variant="outline" onClick={next} disabled={saving}>
-                {saving ? "Saving..." : skipLabel}
+                {saving ? "Saving..." : "Continue"}
               </Button>
             )}
           </div>
