@@ -18,7 +18,6 @@ export const METRICS: MetricDef[] = [
   { key: "resting_heart_rate", label: "Resting heart rate", unit: "bpm", agg: "avg", hint: "Your calm heart rate." },
   { key: "hrv_sdnn", label: "Heart rate variability", unit: "ms", agg: "avg", hint: "How relaxed your body is." },
   { key: "spo2", label: "Blood oxygen", unit: "%", agg: "avg", hint: "Oxygen level in your blood." },
-  { key: "active_energy_kcal", label: "Calories burned", unit: "kcal", agg: "sum", hint: "Active calories today." },
 ];
 
 export const METRIC_KEYS = METRICS.map((m) => m.key);

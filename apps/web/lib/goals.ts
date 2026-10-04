@@ -17,7 +17,6 @@ export const GOAL_METRICS: GoalMetric[] = [
   { metric: "active_minutes", label: "Active minutes", unit: "min", noun: "active minutes" },
   { metric: "workout", label: "Workouts", unit: "workouts", noun: "workouts" },
   { metric: "resting_heart_rate", label: "Resting heart rate", unit: "bpm", noun: "bpm" },
-  { metric: "active_energy_kcal", label: "Active energy", unit: "kcal", noun: "kcal" },
 ];
 
 export type GoalPreset = {

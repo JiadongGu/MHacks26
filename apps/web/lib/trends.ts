@@ -14,7 +14,7 @@ export function parseRange(value: string | string[] | undefined): Range {
 export const CATEGORIES = [
   { id: "heart", title: "Heart", color: "#FF2D55", metrics: ["resting_heart_rate", "hrv_sdnn"] },
   { id: "sleep", title: "Sleep", color: "#5E5CE6", metrics: ["sleep_total_min"] },
-  { id: "activity", title: "Activity", color: "#FF9500", metrics: ["steps", "active_minutes", "active_energy_kcal"] },
+  { id: "activity", title: "Activity", color: "#FF9500", metrics: ["steps", "active_minutes"] },
   { id: "respiratory", title: "Respiratory", color: "#32ADE6", metrics: ["spo2"] },
 ] as const;
 

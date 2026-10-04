@@ -32,7 +32,8 @@ def _fetch(
     day_start = datetime.combine(since, time(0), tzinfo=ZoneInfo(tz))
     samples = normalize.heart_rate_samples(user_id, client.heart_rate(start, end))
     samples += normalize.steps_samples(user_id, client.steps(day_start, end))
-    samples += normalize.spo2_samples(user_id, client.spo2(start, end))
+    # Blood oxygen is measured overnight, so a short window never sees it. Read it over the same whole days.
+    samples += normalize.spo2_samples(user_id, client.spo2(day_start, end))
     samples += normalize.active_minutes_samples(user_id, client.active_minutes(day_start, end))
     samples += normalize.resting_hr_samples(user_id, client.daily("daily-resting-heart-rate", since, today))
     samples += normalize.hrv_samples(user_id, client.daily("daily-heart-rate-variability", since, today))
