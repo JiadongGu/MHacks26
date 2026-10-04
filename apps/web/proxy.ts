@@ -8,6 +8,8 @@ export const config = {
   matcher: [
     "/onboarding/:path*",
     "/dashboard/:path*",
+    "/conversations/:path*",
+    "/calendar/:path*",
     "/twin/:path*",
     "/goals/:path*",
     "/alerts/:path*",
