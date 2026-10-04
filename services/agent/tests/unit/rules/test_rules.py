@@ -303,3 +303,12 @@ def test_when_words_today_tonight_tomorrow_weekday():
     assert _when(ctx, datetime(2026, 10, 3, 23, 0, tzinfo=tz)) == "tonight at 11:00 PM"
     assert _when(ctx, datetime(2026, 10, 4, 14, 0, tzinfo=tz)) == "tomorrow at 2:00 PM"
     assert _when(ctx, datetime(2026, 10, 6, 7, 0, tzinfo=tz)) == "Tuesday at 7:00 AM"
+
+
+def test_r8_needs_two_normal_days_after_the_illness_alert():
+    twin = {**BASE_TWIN, "status": "possibly_ill"}
+    ctx = build_context("recovery", twin=twin)
+    ctx.recent_alerts = [("illness_onset", ctx.now - timedelta(hours=20))]
+    assert kinds(evaluate(ctx)) == []
+    ctx.recent_alerts = [("illness_onset", ctx.now - timedelta(days=3))]
+    assert kinds(evaluate(ctx)) == ["recovery"]

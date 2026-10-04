@@ -37,9 +37,7 @@
 
 ## Known bugs
 - Photon free plan: testers must be registered and each gets their own line (docs/DEMO.md); onboarding shows J's line
-- Recovery rule can fire right after another scenario (should require 2 normal days)
-- Spacetime reads with a non-owner admin token: fixed by J's #27 views for P's code; the agent switches with `SPACETIME_ADMIN_VIEWS=1` (writer and `/vitals/*` read `admin_minute_agg` after `watch_user`; live-verified: simulator to Spacetime to `/vitals/series|latest`, resend leaves n unchanged). J's `live._series` and `sweep_all` still read `minute_agg` directly, so they need the owner token (deployed) or `spacetime.table()`
-- J's `live.on_samples_ingested` logs an `HTTPStatusError` after every ingest when the agent runs with a non-owner admin token (it reads `minute_agg`, which is private). It never raises, so nothing breaks; with the owner token (deployed) it works. A 3-line fix in `live._series` / `sweep_all` using `spacetime.table()` + `ensure_watching()` would let the rules run locally too
+- Spacetime with a non-owner admin token: set `SPACETIME_ADMIN_VIEWS=1`; the writer, `/vitals/*`, `live._series` and `sweep_all` all read the `admin_*` views then
 
 ## Dev access (how P reaches Neon and Spacetime)
 - Neon: P's account (gavinmo) is an Editor in J's org (`org-flat-fog-88476672`), project `wispy-wind-94465979`. Repo linked with `neon link` (`.neon`, gitignored). Test branch `p-test` (schema only, no user data, expires 2026-10-10): `neon connection-string p-test --project-id wispy-wind-94465979 --pooled` into `services/agent/.env` as `DATABASE_URL`. Never point tests at `production`
