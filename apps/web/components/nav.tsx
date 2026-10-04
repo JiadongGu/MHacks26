@@ -8,6 +8,7 @@ import {
   FlaskConical,
   HeartPulse,
   LayoutDashboard,
+  LineChart,
   ListChecks,
   MessageSquare,
   Settings,
@@ -19,13 +20,14 @@ import { cn } from "@/lib/utils";
 export type NavItem = {
   href: string;
   label: string;
-  /** Shorter text for the mobile bottom bar, where seven items share the width. */
+  /** Shorter text for the mobile bottom bar, where eight items share the width. */
   shortLabel?: string;
   icon: LucideIcon;
 };
 
 export const MAIN_NAV: NavItem[] = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/dashboard", label: "Dashboard", shortLabel: "Home", icon: LayoutDashboard },
+  { href: "/trends", label: "Trends", icon: LineChart },
   { href: "/conversations", label: "Conversations", shortLabel: "Chats", icon: MessageSquare },
   { href: "/calendar", label: "Calendar", icon: CalendarDays },
   { href: "/twin", label: "Twin", icon: HeartPulse },
@@ -98,7 +100,7 @@ function BottomLink({ item }: { item: NavItem }) {
       aria-current={active ? "page" : undefined}
       aria-label={item.label}
       className={cn(
-        "flex min-h-14 min-w-0 flex-1 flex-col items-center justify-center gap-1 px-0.5 text-[11px] font-medium text-muted-foreground transition-colors",
+        "flex min-h-14 min-w-0 flex-1 flex-col items-center justify-center gap-1 px-0.5 text-[10px] font-medium text-muted-foreground transition-colors",
         "hover:text-foreground active:bg-sidebar-accent",
         active && "text-foreground",
       )}
@@ -107,7 +109,7 @@ function BottomLink({ item }: { item: NavItem }) {
         className={cn("size-5", active && "text-primary")}
         aria-hidden="true"
       />
-      <span className={cn(active && "underline decoration-primary decoration-2 underline-offset-4")}>
+      <span className={cn("max-w-full truncate", active && "underline decoration-primary decoration-2 underline-offset-4")}>
         {item.shortLabel ?? item.label}
       </span>
     </Link>
@@ -118,7 +120,7 @@ export function BottomNav() {
   return (
     <nav
       aria-label="Main"
-      className="fixed inset-x-0 bottom-0 z-30 flex border-t border-sidebar-border bg-sidebar pb-[env(safe-area-inset-bottom)] md:hidden"
+      className="fixed inset-x-0 bottom-0 z-30 flex border-t border-sidebar-border bg-sidebar pb-[env(safe-area-inset-bottom)] print:hidden md:hidden"
     >
       {MAIN_NAV.map((item) => (
         <BottomLink key={item.href} item={item} />

@@ -11,6 +11,8 @@ export const config = {
     "/conversations/:path*",
     "/calendar/:path*",
     "/twin/:path*",
+    "/trends/:path*",
+    "/share/:path*",
     "/goals/:path*",
     "/alerts/:path*",
     "/settings/:path*",

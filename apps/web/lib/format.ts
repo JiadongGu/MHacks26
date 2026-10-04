@@ -41,6 +41,16 @@ export function formatDate(value: Date | string, timeZone?: string): string {
   return d.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric", timeZone: zoneFor(timeZone) });
 }
 
+/** Whole years from a YYYY-MM-DD birth date to a YYYY-MM-DD day, or null for a bad date. */
+export function ageOn(dob: string | null | undefined, day: string): number | null {
+  const b = /^(\d{4})-(\d{2})-(\d{2})/.exec(dob ?? "");
+  const t = /^(\d{4})-(\d{2})-(\d{2})/.exec(day);
+  if (!b || !t) return null;
+  const years = Number(t[1]) - Number(b[1]);
+  const age = Number(t[2]) * 100 + Number(t[3]) < Number(b[2]) * 100 + Number(b[3]) ? years - 1 : years;
+  return age >= 0 ? age : null;
+}
+
 /** "possibly_ill" becomes "Possibly ill". */
 export function humanize(key: string): string {
   const spaced = key.replace(/_/g, " ").trim();
