@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { BriefingSection } from "@/components/dashboard/briefing-section";
 import { EveningSection } from "@/components/dashboard/evening-section";
 import { GoalRings } from "@/components/dashboard/goal-rings";
+import { NumbersSection } from "@/components/dashboard/numbers-section";
 import { PlanSection } from "@/components/dashboard/plan-section";
 import {
   AgentSeen,
@@ -33,6 +34,12 @@ export default async function DashboardPage() {
           <Suspense fallback={<Skeleton role="status" aria-label="Loading status" className="h-40" />}>
             <StatusHero userId={user.id} />
           </Suspense>
+
+          <Section title="Your numbers" headingId="h-numbers">
+            <Suspense fallback={<Skeleton role="status" aria-label="Loading your numbers" className="h-40" />}>
+              <NumbersSection userId={user.id} timeZone={profile.timezone} hidden={profile.hidden_metrics} />
+            </Suspense>
+          </Section>
 
           <Section title="Morning briefing" headingId="h-briefing">
             <Suspense fallback={<ListSkeleton rows={1} label="Loading briefing" />}>

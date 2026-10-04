@@ -3,11 +3,9 @@ import type { ProfileInput } from "@/lib/profile";
 export const STEPS = [
   { id: 1, label: "Profile" },
   { id: 2, label: "Health history" },
-  { id: 3, label: "Devices" },
-  { id: 4, label: "Google Calendar" },
-  { id: 5, label: "Focus" },
-  { id: 6, label: "iMessage" },
-  { id: 7, label: "Done" },
+  { id: 3, label: "Connect" },
+  { id: 4, label: "Focus" },
+  { id: 5, label: "Finish" },
 ] as const;
 
 export const LAST_STEP = STEPS.length;

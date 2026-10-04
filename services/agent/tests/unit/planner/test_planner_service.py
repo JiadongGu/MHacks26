@@ -29,12 +29,19 @@ class World:
     """Fakes for every outside call build_plan makes."""
 
     def __init__(
-        self, monkeypatch, picks=("steps", "study", "sleep"), events=None, tomorrow=None, connected=True
+        self,
+        monkeypatch,
+        picks=("steps", "study", "sleep"),
+        events=None,
+        tomorrow=None,
+        connected=True,
+        flags=(),
     ):
         self.events, self.tomorrow = events or [], tomorrow or []
         self.picks, self.connected = list(picks), connected
         self.saved, self.written, self.fail_calendar, self.previous = None, None, False, None
         self.refreshed = False
+        self.flags = set(flags)
 
         async def load_profile(user_id):
             return {"timezone": TZ, "bed_time": time(23, 0), "wake_time": time(7, 0), "display_name": "Ada"}
@@ -57,6 +64,9 @@ class World:
 
         async def list_picks(user_id):
             return self.picks
+
+        async def risk_flags(user_id):
+            return self.flags
 
         async def list_goals(user_id, include_inactive=False):
             return []
@@ -87,6 +97,7 @@ class World:
         monkeypatch.setattr(service.store, "get_plan", get_plan)
         monkeypatch.setattr(service.store, "save_plan", save_plan)
         monkeypatch.setattr(service.focus_store, "list_picks", list_picks)
+        monkeypatch.setattr(service, "_risk_flags", risk_flags)
         monkeypatch.setattr(service.goals_store, "list_goals", list_goals)
         monkeypatch.setattr(service.gcal_sync, "refresh_user", refresh_user)
         monkeypatch.setattr(service.gcal_store, "load", cal_load)
@@ -252,3 +263,44 @@ def test_replace_plan_events_deletes_only_unstarted_plan_events_and_inserts_the_
     assert body["summary"] == "Walk" and body["start"]["dateTime"] == at(16).isoformat()
     assert body["extendedProperties"]["private"] == {"pulse_plan": "2026-10-05", "pulse_kind": "steps"}
     assert "Delete it any time" in body["description"] and body["reminders"]["useDefault"] is False
+
+
+async def test_a_skin_cancer_history_adds_sunscreen_even_when_nothing_was_picked(monkeypatch):
+    w = World(monkeypatch, picks=(), flags=("skin_cancer",))
+    plan = await service.build_plan(UID, MON, NOW)
+    titles = [i["title"] for i in plan.items]
+    assert any(t.startswith("Put on sunscreen") for t in titles)
+    assert any(t.startswith("Reapply sunscreen") for t in titles)
+    morning = next(i for i in plan.items if i["key"] == "sun")
+    reapply = next(i for i in plan.items if i["key"] == "sun_reapply")
+    assert (reapply["start"] - morning["end"]).total_seconds() >= 2 * 3600
+    assert w.saved is not None
+
+
+async def test_hydration_is_left_out_for_someone_told_to_limit_fluids(monkeypatch):
+    World(monkeypatch, picks=("hydration",), flags=("heart_failure",))
+    assert (await service.build_plan(UID, MON, NOW)).items == []
+    World(monkeypatch, picks=("hydration",))
+    assert any(i["key"] == "hydration" for i in (await service.build_plan(UID, MON, NOW)).items)
+
+
+def test_plan_events_are_coloured_and_never_the_default_yellow(monkeypatch):
+    cal = FakeCalendar([])
+    monkeypatch.setattr(gcal_service, "_svc", lambda creds: cal)
+    items = [
+        {"key": "study", "title": "Study", "why": "x", "start": at(10), "end": at(11)},
+        {"key": "wind_down", "title": "Wind down", "why": "x", "start": at(22), "end": at(23)},
+        {"key": "sun", "title": "Sunscreen", "why": "x", "start": at(8), "end": at(9)},
+    ]
+    gcal_service.replace_plan_events(object(), "cal-1", "2026-10-05", at(0), items)
+    assert [b["colorId"] for b in cal.inserted] == ["7", "1", "6"]
+    assert "5" not in {b["colorId"] for b in cal.inserted}  # 5 is banana yellow
+
+
+async def test_build_plans_covers_today_and_tomorrow(monkeypatch):
+    next_day = MON + timedelta(days=1)
+    tomorrow = [ev(at(9, day=next_day), at(10, day=next_day))]
+    w = World(monkeypatch, events=[ev(at(10), at(11))], tomorrow=tomorrow)
+    plans = await service.build_plans(UID, NOW)
+    assert [p.day for p in plans] == [MON, MON + timedelta(days=1)]
+    assert w.saved["day"] == MON + timedelta(days=1)

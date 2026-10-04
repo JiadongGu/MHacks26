@@ -13,6 +13,8 @@
 - Chat (iMessage, ASI:One, web): tools, link codes (6-char, 15-min expiry, rate limited), deterministic 911 guard, exact YES/NO
 - ElevenLabs spoken briefing; daily planner (writes to Pulse Health calendar without asking — decided); evening check
 - Pages: dashboard, twin, goals, alerts (+ "Why?" explanations), calendar & approvals, conversations, settings, demo, privacy
+- Focus areas carry meaning for the planner and chat (`app/focus/guide.py`, new `sun` area); skin cancer history turns on sunscreen, a reapply ≥2 h later and a monthly skin check (#68, #75)
+- Dashboard: Your numbers under the status hero with per-metric settings toggles, plan for today and tomorrow (#74, #76); focus save 405 fixed, connect returns to setup (#73)
 - Gemini eval harness (services/agent/evals) with findings fixed; README, Devpost draft, video script; Figma file; testreel skill (video/)
 
 ## Waiting on
@@ -24,6 +26,14 @@
 - Port the redesign; Vitals & Trends page; Share-with-clinician summary
 - Uptime monitors + `scripts/smoke.sh` against production; check Neon compute hours before judging
 - Record the demo video (docs/VIDEO_SCRIPT.md) with testreel + phone capture; submit Devpost + ASI:One
+
+## Next — Gavin's demo (real data)
+- Redo onboarding with real accounts: Calendar, Fitbit, then **Connect my health record** (FinchNode, production). Fix whatever the first real run shows
+- Add the skin cancer history (or let FinchNode supply it) and check the plan shows sunscreen and the monthly skin check
+- Text the Pulse line +1 (415) 603-5536 as a blue iMessage after linking with a new code
+- Decide simulator vs real Fitbit for the demo; first real 9 pm evening run is unverified
+- Add a "did it" check-in for focus areas with no sensor (stress, unplug, study, balance, routine, hydration, sun)
+- Publish the Google consent screen (7-day token expiry); rotate every secret that was pasted in chat (Spacetime token, FinchNode keys and webhook secret, others) after the demo
 
 ## Known bugs
 - Photon free plan: testers must be registered and each gets their own line (docs/DEMO.md); onboarding shows J's line

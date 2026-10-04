@@ -23,15 +23,29 @@ class Template:
     prefer: tuple[tuple[int, int], ...]  # local hour ranges, best first
     why: str
     repeat: dict[str, int]  # blocks per day, by load
+    strict: bool = False  # only inside the preferred hours; skip the day rather than place it elsewhere
+    after: tuple[str, int] | None = None  # (key, minutes): only start this long after that item ended
 
 
-def _t(title: str, light: int, normal: int, packed: int, prefer, why: str, repeat=(1, 1, 1)) -> Template:
+def _t(
+    title: str,
+    light: int,
+    normal: int,
+    packed: int,
+    prefer,
+    why: str,
+    repeat=(1, 1, 1),
+    strict=False,
+    after=None,
+) -> Template:
     return Template(
         title,
         {"light": light, "normal": normal, "packed": packed},
         tuple(prefer),
         why,
         {"light": repeat[0], "normal": repeat[1], "packed": repeat[2]},
+        strict,
+        after,
     )
 
 
@@ -80,7 +94,62 @@ TEMPLATES: dict[str, Template] = {
         [(12, 14), (17, 19)],
         "A gentle walk is good for your heart without wearing you out.",
     ),
+    "hydration": _t(
+        "Drink a glass of water",
+        5,
+        5,
+        5,
+        [(9, 11), (13, 15), (16, 18)],
+        "Small sips through the day beat catching up at night.",
+        repeat=(4, 3, 2),
+        strict=True,
+    ),
+    "sun": _t(
+        "Put on sunscreen (SPF 30 or higher)",
+        10,
+        10,
+        10,
+        [(8, 10)],
+        "Daily sun protection is the habit that matters most for your skin.",
+    ),
+    "sun_reapply": _t(
+        "Reapply sunscreen if you are outside",
+        5,
+        5,
+        5,
+        [(12, 15)],
+        "Sunscreen wears off in about two hours outdoors. Shade and a hat help too.",
+        strict=True,
+        after=("sun", 120),
+    ),
+    "skin_check": _t(
+        "Monthly skin check, head to toe",
+        15,
+        15,
+        15,
+        [(18, 21), (9, 12)],
+        "Look for new or changing spots, and tell your dermatologist about anything that is different.",
+    ),
 }
+
+# Hydration reminders are left out for people who are told to limit fluids.
+FLUID_LIMITED = {"heart_failure", "ckd"}
+SUN_KEYS = ("sun", "sun_reapply")
+
+
+def planned_keys(picks: list[str], flags: set[str], day: date) -> list[str]:
+    """The person's picks, plus the sun items for anyone with a history of skin cancer.
+
+    Sun protection is standing care for that history whether or not it was picked. A skin check is added on
+    the first Sunday of the month.
+    """
+    keys = [k for k in picks if not (k == "hydration" and flags & FLUID_LIMITED) and k not in SUN_KEYS]
+    if "sun" in picks or "skin_cancer" in flags:
+        # Short and time-sensitive, so they choose their time before the longer blocks do.
+        keys = list(SUN_KEYS) + keys
+        if day.weekday() == 6 and day.day <= 7:
+            keys.append("skin_check")
+    return keys
 
 
 @dataclass(frozen=True)
@@ -108,9 +177,9 @@ def _subtract(slots: list[Slot], start: datetime, end: datetime, pad_min: int = 
 
 
 def _choose(
-    slots: list[Slot], minutes: int, prefer: tuple[tuple[int, int], ...]
+    slots: list[Slot], minutes: int, prefer: tuple[tuple[int, int], ...], strict: bool = False
 ) -> tuple[datetime, datetime] | None:
-    """Earliest fit inside the best preferred hour range, else the earliest slot that fits at all."""
+    """Earliest fit inside the best preferred hour range, else (unless strict) the earliest slot that fits."""
     need = timedelta(minutes=minutes)
     for lo_h, hi_h in prefer:
         for s in slots:
@@ -118,10 +187,20 @@ def _choose(
             hi = min(s.end, s.start.replace(hour=hi_h, minute=0, second=0, microsecond=0))
             if hi - lo >= need:
                 return lo, lo + need
+    if strict:
+        return None
     for s in slots:
         if s.end - s.start >= need:
             return s.start, s.start + need
     return None
+
+
+def _from(slots: list[Slot], earliest: datetime | None) -> list[Slot]:
+    """The slots, cut so nothing starts before `earliest`."""
+    if earliest is None:
+        return slots
+    cut = [Slot(max(s.start, earliest), s.end) for s in slots if s.end > earliest]
+    return [s for s in cut if s.minutes >= MIN_FREE_MIN]
 
 
 def place(focus: list[str], slots: list[Slot], load: str) -> list[PlanItem]:
@@ -133,9 +212,17 @@ def place(focus: list[str], slots: list[Slot], load: str) -> list[PlanItem]:
         if tpl is None:
             continue
         minutes = tpl.minutes[load]
+        earliest = None
+        if tpl.after is not None:
+            prior = [i.end for i in items if i.key == tpl.after[0]]
+            if not prior:
+                continue  # nothing to follow, so nothing to remind about
+            earliest = max(prior) + timedelta(minutes=tpl.after[1])
         spread = list(free)  # the same free time, with room kept around blocks of this kind already placed
         for _ in range(tpl.repeat[load]):
-            spot = _choose(spread, minutes, tpl.prefer) or _choose(free, minutes, tpl.prefer)
+            spot = _choose(_from(spread, earliest), minutes, tpl.prefer, tpl.strict) or _choose(
+                _from(free, earliest), minutes, tpl.prefer, tpl.strict
+            )
             if spot is None:
                 break
             start, end = spot

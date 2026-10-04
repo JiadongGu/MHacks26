@@ -33,6 +33,7 @@ CATALOG: list[Focus] = [
     Focus("balance", "Balance work and rest", "Space out busy stretches with real breaks.", "habits"),
     Focus("routine", "Keep a steady routine", "Go to bed and wake up at consistent times.", "habits"),
     Focus("hydration", "Drink more water", "Gentle reminders through the day.", "habits"),
+    Focus("sun", "Protect my skin", "Sunscreen reminders and regular skin checks.", "body"),
 ]
 BY_KEY = {f.key: f for f in CATALOG}
 

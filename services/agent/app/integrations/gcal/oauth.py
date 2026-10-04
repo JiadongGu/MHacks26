@@ -8,6 +8,7 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import Flow
 
 from app.core.config import settings
+from app.integrations.return_page import clean
 
 from .store import fernet
 
@@ -33,11 +34,10 @@ def _flow(state: str | None = None, code_verifier: str | None = None) -> Flow:
     return flow
 
 
-def authorization_url(user_id: str) -> str:
+def authorization_url(user_id: str, return_to: str = "settings") -> str:
     verifier = secrets.token_urlsafe(64)
-    state = (
-        fernet().encrypt(json.dumps({"u": user_id, "v": verifier, "t": int(time.time())}).encode()).decode()
-    )
+    payload = {"u": user_id, "v": verifier, "t": int(time.time()), "r": clean(return_to)}
+    state = fernet().encrypt(json.dumps(payload).encode()).decode()
     url, _ = _flow(code_verifier=verifier).authorization_url(
         access_type="offline", prompt="consent select_account", state=state
     )

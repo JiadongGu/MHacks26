@@ -1,9 +1,10 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from pydantic import BaseModel
 
 from app.core.auth import require_internal
+from app.core.logging import log
 
 from . import service, store
 from .catalog import CATALOG, MAX_PICKS
@@ -48,8 +49,22 @@ async def get_focus(user_id: UUID) -> FocusOut:
 
 
 @router.put("", response_model=FocusOut)
-async def put_focus(body: FocusSet) -> FocusOut:
+async def put_focus(body: FocusSet, background: BackgroundTasks) -> FocusOut:
     try:
-        return FocusOut(keys=await service.set_focus(body.user_id, body.keys))
+        keys = await service.set_focus(body.user_id, body.keys)
     except ValueError as e:
         raise HTTPException(422, str(e)) from e
+    background.add_task(_replan, body.user_id)
+    return FocusOut(keys=keys)
+
+
+async def _replan(user_id: UUID) -> None:
+    """New picks should show up on the calendar now, for today and tomorrow, not at the next briefing."""
+    from datetime import UTC, datetime
+
+    from app.planner import service as planner
+
+    try:
+        await planner.build_plans(user_id, datetime.now(UTC))
+    except Exception as exc:  # the pick is already saved
+        log.warning("event=focus_replan_failed user=%s err=%s", user_id, type(exc).__name__)

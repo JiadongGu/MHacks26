@@ -17,7 +17,7 @@ export type ActionResult<T = object> =
   | ({ ok: true } & T)
   | { ok: false; error: string; fields?: FieldErrors };
 
-const LAST_STEP = 7;
+const LAST_STEP = 5;
 
 /** Raises onboarding_step to `step`. The stored step never goes down. */
 function raiseStep(step: number) {

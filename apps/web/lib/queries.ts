@@ -6,6 +6,7 @@ import { parseExplain, type Explain } from "@/lib/explain";
 import { LINK_CODE_TTL_MS, type LinkChannel } from "@/lib/link-code";
 import { parseToolCalls, type LinkRow, type ThreadMessage, type ThreadSummary } from "@/lib/conversations";
 import { parseItems, type PlanView } from "@/lib/plan";
+import { METRIC_KEYS, type DailyRow } from "@/lib/metrics";
 
 export type AlertView = {
   id: string;
@@ -499,4 +500,24 @@ export async function listChannelMessages(userId: string, channel: string, limit
     created_at: r.created_at.toISOString(),
     tools: parseToolCalls(r.tool_calls),
   }));
+}
+
+/** Daily totals and averages for the dashboard number cards, from `fromDay` (YYYY-MM-DD) on. */
+export async function getDailyMetricRows(userId: string, fromDay: string): Promise<DailyRow[]> {
+  const rows = await db
+    .select({
+      day: schema.daily_summary.day,
+      metric: schema.daily_summary.metric,
+      avg: schema.daily_summary.avg,
+      sum: schema.daily_summary.sum,
+    })
+    .from(schema.daily_summary)
+    .where(
+      and(
+        eq(schema.daily_summary.user_id, userId),
+        gte(schema.daily_summary.day, fromDay),
+        inArray(schema.daily_summary.metric, METRIC_KEYS),
+      ),
+    );
+  return rows;
 }

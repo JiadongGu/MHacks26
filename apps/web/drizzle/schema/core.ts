@@ -32,6 +32,11 @@ export const profiles = pgTable("profiles", {
   bed_time: time("bed_time"),
   quiet_hours: jsonb("quiet_hours"),
   onboarding_step: integer("onboarding_step").notNull().default(0),
+  // Dashboard number cards the person turned off in settings. Everything shows by default.
+  hidden_metrics: text("hidden_metrics")
+    .array()
+    .notNull()
+    .default(sql`'{}'::text[]`),
   created_at: tz("created_at").notNull().defaultNow(),
 });
 

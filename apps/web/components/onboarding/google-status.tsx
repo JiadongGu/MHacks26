@@ -11,8 +11,15 @@ import { timeAgo } from "@/lib/format";
 
 type GoogleStatus = { connected: boolean; email: string | null; last_sync: string | null };
 
-/** Shows the Google Calendar connection and the connect link. Used in onboarding step 4 and in settings. */
-export function GoogleStatusCard({ connectLabel = "Connect Google Calendar" }: { connectLabel?: string }) {
+/** Shows the Google Calendar connection and the connect link. Used in onboarding step 3 and in settings. */
+export function GoogleStatusCard({
+  connectLabel = "Connect Google Calendar",
+  returnTo = "settings",
+}: {
+  connectLabel?: string;
+  /** The page Google sends the person back to. */
+  returnTo?: "onboarding" | "settings";
+}) {
   const [status, setStatus] = useState<GoogleStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -79,8 +86,8 @@ export function GoogleStatusCard({ connectLabel = "Connect Google Calendar" }: {
       </div>
       <Button asChild variant={status?.connected ? "outline" : "default"}>
         {/* A full page navigation. The proxy passes the 302 to Google through. */}
-        {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
-        <a href="/api/agent/integrations/google/authorize">
+        { }
+        <a href={`/api/agent/integrations/google/authorize?return_to=${returnTo}`}>
           {status?.connected ? "Reconnect" : connectLabel}
         </a>
       </Button>

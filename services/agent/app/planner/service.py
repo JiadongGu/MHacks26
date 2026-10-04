@@ -14,6 +14,8 @@ from app.integrations.gcal import oauth as gcal_oauth
 from app.integrations.gcal import service as gcal_service
 from app.integrations.gcal import store as gcal_store
 from app.integrations.gcal import sync as gcal_sync
+from app.twin import builder as twin_builder
+from app.twin import store as twin_store
 from app.twin.tz import DEFAULT_TIMEZONE
 
 from . import render, schedule, shape, store
@@ -82,6 +84,12 @@ async def _sleep_need(user_id: UUID) -> int | None:
     return None
 
 
+async def _risk_flags(user_id: UUID) -> set[str]:
+    model = ((await twin_store.latest_twin(user_id)) or {}).get("model") or {}
+    flags = model.get("risk_flags")
+    return set(flags if flags is not None else twin_builder.risk_flags_for(model))
+
+
 async def _write_calendar(
     user_id: UUID, day: date, now: datetime, items: list[dict[str, Any]]
 ) -> list[str] | None:
@@ -107,6 +115,7 @@ async def build_plan(user_id: UUID, day: date, now: datetime, write_calendar: bo
     bed = _to_time(profile.get("bed_time")) or DEFAULT_BED
     wake = _to_time(profile.get("wake_time")) or DEFAULT_WAKE
     picks = await focus_store.list_picks(user_id)
+    keys = schedule.planned_keys(picks, await _risk_flags(user_id), day)
     try:
         await gcal_sync.refresh_user(user_id)
     except Exception as exc:
@@ -134,7 +143,7 @@ async def build_plan(user_id: UUID, day: date, now: datetime, write_calendar: bo
     night = schedule.night_plan(
         day, tz, next_busy[0][0] if next_busy else None, bed, wake, await _sleep_need(user_id)
     )
-    items = [i.__dict__ | {"event_id": None} for i in schedule.place(picks, usable, load)]
+    items = [i.__dict__ | {"event_id": None} for i in schedule.place(keys, usable, load)]
     wd = schedule.wind_down(picks, night)
     if wd is not None and wd.start > now_local + timedelta(minutes=5):
         items.append(wd.__dict__ | {"event_id": None})
@@ -180,3 +189,11 @@ async def build_plan(user_id: UUID, day: date, now: datetime, write_calendar: bo
         night.shifted_min,
         night.reason,
     )
+
+
+async def build_plans(user_id: UUID, now: datetime, write_calendar: bool = True) -> list[Plan]:
+    """Plan today and tomorrow, so the calendar is never empty for the day ahead."""
+    profile = await store.load_profile(user_id)
+    zone = ZoneInfo(profile.get("timezone") or DEFAULT_TIMEZONE)
+    today = now.astimezone(zone).date()
+    return [await build_plan(user_id, d, now, write_calendar) for d in (today, today + timedelta(days=1))]

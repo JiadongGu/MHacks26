@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { getSessionUser, type SessionUser } from "@/lib/auth/server";
 import { getProfile } from "@/lib/queries";
 
-export const ONBOARDING_DONE_STEP = 7;
+export const ONBOARDING_DONE_STEP = 5;
 
 /** Returns the signed-in user. Sends a visitor without a session to sign-in. */
 export async function requireUser(): Promise<SessionUser> {
