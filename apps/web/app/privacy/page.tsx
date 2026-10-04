@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { PulseField } from "@/components/ambient/pulse-field";
+import { Wordmark } from "@/components/ambient/wordmark";
+import { SiteFooter } from "@/components/site-footer";
 
 export const metadata: Metadata = {
   title: "Privacy policy",
@@ -12,11 +14,11 @@ const UPDATED = "October 3, 2026";
 
 export default function Privacy() {
   return (
-    <div className="mx-auto min-h-dvh max-w-3xl px-4 py-10 md:px-8">
-      <Link href="/" className="font-heading text-xl font-medium tracking-tight">
-        Pulse
-      </Link>
-      <main id="main" className="mt-10 space-y-8 text-base [&_h2]:mb-2 [&_h2]:text-xl [&_h2]:font-semibold [&_ul]:list-disc [&_ul]:space-y-1 [&_ul]:pl-5">
+    <div className="relative isolate min-h-dvh overflow-x-clip">
+      <PulseField intensity="ambient" bpm={64} origin="top-left" className="-z-10 [mask-image:linear-gradient(to_bottom,black,transparent_70%)]" />
+      <div className="mx-auto max-w-3xl px-4 py-8 md:px-8">
+      <Wordmark />
+      <main id="main" className="mt-8 max-w-[72ch] space-y-8 rounded-lg border border-border bg-card p-6 text-base md:p-10 [&_h2]:mb-2 [&_h2]:text-xl [&_h2]:font-semibold [&_section]:border-t [&_section]:border-border [&_section]:pt-8 [&_ul]:list-disc [&_ul]:space-y-1 [&_ul]:pl-5">
         <header>
           <h1 className="text-4xl">Privacy policy</h1>
           <p className="mt-2 text-sm text-muted-foreground">Last updated {UPDATED}</p>
@@ -126,6 +128,8 @@ export default function Privacy() {
           <p>Questions or deletion requests: {CONTACT}.</p>
         </section>
       </main>
+      <SiteFooter className="py-6" />
+      </div>
     </div>
   );
 }
