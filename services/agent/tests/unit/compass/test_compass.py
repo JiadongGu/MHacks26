@@ -416,3 +416,15 @@ def test_the_briefing_carries_the_heads_up_before_coming_up():
                                      "focus_lines": ["• Protect my skin: sunscreen"]})
     assert "Heads-up: You have 4 events today" in text
     assert text.index("Heads-up:") < text.index("Coming up:")
+
+
+async def test_a_manual_run_never_stops_the_scheduled_one(runs):
+    """A forced briefing (a button, the welcome text) must not make the 7 am run think it is already done."""
+    assert await compass.run_briefing(A, force=True) is True
+    assert [r["job"] for r in runs.rows] == ["briefing:manual"]
+    # The scheduler only counts rows named for the job itself, so it still runs the real one.
+    assert ("briefing:manual", A, compass.period_key(compass.local_now(DETROIT))) not in {
+        (job, uid, key) for (job, uid, key) in runs.done
+    }
+    assert await compass.run_briefing(A) is True
+    assert [r["job"] for r in runs.rows] == ["briefing:manual", "briefing"]
