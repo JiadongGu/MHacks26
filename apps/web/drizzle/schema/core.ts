@@ -90,6 +90,25 @@ export const daily_plans = pgTable(
   (t) => [primaryKey({ columns: [t.user_id, t.day] })],
 );
 
+// A person's live FinchNode link: the Connect session, then the subject once they approve sharing.
+// `imported_at` is set when their records were read into the twin. Written by services/agent/app/twin.
+export const finchnode_connections = pgTable("finchnode_connections", {
+  user_id: uuid("user_id").primaryKey(),
+  session_id: text("session_id").notNull(),
+  subject: text("subject"),
+  status: text("status", { enum: ["pending", "connected", "revoked", "expired"] })
+    .notNull()
+    .default("pending"),
+  imported_at: tz("imported_at"),
+  created_at: tz("created_at").notNull().defaultNow(),
+});
+
+// Webhook event ids already handled, so a retried delivery is acknowledged and ignored.
+export const finchnode_events = pgTable("finchnode_events", {
+  id: text("id").primaryKey(),
+  received_at: tz("received_at").notNull().defaultNow(),
+});
+
 export const goals = pgTable(
   "goals",
   {
