@@ -66,9 +66,9 @@ export function AppShell({
         </aside>
 
         <div className="flex min-w-0 flex-col pb-20 md:pb-0 print:pb-0">
-          <header className="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-border bg-background/80 px-4 backdrop-blur-xl md:hidden print:hidden">
+          <header className="sticky top-0 z-20 flex h-14 items-center justify-between gap-3 border-b border-border bg-background/80 px-4 backdrop-blur-xl md:hidden print:hidden">
             <Wordmark />
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3.5">
               <PaletteButton compact />
               <TopLinks extra={extra} />
               <UserButton size="icon" />
