@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useTransition } from "react";
+import { useRef, useState, useTransition, type CSSProperties } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Moon, Pause, Play, Sun } from "lucide-react";
 import { toast } from "sonner";
@@ -9,6 +9,11 @@ import { ErrorNote } from "@/components/ui-bits";
 import { agent, errorText } from "@/lib/api-client";
 import { audioErrorText } from "@/lib/briefing";
 import { timeAgo } from "@/lib/format";
+import { cn } from "@/lib/utils";
+import "@/components/vitals/vitals.css";
+
+/** Bar heights in percent for the waveform. A fixed pattern, so the server and browser render the same. */
+const WAVE = [30, 55, 40, 75, 50, 90, 60, 35, 70, 45, 85, 55, 30, 65, 95, 50, 40, 75, 60, 35, 80, 50, 65, 40, 55, 30, 70, 45];
 
 const AUDIO_SRC = "/api/me/briefing-audio";
 
@@ -103,10 +108,15 @@ export function CheckinCard({
   }
 
   return (
-    <article className="rounded-lg border border-border p-4" aria-label={copy.title}>
+    <article className="rounded-lg border border-border bg-card p-4 md:p-5" aria-label={copy.title}>
       <header className="flex items-center justify-between gap-3">
-        <h3 className="flex items-center gap-2 text-sm font-medium">
-          <Icon className="size-4" aria-hidden="true" />
+        <h3 className="flex items-center gap-2.5 text-sm font-semibold">
+          <span
+            className="grid size-8 place-items-center rounded-lg bg-sidebar-accent text-sidebar-accent-foreground"
+            aria-hidden="true"
+          >
+            <Icon className="size-4" />
+          </span>
           {copy.title}
         </h3>
         {createdAt && (
@@ -122,35 +132,51 @@ export function CheckinCard({
         <p className="mt-3 max-w-[65ch] whitespace-pre-line text-base">{text}</p>
       )}
 
+      {kind === "morning" && text !== null && (
+        <div className="mt-4 flex items-center gap-3 rounded-lg bg-muted p-2 pr-4">
+          {/* The audio element has no visible controls. The button drives it. */}
+          <audio
+            ref={audioRef}
+            preload="none"
+            onPlaying={() => setPlay("playing")}
+            onEnded={() => setPlay("idle")}
+            onPause={() => setPlay((s) => (s === "playing" ? "idle" : s))}
+            onError={() => void failPlayback()}
+          />
+          <Button
+            size="icon-lg"
+            className="size-10 rounded-full"
+            onClick={() => void toggle()}
+            disabled={play === "loading"}
+            aria-label={play === "playing" ? "Pause the morning check" : "Play the morning check"}
+          >
+            {play === "loading" ? (
+              <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+            ) : play === "playing" ? (
+              <Pause className="size-4" aria-hidden="true" />
+            ) : (
+              <Play className="size-4 translate-x-px" aria-hidden="true" />
+            )}
+          </Button>
+          <div className="flex h-8 min-w-0 flex-1 items-center gap-[3px]" aria-hidden="true">
+            {WAVE.map((h, i) => (
+              <span
+                key={i}
+                className={cn(
+                  "w-[3px] flex-1 rounded-full",
+                  play === "playing" ? "wave-bar bg-primary" : "bg-muted-foreground/40",
+                )}
+                style={{ height: `${h}%`, "--b": i % 8 } as CSSProperties}
+              />
+            ))}
+          </div>
+          <span className="shrink-0 text-xs font-medium text-muted-foreground">
+            {play === "loading" ? "Loading audio..." : play === "playing" ? "Playing" : "Listen"}
+          </span>
+        </div>
+      )}
+
       <div className="mt-4 flex flex-wrap items-center gap-3">
-        {kind === "morning" && text !== null && (
-          <>
-            {/* The audio element has no visible controls. The button drives it. */}
-            <audio
-              ref={audioRef}
-              preload="none"
-              onPlaying={() => setPlay("playing")}
-              onEnded={() => setPlay("idle")}
-              onPause={() => setPlay((s) => (s === "playing" ? "idle" : s))}
-              onError={() => void failPlayback()}
-            />
-            <Button
-              size="sm"
-              onClick={() => void toggle()}
-              disabled={play === "loading"}
-              aria-label={play === "playing" ? "Pause the morning check" : "Play the morning check"}
-            >
-              {play === "loading" ? (
-                <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-              ) : play === "playing" ? (
-                <Pause className="size-4" aria-hidden="true" />
-              ) : (
-                <Play className="size-4" aria-hidden="true" />
-              )}
-              {play === "loading" ? "Loading audio..." : play === "playing" ? "Pause" : "Play"}
-            </Button>
-          </>
-        )}
         <Button variant="outline" size="sm" onClick={() => void run()} disabled={busy} aria-busy={busy}>
           {busy ? "Working..." : text === null ? "Run it now" : "Run it again"}
         </Button>

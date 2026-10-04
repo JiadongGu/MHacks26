@@ -28,7 +28,7 @@ export async function CheckinsSection({ userId, timeZone }: { userId: string; ti
     { kind: "evening", text: evening?.body ?? null, createdAt: evening?.created_at ?? null },
   ]);
   return (
-    <div className="max-w-xl space-y-4">
+    <div className="space-y-3">
       {items.map((i) => (
         <CheckinCard key={i.kind} kind={i.kind} text={i.text} createdAt={i.createdAt} />
       ))}

@@ -6,6 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState, ErrorNote } from "@/components/ui-bits";
 import { me } from "@/lib/api-client";
 import { usePolling } from "@/lib/use-polling";
+import { CATEGORY_COLORS } from "@/lib/vitals-card";
 import {
   DEFAULT_HOURS,
   isOlderThan,
@@ -84,7 +85,7 @@ export function HrSparkline({ initial }: { initial?: VitalsPayload }) {
       )}
       <figure>
         <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-          <p className="font-mono text-3xl">{Math.round(current.value)}</p>
+          <p className="text-[1.75rem] leading-8 font-bold tracking-tight tabular-nums">{Math.round(current.value)}</p>
           <p className="text-sm text-muted-foreground">
             bpm at {clock(current.ts)}
             {stale ? ", no newer reading" : ""}
@@ -113,9 +114,10 @@ export function HrSparkline({ initial }: { initial?: VitalsPayload }) {
               <Line
                 type="monotone"
                 dataKey="value"
-                stroke="var(--foreground)"
+                stroke={CATEGORY_COLORS.heart.color}
                 strokeWidth={2}
                 dot={false}
+                activeDot={{ r: 4, fill: CATEGORY_COLORS.heart.color, stroke: "#fff", strokeWidth: 2 }}
                 isAnimationActive={false}
               />
             </LineChart>
@@ -137,7 +139,7 @@ function Tiles({ tiles }: { tiles: VitalTile[] }) {
       {tiles.map((t) => (
         <div key={t.key}>
           <dt className="text-xs text-muted-foreground">{t.label}</dt>
-          <dd className="mt-1 font-mono text-xl">
+          <dd className="mt-1 text-xl font-semibold tabular-nums">
             {t.text}
             {t.unit && <span className="ml-1 text-sm text-muted-foreground">{t.unit}</span>}
           </dd>

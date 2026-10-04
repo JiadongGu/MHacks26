@@ -1,23 +1,17 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useId, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { CalendarCheck } from "lucide-react";
+import { CalendarCheck, Check } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui-bits";
 import { agent, errorText } from "@/lib/api-client";
-import {
-  bedtimeLabel,
-  itemState,
-  onCalendar,
-  planHeadline,
-  timeRange,
-  type PlanView,
-} from "@/lib/plan";
+import { bedtimeLabel, itemState, onCalendar, planHeadline, type PlanItem, type PlanView } from "@/lib/plan";
+import { clockLabel, durationLabel, minutesBetween } from "@/lib/vitals-card";
 import { cn } from "@/lib/utils";
 
-/** Today's plan: the things Pulse fitted into the free time on the calendar. */
+/** Today's plan as a timeline: the things Pulse fitted into the free time on the calendar. */
 export function PlanPanel({
   plan,
   timeZone,
@@ -75,47 +69,30 @@ export function PlanPanel({
   const now = new Date(nowIso);
   const bed = bedtimeLabel(plan.bed_time);
   return (
-    <div className="max-w-xl">
-      <p className="text-base">{planHeadline(plan.load)}</p>
+    <div>
+      <p className="text-sm text-muted-foreground">{planHeadline(plan.load)}</p>
 
       {plan.items.length === 0 ? (
         <p className="mt-3 text-sm text-muted-foreground">
           Nothing to schedule. Choose what to focus on in setup and Pulse will fit it in.
         </p>
       ) : (
-        <ol className="mt-3 divide-y divide-border border-y border-border">
-          {plan.items.map((item) => {
-            const state = itemState(item, now);
-            const done = ticked[item.start] ?? item.done === true;
-            return (
-              <li key={`${item.key}-${item.start}`} className="flex gap-4 py-3">
-                <span className="w-36 shrink-0 font-mono text-xs text-muted-foreground">
-                  {timeRange(item.start, item.end, timeZone)}
-                </span>
-                <div className={cn("min-w-0", done && "text-muted-foreground")}>
-                  <label className="flex cursor-pointer flex-wrap items-center gap-2 text-sm font-medium">
-                    <input
-                      type="checkbox"
-                      checked={done}
-                      onChange={(e) => void tick(item.start, e.target.checked)}
-                      className="size-4 accent-[var(--foreground)]"
-                    />
-                    <span className={cn(done && "line-through")}>{item.title}</span>
-                    {state === "now" && (
-                      <span className="rounded-full bg-foreground px-2 py-0.5 text-[0.65rem] font-medium uppercase tracking-wide text-background">
-                        Now
-                      </span>
-                    )}
-                  </label>
-                  {item.why && <p className="text-xs text-muted-foreground">{item.why}</p>}
-                </div>
-              </li>
-            );
-          })}
+        <ol className="mt-4">
+          {plan.items.map((item, i) => (
+            <TimelineRow
+              key={`${item.key}-${item.start}`}
+              item={item}
+              last={i === plan.items.length - 1}
+              timeZone={timeZone}
+              state={itemState(item, now)}
+              done={ticked[item.start] ?? item.done === true}
+              onTick={(done) => void tick(item.start, done)}
+            />
+          ))}
         </ol>
       )}
 
-      <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+      <div className="mt-2 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-3">
         <div className="text-sm text-muted-foreground">
           {bed && <p>Aim for lights out by {bed}.</p>}
           {onCalendar(plan.items) && (
@@ -128,5 +105,89 @@ export function PlanPanel({
         {button("Replan now")}
       </div>
     </div>
+  );
+}
+
+function TimelineRow({
+  item,
+  last,
+  timeZone,
+  state,
+  done,
+  onTick,
+}: {
+  item: PlanItem;
+  last: boolean;
+  timeZone: string;
+  state: "done" | "now" | "upcoming";
+  done: boolean;
+  onTick: (done: boolean) => void;
+}) {
+  const id = useId();
+  const now = state === "now" && !done;
+  return (
+    <li className="grid grid-cols-[3.5rem_1.25rem_minmax(0,1fr)] gap-x-2.5">
+      <span className="pt-0.5 text-right text-xs font-semibold tabular-nums text-muted-foreground">
+        {clockLabel(item.start, timeZone)}
+      </span>
+
+      <div className="flex flex-col items-center">
+        <input
+          id={id}
+          type="checkbox"
+          checked={done}
+          onChange={(e) => onTick(e.target.checked)}
+          className="peer sr-only"
+        />
+        <label
+          htmlFor={id}
+          className={cn(
+            "grid size-5 shrink-0 cursor-pointer place-items-center rounded-full border-2 bg-card transition-colors outline-none motion-reduce:transition-none",
+            "peer-focus-visible:ring-3 peer-focus-visible:ring-ring/50",
+            done && "border-[#1F7A35] bg-[#1F7A35] text-white",
+            !done && now && "border-primary",
+            !done && !now && "border-[#C7C7CC] hover:border-muted-foreground",
+          )}
+        >
+          {done ? (
+            <Check className="size-3" strokeWidth={3} aria-hidden="true" />
+          ) : now ? (
+            <span className="size-2 rounded-full bg-primary" aria-hidden="true" />
+          ) : null}
+          <span className="sr-only">Mark done: {item.title}</span>
+        </label>
+        {!last && <span className={cn("w-0.5 flex-1", done ? "bg-[#1F7A35]/40" : "bg-border")} aria-hidden="true" />}
+      </div>
+
+      <div className={cn("min-w-0 pb-4", last && "pb-2")}>
+        <div className={cn(now && "-mt-1 rounded-lg bg-sidebar-accent px-3 py-2")}>
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <p
+              className={cn(
+                "text-sm font-medium",
+                done && "text-muted-foreground line-through decoration-muted-foreground/60",
+              )}
+            >
+              {item.title}
+            </p>
+            {now && (
+              <span className="rounded-full bg-primary px-2 py-0.5 text-[0.6875rem] leading-4 font-semibold text-primary-foreground">
+                Now
+              </span>
+            )}
+            {item.event_id !== undefined && (
+              <span title="On your Pulse Health calendar">
+                <CalendarCheck className="size-3.5 text-muted-foreground" aria-hidden="true" />
+                <span className="sr-only">On your Pulse Health calendar</span>
+              </span>
+            )}
+          </div>
+          <p className="text-xs text-muted-foreground tabular-nums">
+            {durationLabel(minutesBetween(item.start, item.end))}
+          </p>
+          {item.why && <p className="mt-1 text-xs text-muted-foreground">{item.why}</p>}
+        </div>
+      </div>
+    </li>
   );
 }

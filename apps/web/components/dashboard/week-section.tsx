@@ -6,6 +6,7 @@ import { cleanHidden } from "@/lib/metrics";
 import { getDailyMetricRows } from "@/lib/queries";
 import Link from "next/link";
 import { buildTrends, linePoints } from "@/lib/week-charts";
+import { CATEGORY_COLORS, categoryOf } from "@/lib/vitals-card";
 
 function daysAgo(day: string, n: number): string {
   const d = new Date(`${day}T12:00:00Z`);
@@ -41,11 +42,14 @@ export async function WeekSection({
     <ul className="grid gap-x-8 gap-y-6 sm:grid-cols-2">
       {trends.map((t) => {
         const hi = Math.max(...t.values, 1);
+        const { color, ink } = CATEGORY_COLORS[categoryOf(t.key)];
         return (
           <li key={t.key}>
             <div className="flex items-baseline justify-between gap-3">
-              <p className="text-sm text-muted-foreground">{t.label}</p>
-              <p className="font-mono text-sm">
+              <p className="text-sm font-semibold" style={{ color: ink }}>
+                {t.label}
+              </p>
+              <p className="text-sm font-semibold tabular-nums">
                 {t.latest}
                 {t.unit && <span className="ml-1 text-xs text-muted-foreground">{t.unit}</span>}
               </p>
@@ -68,7 +72,8 @@ export async function WeekSection({
                       width={bw}
                       height={h}
                       rx={2}
-                      className="fill-foreground/70"
+                      fill={color}
+                      fillOpacity={i === t.values.length - 1 ? 1 : 0.55}
                     />
                   );
                 })
@@ -79,7 +84,7 @@ export async function WeekSection({
                   strokeWidth={2}
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  className="stroke-foreground"
+                  stroke={color}
                 />
               )}
             </svg>
@@ -91,7 +96,7 @@ export async function WeekSection({
       })}
     </ul>
     <p className="mt-4 text-xs text-muted-foreground">
-      <Link href="/trends" className="underline underline-offset-4">
+      <Link href="/trends" className="font-medium text-primary underline-offset-4 hover:underline">
         See longer trends
       </Link>
     </p>

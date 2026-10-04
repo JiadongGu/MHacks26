@@ -1,16 +1,35 @@
 "use client";
 
 import { useState } from "react";
+import { Info, Lightbulb, OctagonAlert, TriangleAlert, type LucideIcon } from "lucide-react";
 import { toast } from "sonner";
 import { AlertWhy } from "@/components/dashboard/alert-why";
 import { Button } from "@/components/ui/button";
-import { EmptyState, ErrorNote, ListSkeleton, SeverityBadge } from "@/components/ui-bits";
+import { EmptyState, ErrorNote, ListSkeleton } from "@/components/ui-bits";
 import { errorText, me } from "@/lib/api-client";
 import { canExplain } from "@/lib/explain";
 import { formatDateTime, timeAgo } from "@/lib/format";
 import type { AlertView } from "@/lib/queries";
 import { usePolling } from "@/lib/use-polling";
+import { alertSource } from "@/lib/vitals-card";
 import { cn } from "@/lib/utils";
+
+const SEVERITY: Record<AlertView["severity"], { label: string; icon: LucideIcon; className: string }> = {
+  info: { label: "Info", icon: Info, className: "bg-muted text-muted-foreground" },
+  nudge: { label: "Nudge", icon: Lightbulb, className: "bg-sidebar-accent text-sidebar-accent-foreground" },
+  warning: { label: "Warning", icon: TriangleAlert, className: "bg-[#FFF3E0] text-[#A85A00]" },
+  urgent: { label: "Urgent", icon: OctagonAlert, className: "bg-[#FFEBEA] text-[#D70015]" },
+};
+
+function SeverityPill({ severity }: { severity: AlertView["severity"] }) {
+  const s = SEVERITY[severity] ?? SEVERITY.info;
+  return (
+    <span className={cn("inline-flex h-6 items-center gap-1 rounded-full px-2.5 text-xs font-semibold", s.className)}>
+      <s.icon className="size-3.5" aria-hidden="true" />
+      {s.label}
+    </span>
+  );
+}
 
 type Props = {
   initial?: AlertView[];
@@ -92,19 +111,22 @@ export function AlertsFeed({ initial, limit, pollMs = 15_000, emptyHint, hideKin
       {error && (
         <ErrorNote className="mb-3">Could not refresh alerts. Showing the last list. {error}</ErrorNote>
       )}
-      <ol className="divide-y divide-border border-y border-border">
+      <ol className="divide-y divide-border overflow-hidden rounded-lg border border-border bg-card">
         {alerts.map((a) => {
           const isNew = !a.read_at;
           return (
-            <li key={a.id} className="grid gap-1 py-4 sm:grid-cols-[1fr_auto] sm:gap-x-6">
+            <li
+              key={a.id}
+              id={`alert-${a.id}`}
+              className="grid scroll-mt-6 gap-1 px-4 py-4 target:bg-sidebar-accent/50 sm:grid-cols-[1fr_auto] sm:gap-x-6 md:px-5"
+            >
               <div className="min-w-0">
-                <div className="flex flex-wrap items-center gap-2">
-                  <SeverityBadge severity={a.severity} />
-                  {isNew && (
-                    <span className="text-xs font-medium text-foreground">
-                      <span aria-hidden="true">● </span>New
-                    </span>
-                  )}
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                  <SeverityPill severity={a.severity} />
+                  <span className="inline-flex h-6 items-center rounded-full border border-border px-2.5 text-xs font-medium text-muted-foreground">
+                    <span className="sr-only">Source: </span>
+                    {alertSource(a.kind, a.explain)}
+                  </span>
                   <time
                     dateTime={a.created_at}
                     title={formatDateTime(a.created_at)}
@@ -113,6 +135,11 @@ export function AlertsFeed({ initial, limit, pollMs = 15_000, emptyHint, hideKin
                   >
                     {timeAgo(a.created_at)}
                   </time>
+                  {isNew && (
+                    <span className="text-xs font-semibold text-primary">
+                      <span aria-hidden="true">● </span>New
+                    </span>
+                  )}
                 </div>
                 <h3 className={cn("mt-2 text-base", isNew ? "font-semibold" : "font-medium")}>
                   {a.title}

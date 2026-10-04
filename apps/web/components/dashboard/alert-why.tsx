@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { ChevronDown, CircleCheck, TriangleAlert } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -50,18 +50,36 @@ export function AlertWhy({ alertId, title, explain: initial }: Props) {
     if (next && !explain && !loading) void load();
   }
 
+  // A link to #alert-<id> opens the panel, so "Why Pulse thinks this" lands on the answer.
+  useEffect(() => {
+    const target = `#alert-${alertId}`;
+    const openFromHash = () => {
+      if (window.location.hash !== target) return;
+      setOpen(true);
+      if (!explain && !loading) void load();
+    };
+    const frame = requestAnimationFrame(openFromHash);
+    window.addEventListener("hashchange", openFromHash);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("hashchange", openFromHash);
+    };
+    // load and the flags are read when the hash fires. Re-running on every change would reopen a closed panel.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [alertId]);
+
   return (
     <div className="mt-2">
       <Button
         variant="ghost"
         size="sm"
-        className="-ml-2.5"
+        className="-ml-2.5 text-primary hover:text-primary"
         aria-expanded={open}
         aria-controls={panelId}
         onClick={toggle}
       >
-        Why?
-        <span className="sr-only"> Pulse sent &ldquo;{title}&rdquo;</span>
+        Why Pulse flagged this
+        <span className="sr-only">: &ldquo;{title}&rdquo;</span>
         <ChevronDown
           aria-hidden="true"
           className={cn("transition-transform", open && "rotate-180")}
