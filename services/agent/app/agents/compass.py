@@ -127,7 +127,7 @@ def day_label(dt: datetime, local: datetime, tz: str) -> str:
     return "tomorrow" if days == 1 else local_now(tz, dt).strftime("%A")
 
 
-def coming_up(events: list[dict[str, Any]]) -> str | None:
+def coming_up(events: list[dict[str, Any]], with_day: bool = True) -> str | None:
     """'A and B tomorrow.' with no times. Mixed days keep their own label."""
     if not events:
         return None
@@ -135,7 +135,7 @@ def coming_up(events: list[dict[str, Any]]) -> str | None:
     days = {e.get("day") for e in events}
     if len(days) == 1 and None not in days:
         names = titles[0] if len(titles) == 1 else ", ".join(titles[:-1]) + " and " + titles[-1]
-        return f"{names} {days.pop()}."
+        return f"{names} {days.pop()}." if with_day else f"{names}."
     return "; ".join(f"{e['title']} ({e.get('day', 'soon')})" for e in events) + "."
 
 
@@ -196,7 +196,7 @@ def compose_evening(facts: dict[str, Any]) -> str:
     day_goals = [g for g in facts.get("goals", []) if g["period"] == "day"]
     if day_goals:
         out.append("Today: " + "; ".join(goal_result(g) for g in day_goals[:3]) + ".")
-    soon = coming_up(facts.get("tomorrow_events", [])[:3])
+    soon = coming_up(facts.get("tomorrow_events", [])[:3], with_day=False)
     out.append("Tomorrow: " + (soon if soon else "nothing on your calendar."))
     if facts.get("plan_headline"):
         out.append(facts["plan_headline"])

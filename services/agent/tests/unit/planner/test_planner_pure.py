@@ -242,6 +242,6 @@ def test_focus_lines_describe_each_area_without_clock_times():
         "• Sleep better: a wind-down, lights out around 11:30 pm",
         "• Move more: a walk",
         "• Build better study habits: 2 study blocks",
-        "• Feel less stressed: nothing needed today",
+        "• Feel less stressed: nothing scheduled today",
         "• Protect my skin: sunscreen, a reapply",
     ]

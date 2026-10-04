@@ -106,5 +106,5 @@ def focus_lines(picks: list[str], items: list[dict], bed: datetime | None) -> li
     out = []
     for key in keys:
         what = _summary(key, items, bed)
-        out.append(f"• {BY_KEY[key].label}: {what if what else 'nothing needed today'}")
+        out.append(f"• {BY_KEY[key].label}: {what if what else 'nothing scheduled today'}")
     return out

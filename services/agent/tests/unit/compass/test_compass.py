@@ -96,7 +96,7 @@ def test_evening_text_is_kind_about_goals_and_shows_no_targets():
     assert "steps goal reached" in text
     assert "sleep 5.2 h so far" in text
     assert "not met" not in text and "8,000" not in text and "/450" not in text
-    assert "Tomorrow: Board presentation tomorrow." in text
+    assert "Tomorrow: Board presentation." in text
     assert "9:00" not in text
     assert "Tonight: Aim for 7.5 h of sleep. Lights out by 22:30." in text
 
@@ -379,5 +379,6 @@ def test_coming_up_names_the_day_never_the_time():
     assert compass.coming_up([]) is None
     two = [{"title": "A", "day": "tomorrow"}, {"title": "B", "day": "tomorrow"}]
     assert compass.coming_up(two) == "A and B tomorrow."
+    assert compass.coming_up(two, with_day=False) == "A and B."
     mixed = [{"title": "A", "day": "today"}, {"title": "B", "day": "Friday"}]
     assert compass.coming_up(mixed) == "A (today); B (Friday)."
