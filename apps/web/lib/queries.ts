@@ -2,6 +2,7 @@
 // Dates leave this file as ISO strings so client components can take them as props.
 import { and, asc, desc, eq, gte, inArray, isNull, lte, max } from "drizzle-orm";
 import { db, schema } from "@/lib/db";
+import { parseExplain, type Explain } from "@/lib/explain";
 import { LINK_CODE_TTL_MS, type LinkChannel } from "@/lib/link-code";
 import { parseItems, type PlanView } from "@/lib/plan";
 
@@ -14,6 +15,8 @@ export type AlertView = {
   proposal_id: string | null;
   created_at: string;
   read_at: string | null;
+  /** payload.explain from the agent, or null for an older alert. */
+  explain: Explain | null;
 };
 
 export type ProposalView = {
@@ -97,7 +100,18 @@ export async function listAlerts(userId: string, limit = 20): Promise<AlertView[
     .where(eq(schema.alerts.user_id, userId))
     .orderBy(desc(schema.alerts.created_at))
     .limit(limit);
-  return rows.map((r) => ({
+  return rows.map(toAlertView);
+}
+
+type AlertRow = typeof schema.alerts.$inferSelect;
+
+function explainOf(payload: unknown): Explain | null {
+  if (payload === null || typeof payload !== "object") return null;
+  return parseExplain((payload as Record<string, unknown>).explain);
+}
+
+function toAlertView(r: AlertRow): AlertView {
+  return {
     id: r.id,
     kind: r.kind,
     severity: r.severity,
@@ -106,7 +120,22 @@ export async function listAlerts(userId: string, limit = 20): Promise<AlertView[
     proposal_id: r.proposal_id,
     created_at: r.created_at.toISOString(),
     read_at: iso(r.read_at),
-  }));
+    explain: explainOf(r.payload),
+  };
+}
+
+/** The stored explain object of one alert of this user. found is false when the alert is not theirs. */
+export async function getAlertExplain(
+  userId: string,
+  alertId: string,
+): Promise<{ found: boolean; explain: Explain | null }> {
+  const rows = await db
+    .select({ payload: schema.alerts.payload })
+    .from(schema.alerts)
+    .where(and(eq(schema.alerts.user_id, userId), eq(schema.alerts.id, alertId)))
+    .limit(1);
+  const r = rows[0];
+  return r ? { found: true, explain: explainOf(r.payload) } : { found: false, explain: null };
 }
 
 /** The newest alert of one kind from the last `hours` hours, or null. Used for the evening check card. */
@@ -121,17 +150,7 @@ export async function getRecentAlertOfKind(userId: string, kind: string, hours: 
     .orderBy(desc(schema.alerts.created_at))
     .limit(1);
   const r = rows[0];
-  if (!r) return null;
-  return {
-    id: r.id,
-    kind: r.kind,
-    severity: r.severity,
-    title: r.title,
-    body: r.body,
-    proposal_id: r.proposal_id,
-    created_at: r.created_at.toISOString(),
-    read_at: iso(r.read_at),
-  };
+  return r ? toAlertView(r) : null;
 }
 
 export async function markAlertsRead(userId: string, ids: string[] | "all"): Promise<number> {

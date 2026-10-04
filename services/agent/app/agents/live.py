@@ -16,6 +16,7 @@ from app import llm, notify
 from app.contracts import CalendarEvent, DailySummary, Goal
 from app.core import db, spacetime
 from app.rules import TITLES, Finding, RuleContext, evaluate
+from app.rules.explain import explain
 
 log = logging.getLogger("pulse.live")
 
@@ -148,14 +149,15 @@ async def _load(user_id: UUID, now: datetime) -> tuple[RuleContext, str]:
                     alert_rows)
 
 
-async def _persist(user_id: UUID, finding: Finding, title: str, body: str) -> dict[str, Any]:
+async def _persist(user_id: UUID, finding: Finding, title: str, body: str,
+                   explained: dict[str, Any] | None = None) -> dict[str, Any]:
     """Write the alert, the optional proposal, and the twin status in one transaction."""
     async with db.neon() as conn:
         cur = await conn.execute(
             "insert into alerts (user_id, kind, severity, title, body, payload, channels) "
             "values (%s, %s, %s, %s, %s, %s, %s) returning id, created_at",
-            (user_id, finding.kind, finding.severity, title, body, Jsonb({"facts": finding.facts}),
-             Jsonb([])))
+            (user_id, finding.kind, finding.severity, title, body,
+             Jsonb({"facts": finding.facts, "explain": explained}), Jsonb([])))
         alert = await cur.fetchone()
         assert alert is not None
         proposal_id = None
@@ -191,7 +193,7 @@ async def evaluate_user(user_id: UUID, now: datetime | None = None) -> int:
         for f in findings:
             title = TITLES.get(f.kind, f.kind)
             body = await llm.phrase(f.kind, f.facts, summary)
-            alert_row = await _persist(user_id, f, title, body)
+            alert_row = await _persist(user_id, f, title, body, explain(f, ctx))
             written += 1
             await notify.dispatch(user_id, alert_row)
     log.info("live.evaluate user=%s findings=%d ms=%d", user_id, written, (time.monotonic() - started) * 1000)
