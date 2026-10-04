@@ -1,0 +1,22 @@
+// /demo panel: run "Workout now", then show the alert on the dashboard. Sends a real iMessage to the linked phone.
+{
+  "$schema": "../node_modules/testreel/recording-definition.schema.json",
+  "url": "${PULSE_URL}/demo",
+  "storageState": "./video/.auth/state.json",
+  "viewport": { "width": 1440, "height": 900 },
+  "outputSize": { "width": 1920, "height": 1080 },
+  "colorScheme": "dark",
+  "outputFormat": "mp4",
+  "waitForSelector": "text=Demo control panel",
+  "cursor": { "style": "pointer" },
+  "chrome": { "url": "pulse-mhacks.vercel.app/demo" },
+  "background": { "gradient": { "from": "#1f1a17", "to": "#3a2a20" }, "padding": 64, "borderRadius": 14 },
+  "steps": [
+    { "action": "wait", "ms": 1000 },
+    { "action": "click", "selector": "role=button[name='Run scenario: Workout now']", "zoom": 1.6, "pauseAfter": 9000 },
+    { "action": "zoom", "selector": "text=Alerts", "scale": 1.5, "pauseAfter": 3000 },
+    { "action": "zoom", "scale": 1 },
+    { "action": "navigate", "url": "${PULSE_URL}/dashboard", "pauseAfter": 3000 },
+    { "action": "screenshot", "name": "dashboard-after-workout" }
+  ]
+}
