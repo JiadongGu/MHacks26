@@ -34,6 +34,8 @@ type Props = {
   profile: ProfileInput;
   /** Saved health history, so a returning user does not start step 2 from empty. */
   initialHistory?: HistoryState;
+  /** True when the person just came back from FinchNode Connect. */
+  finchnodeReturned?: boolean;
   photonNumber: string | null;
   imessageLinked: boolean;
 };
@@ -46,6 +48,7 @@ export function OnboardingFlow({
   initialHistory = EMPTY_HISTORY,
   photonNumber,
   imessageLinked,
+  finchnodeReturned = false,
 }: Props) {
   const [step, setStep] = useState(initialStep);
   const [highest, setHighest] = useState(highestStep);
@@ -179,6 +182,7 @@ export function OnboardingFlow({
             setState={setHistory}
             profile={profileState}
             onDone={next}
+            returned={finchnodeReturned}
           />
         )}
         {step === 3 && <StepDevices simulate={simulate} setSimulate={setSimulate} />}
