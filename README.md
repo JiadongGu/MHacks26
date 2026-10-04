@@ -3,6 +3,8 @@
 
 # Pulse — your health agent in iMessage
 
+> **Archived (Oct 4, 2026).** Built at MHacks 2026. The hosted app, agent, iMessage line and databases have been shut down and all API keys revoked, so the live links below no longer work. The code is kept for reference.
+
 Pulse reads live wearable vitals (Fitbit via the Google Health API, plus a simulated Apple Watch that emits Health Auto Export JSON), builds a digital twin from the user's medical record (FinchNode synthetic EHR) and onboarding answers, watches the live stream with a deterministic rules engine, and uses Gemini to phrase alerts. It acts with approval: resting heart rate +10 bpm and 5 h of sleep with an exam tomorrow → it texts a proposed sleep block; reply YES and it writes the event to Google Calendar.
 
 Live: https://pulse-mhacks.vercel.app
