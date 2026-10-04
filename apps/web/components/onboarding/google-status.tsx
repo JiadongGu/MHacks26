@@ -11,7 +11,7 @@ import { timeAgo } from "@/lib/format";
 
 type GoogleStatus = { connected: boolean; email: string | null; last_sync: string | null };
 
-/** Shows the Google Calendar connection and the connect link. Used in onboarding step 4 and in settings. */
+/** Shows the Google Calendar connection and the connect link. Used in onboarding step 3 and in settings. */
 export function GoogleStatusCard({ connectLabel = "Connect Google Calendar" }: { connectLabel?: string }) {
   const [status, setStatus] = useState<GoogleStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
