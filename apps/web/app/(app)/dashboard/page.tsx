@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
+import { ConnectWatch } from "@/components/dashboard/connect-watch";
 import { CheckinsSection } from "@/components/dashboard/checkins-section";
 import { FocusSection } from "@/components/dashboard/focus-section";
 import { NumbersSection } from "@/components/dashboard/numbers-section";
@@ -18,6 +19,7 @@ import {
 import { ListSkeleton, Section } from "@/components/ui-bits";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DEFAULT_TIMEZONE } from "@/lib/briefing";
+import { hasDeviceData } from "@/lib/queries";
 import { requireOnboarded } from "@/lib/session";
 import { greeting, headerDate } from "@/lib/vitals-card";
 
@@ -28,6 +30,8 @@ export default async function DashboardPage() {
   // A user who has not finished onboarding goes back to /onboarding.
   const { user, profile } = await requireOnboarded();
   const first = profile.display_name?.trim().split(/\s+/)[0];
+  // No watch, no charts: nothing empty or invented is shown. A failed read is treated as "has data".
+  const hasDevice = await hasDeviceData(user.id).catch(() => true);
   const zone = profile.timezone || DEFAULT_TIMEZONE;
   const now = new Date();
   const { date, time } = headerDate(now, zone);
@@ -66,32 +70,38 @@ export default async function DashboardPage() {
             </GroupSection>
           </Rise>
 
-          <Rise i={2} className="order-4 lg:order-none">
-            <GroupSection
-              title="Vitals today"
-              headingId="h-numbers"
-              action={
-                <Link
-                  href="/settings"
-                  className="rounded-sm text-sm font-medium text-primary underline-offset-4 outline-none hover:underline focus-visible:ring-3 focus-visible:ring-ring/50"
-                >
-                  Choose cards
-                </Link>
-              }
-            >
-              <Suspense
-                fallback={
-                  <div role="status" aria-label="Loading your numbers" className="grid grid-cols-2 gap-3 @2xl:grid-cols-3">
-                    {Array.from({ length: 6 }, (_, i) => (
-                      <Skeleton key={i} className="h-44" />
-                    ))}
-                  </div>
+          {hasDevice ? (
+            <Rise i={2} className="order-4 lg:order-none">
+              <GroupSection
+                title="Vitals today"
+                headingId="h-numbers"
+                action={
+                  <Link
+                    href="/settings"
+                    className="rounded-sm text-sm font-medium text-primary underline-offset-4 outline-none hover:underline focus-visible:ring-3 focus-visible:ring-ring/50"
+                  >
+                    Choose cards
+                  </Link>
                 }
               >
-                <NumbersSection userId={user.id} timeZone={profile.timezone} hidden={profile.hidden_metrics} />
-              </Suspense>
-            </GroupSection>
-          </Rise>
+                <Suspense
+                  fallback={
+                    <div role="status" aria-label="Loading your numbers" className="grid grid-cols-2 gap-3 @2xl:grid-cols-3">
+                      {Array.from({ length: 6 }, (_, i) => (
+                        <Skeleton key={i} className="h-44" />
+                      ))}
+                    </div>
+                  }
+                >
+                  <NumbersSection userId={user.id} timeZone={profile.timezone} hidden={profile.hidden_metrics} />
+                </Suspense>
+              </GroupSection>
+            </Rise>
+          ) : (
+            <Rise i={2} className="order-4 lg:order-none">
+              <ConnectWatch />
+            </Rise>
+          )}
 
           <Rise i={3} className="order-6 lg:order-none">
             <GroupSection title="Check-ins" headingId="h-checkins">
@@ -101,21 +111,25 @@ export default async function DashboardPage() {
             </GroupSection>
           </Rise>
 
-          <Rise i={4} className="order-7 lg:order-none">
-            <Section title="Heart rate" headingId="h-hr">
-              <Suspense fallback={<Skeleton role="status" aria-label="Loading heart rate" className="h-40" />}>
-                <HrPanel userId={user.id} />
-              </Suspense>
-            </Section>
-          </Rise>
+          {hasDevice && (
+            <Rise i={4} className="order-7 lg:order-none">
+              <Section title="Heart rate" headingId="h-hr">
+                <Suspense fallback={<Skeleton role="status" aria-label="Loading heart rate" className="h-40" />}>
+                  <HrPanel userId={user.id} />
+                </Suspense>
+              </Section>
+            </Rise>
+          )}
 
-          <Rise i={5} className="order-9 lg:order-none">
-            <Section title="This week" headingId="h-week">
-              <Suspense fallback={<Skeleton role="status" aria-label="Loading trends" className="h-40" />}>
-                <WeekSection userId={user.id} timeZone={profile.timezone} hidden={profile.hidden_metrics} />
-              </Suspense>
-            </Section>
-          </Rise>
+          {hasDevice && (
+            <Rise i={5} className="order-9 lg:order-none">
+              <Section title="This week" headingId="h-week">
+                <Suspense fallback={<Skeleton role="status" aria-label="Loading trends" className="h-40" />}>
+                  <WeekSection userId={user.id} timeZone={profile.timezone} hidden={profile.hidden_metrics} />
+                </Suspense>
+              </Section>
+            </Rise>
+          )}
 
           <Rise i={6} className="order-8 lg:order-none">
             <GroupSection title="Alerts" headingId="h-alerts">

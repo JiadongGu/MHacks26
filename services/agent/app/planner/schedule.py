@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from datetime import date, datetime, time, timedelta
 from zoneinfo import ZoneInfo
 
+from . import judgment
 from .shape import MIN_FREE_MIN, Slot
 
 GAP_MIN = 10  # space left between two planned items
@@ -123,6 +124,24 @@ TEMPLATES: dict[str, Template] = {
         strict=True,
         after=("sun", 120),
     ),
+    "move": _t(
+        "Quick workout",
+        30,
+        20,
+        15,
+        [(15, 18), (12, 14)],
+        "A burst of movement is a good break from studying and helps you focus afterwards.",
+        strict=True,
+    ),
+    "break": _t(
+        "Stretch and water break",
+        10,
+        10,
+        10,
+        [(14, 17), (10, 12)],
+        "A short reset between study blocks keeps the next one sharp.",
+        strict=True,
+    ),
     "skin_check": _t(
         "Monthly skin check, head to toe",
         15,
@@ -138,7 +157,9 @@ FLUID_LIMITED = {"heart_failure", "ckd"}
 SUN_KEYS = ("sun", "sun_reapply")
 
 
-def planned_keys(picks: list[str], flags: set[str], day: date) -> list[str]:
+def planned_keys(
+    picks: list[str], flags: set[str], day: date, load: str = "normal", ctx: "judgment.Context | None" = None
+) -> list[str]:
     """The person's picks, plus the sun items for anyone with a history of skin cancer.
 
     Sun protection is standing care for that history whether or not it was picked. A skin check is added on
@@ -150,6 +171,7 @@ def planned_keys(picks: list[str], flags: set[str], day: date) -> list[str]:
         keys = list(SUN_KEYS) + keys
         if day.weekday() == 6 and day.day <= 7:
             keys.append("skin_check")
+    keys += [k for k in judgment.companions(keys, load, ctx or judgment.Context(day=day)) if k not in keys]
     return keys
 
 
@@ -177,23 +199,46 @@ def _subtract(slots: list[Slot], start: datetime, end: datetime, pad_min: int = 
     return [s for s in out if s.minutes >= MIN_FREE_MIN]
 
 
-def _choose(
-    slots: list[Slot], minutes: int, prefer: tuple[tuple[int, int], ...], strict: bool = False
+def _grid(slot: Slot, minutes: int) -> list[datetime]:
+    """Candidate start times in a free window: its own start, then every quarter hour after it."""
+    latest = slot.end - timedelta(minutes=minutes)
+    if latest < slot.start:
+        return []
+    out = [slot.start]
+    t = slot.start.replace(second=0, microsecond=0)
+    t += timedelta(minutes=(-t.minute) % judgment.STEP_MIN)
+    if t == slot.start:
+        t += timedelta(minutes=judgment.STEP_MIN)
+    while t <= latest:
+        out.append(t)
+        t += timedelta(minutes=judgment.STEP_MIN)
+    return out
+
+
+def _best(
+    slots: list[Slot],
+    minutes: int,
+    key: str,
+    tpl: Template,
+    placed: list["PlanItem"],
+    ctx: "judgment.Context",
+    spacing: bool,
 ) -> tuple[datetime, datetime] | None:
-    """Earliest fit inside the best preferred hour range, else (unless strict) the earliest slot that fits."""
-    need = timedelta(minutes=minutes)
-    for lo_h, hi_h in prefer:
-        for s in slots:
-            lo = max(s.start, s.start.replace(hour=lo_h, minute=0, second=0, microsecond=0))
-            hi = min(s.end, s.start.replace(hour=hi_h, minute=0, second=0, microsecond=0))
-            if hi - lo >= need:
-                return lo, lo + need
-    if strict:
-        return None
-    for s in slots:
-        if s.end - s.start >= need:
-            return s.start, s.start + need
-    return None
+    """The best-scoring time for one block, or None when nothing is good enough."""
+    best: tuple[float, datetime] | None = None
+    for slot in slots:
+        for start in _grid(slot, minutes):
+            end = start + timedelta(minutes=minutes)
+            if tpl.strict and judgment.hour_weight_prefer(start + (end - start) / 2, tpl.prefer) == 0:
+                continue
+            sc = judgment.score(
+                key, start, end, (slot.start, slot.end), tpl.prefer, placed, ctx, SAME_KIND_APART_MIN, spacing
+            )
+            if sc < judgment.MIN_SCORE:
+                continue
+            if best is None or sc > best[0] + 1e-9:
+                best = (sc, start)
+    return (best[1], best[1] + timedelta(minutes=minutes)) if best else None
 
 
 def _from(slots: list[Slot], earliest: datetime | None) -> list[Slot]:
@@ -204,8 +249,12 @@ def _from(slots: list[Slot], earliest: datetime | None) -> list[Slot]:
     return [s for s in cut if s.minutes >= MIN_FREE_MIN]
 
 
-def place(focus: list[str], slots: list[Slot], load: str) -> list[PlanItem]:
-    """Greedy: the person's first pick gets first choice of time. Skips what does not fit."""
+def place(
+    focus: list[str], slots: list[Slot], load: str, ctx: "judgment.Context | None" = None
+) -> list[PlanItem]:
+    """Greedy by pick order, but each block takes the best time for what it is, not just the first gap that
+    fits. Skips what has no good time rather than forcing it into a poor one."""
+    ctx = ctx or judgment.Context()
     items: list[PlanItem] = []
     free = list(slots)
     for key in focus:
@@ -219,17 +268,18 @@ def place(focus: list[str], slots: list[Slot], load: str) -> list[PlanItem]:
             if not prior:
                 continue  # nothing to follow, so nothing to remind about
             earliest = max(prior) + timedelta(minutes=tpl.after[1])
-        spread = list(free)  # the same free time, with room kept around blocks of this kind already placed
-        for _ in range(tpl.repeat[load]):
-            spot = _choose(_from(spread, earliest), minutes, tpl.prefer, tpl.strict) or _choose(
-                _from(free, earliest), minutes, tpl.prefer, tpl.strict
+        repeat = judgment.repeat_for(key, load, tpl.repeat[load], ctx)
+        for n in range(repeat):
+            pool = _from(free, earliest)
+            spot = _best(pool, minutes, key, tpl, items, ctx, True) or _best(
+                pool, minutes, key, tpl, items, ctx, False
             )
             if spot is None:
                 break
             start, end = spot
-            items.append(PlanItem(key, tpl.title, start, end, tpl.why))
+            title, why = judgment.variant(key, n, repeat, ctx, tpl.title, tpl.why)
+            items.append(PlanItem(key, title, start, end, why))
             free = _subtract(free, start, end)
-            spread = _subtract(spread, start, end, SAME_KIND_APART_MIN)
     return sorted(items, key=lambda i: i.start)
 
 

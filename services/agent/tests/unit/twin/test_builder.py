@@ -273,3 +273,26 @@ def test_summarize_is_deterministic_and_mentions_key_facts(morgan):
         "124/78",
     ):
         assert needle in text
+
+
+def test_summary_leaves_out_baselines_that_are_only_population_defaults():
+    twin = {
+        "profile": {"age": 30, "sex": "male"},
+        "baselines": {
+            "resting_hr": 62,
+            "hrv_sdnn": 80,
+            "sleep_min": 420,
+            "steps": 9000,
+            "sources": {
+                "resting_hr": "daily_summary",
+                "hrv_sdnn": "default",
+                "sleep_min": "default",
+                "steps": "daily_summary",
+            },
+        },
+    }
+    text = builder.summarize(twin)
+    assert "Your usual: resting heart rate 62 bpm · 9,000 steps a day" in text
+    assert "HRV" not in text and "sleep 7.0 h" not in text
+    twin["baselines"]["sources"] = {k: "default" for k in twin["baselines"]["sources"]}
+    assert "Your usual" not in builder.summarize(twin)

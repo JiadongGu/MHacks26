@@ -33,9 +33,10 @@ const HEADLINE: Record<PlanLoad, string> = {
   packed: "Today is a busy one with few gaps.",
 };
 
-/** The card always shows today, so it words the headline itself; a plan made last night says "tomorrow". */
-export function planHeadline(load: PlanLoad): string {
-  return HEADLINE[load] ?? HEADLINE.normal;
+/** The card words the headline itself, so a plan made last night does not say "tomorrow" on the day. */
+export function planHeadline(load: PlanLoad, when: "today" | "tomorrow" = "today"): string {
+  const text = HEADLINE[load] ?? HEADLINE.normal;
+  return when === "today" ? text : text.replace(/^Today/, "Tomorrow");
 }
 
 const isString = (v: unknown): v is string => typeof v === "string" && v.length > 0;

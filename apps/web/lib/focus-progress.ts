@@ -65,8 +65,10 @@ export function buildFocusRows(args: {
   rows: DailyRow[];
   today: string;
   items: PlanItem[];
+  /** False when no watch is connected: measured areas then say so instead of showing a zero. */
+  hasDevice?: boolean;
 }): FocusRow[] {
-  const { goals, rows, today, items } = args;
+  const { goals, rows, today, items, hasDevice = true } = args;
   const keys = args.picks.filter((k) => k in FOCUS_DEFS);
   const hasSun = items.some((i) => FOCUS_DEFS.sun.planKeys?.includes(i.key));
   if (hasSun && !keys.includes("sun")) keys.push("sun");
@@ -74,6 +76,7 @@ export function buildFocusRows(args: {
   return keys.map((key) => {
     const def = FOCUS_DEFS[key];
     if (def.metric) {
+      if (!hasDevice) return { key, label: def.label, pct: null, text: "Connect a watch to track this" };
       const goal = goals.find((g) => g.active && g.metric === def.metric!.key && g.period === def.metric!.period);
       const value = measured(rows, def.metric.key, def.metric.period, today);
       if (!goal) return { key, label: def.label, pct: null, text: "No goal set yet" };

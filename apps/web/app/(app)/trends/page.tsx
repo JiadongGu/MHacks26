@@ -4,10 +4,11 @@ import { MetricCard } from "@/components/trends/metric-card";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { GroupSection } from "@/components/dashboard/rise";
+import { ConnectWatch } from "@/components/dashboard/connect-watch";
 import { EmptyState, ErrorNote } from "@/components/ui-bits";
 import { localDay } from "@/lib/briefing";
 import { addDays, zoneOrDefault } from "@/lib/calendar-week";
-import { getDailyMetricRows, getLatestTwin } from "@/lib/queries";
+import { getDailyMetricRows, getLatestTwin, hasDeviceData } from "@/lib/queries";
 import { requireOnboarded } from "@/lib/session";
 import { CATEGORIES, RANGES, buildTrends, parseRange, type Trend } from "@/lib/trends";
 import { readTwin } from "@/lib/twin";
@@ -22,6 +23,19 @@ export default async function TrendsPage({ searchParams }: { searchParams: Param
   const { user, profile } = await requireOnboarded();
   const range = parseRange((await searchParams).range);
   const today = localDay(zoneOrDefault(profile.timezone));
+  // Without a connected watch there is nothing real to chart.
+  if (!(await hasDeviceData(user.id).catch(() => true))) {
+    return (
+      <>
+        <PageHeader eyebrow="Vitals" title="Trends" className="mb-8">
+          Daily values from your wearable.
+        </PageHeader>
+        <div className="max-w-xl">
+          <ConnectWatch />
+        </div>
+      </>
+    );
+  }
 
   let trends: Trend[] | undefined;
   try {
