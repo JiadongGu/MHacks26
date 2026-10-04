@@ -183,7 +183,12 @@ export function OnboardingFlow({
         {step === 3 && <StepConnect simulate={simulate} setSimulate={setSimulate} />}
         {step === 4 && <StepGoals onDone={next} />}
         {step === 5 && (
-          <StepFinish photonNumber={photonNumber} alreadyLinked={imessageLinked} onLinked={markLinked} />
+          <StepFinish
+            photonNumber={photonNumber}
+            phone={profileState.phone_e164}
+            alreadyLinked={imessageLinked}
+            onLinked={markLinked}
+          />
         )}
 
         {step > 1 && (

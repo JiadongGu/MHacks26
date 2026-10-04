@@ -79,6 +79,9 @@ from app.demo.router import router as demo_router  # noqa: E402
 
 app.include_router(chat_router)
 app.include_router(channels_router)
+from app.channels.photon_api import router as photon_router  # noqa: E402
+
+app.include_router(photon_router)
 app.include_router(demo_router)
 from app.voice.router import router as voice_router  # noqa: E402
 

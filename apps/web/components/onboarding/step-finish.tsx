@@ -6,10 +6,12 @@ import { StepImessage } from "./step-imessage";
 /** Last step: optional messaging links, then build the twin and open the dashboard. */
 export function StepFinish({
   photonNumber,
+  phone,
   alreadyLinked,
   onLinked,
 }: {
   photonNumber: string | null;
+  phone: string;
   alreadyLinked: boolean;
   onLinked: () => void;
 }) {
@@ -19,7 +21,7 @@ export function StepFinish({
         <h2 id="finish-messages" className="text-xl font-semibold">
           Text with Pulse (optional)
         </h2>
-        <StepImessage photonNumber={photonNumber} alreadyLinked={alreadyLinked} onLinked={onLinked} />
+        <StepImessage photonNumber={photonNumber} phone={phone} alreadyLinked={alreadyLinked} onLinked={onLinked} />
       </section>
       <section aria-labelledby="finish-build" className="space-y-4 border-t border-border pt-8">
         <h2 id="finish-build" className="text-xl font-semibold">
