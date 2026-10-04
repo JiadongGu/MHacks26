@@ -206,7 +206,7 @@ export function OnboardingFlow({
               Back
             </Button>
             {optional && (
-              <Button variant="outline" onClick={next} disabled={saving}>
+              <Button size="lg" className="h-10 px-5" onClick={next} disabled={saving}>
                 {saving ? "Saving..." : "Continue"}
               </Button>
             )}
