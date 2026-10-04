@@ -113,9 +113,13 @@ export function StepHistory({ state, setState, profile, onDone }: Props) {
           {patients === null ? (
             <div className="max-w-[60ch] space-y-4">
               <p className="text-base">
-                Pulse tunes its alerts to your health. Tell it about your own history, or try a demo record from
-                FinchNode, a service with synthetic patients, to see how a record is read. You can change or
-                remove anything before you continue.
+                Pulse tunes its alerts to your own health, so enter your real history: conditions, medications,
+                and allergies. If you have none, continue with nothing. You can change anything before you
+                continue.
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Only want to look around? The sample record is a made-up patient, not you. Its conditions will
+                shape your alerts until you remove them.
               </p>
               {listError && (
                 <ErrorNote
@@ -134,7 +138,7 @@ export function StepHistory({ state, setState, profile, onDone }: Props) {
                 </Button>
                 <Button variant="outline" onClick={() => void loadPatients()} disabled={loadingList}>
                   <FileHeart aria-hidden="true" />
-                  {loadingList ? "Looking for records..." : "Try a demo record"}
+                  {loadingList ? "Looking for records..." : "Use a made-up sample patient"}
                 </Button>
               </div>
             </div>
@@ -326,7 +330,7 @@ function ImportedLists({
   return (
     <div className="max-w-xl space-y-8">
       <p className="text-sm text-muted-foreground">
-        Imported from your record. Remove anything that is wrong. Removed items are dropped from your twin.
+        {imported ? "Imported from a sample patient, not from you. Remove anything that is not yours." : "From your saved history. Remove anything that is wrong."} Removed items are dropped from your twin.
       </p>
       <RemovableList
         title="Conditions"
