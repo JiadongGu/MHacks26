@@ -27,12 +27,17 @@
 - Uptime monitors + `scripts/smoke.sh` against production; check Neon compute hours before judging
 - Record the demo video (docs/VIDEO_SCRIPT.md) with testreel + phone capture; submit Devpost + ASI:One
 
+- Dashboard (2026-10-04): Your focus today (progress per focus area; sleep, steps and workouts measured, the rest counted from ticked plan items via `POST /plan/done`), one Check-ins section (morning and evening share a card, newest first, broad goals with no clock times), Your numbers as a compact side panel with per-metric hide toggles in settings (`profiles.hidden_metrics`), events colored peacock/lavender/tangerine, plans cover today and tomorrow
+- Readable AI text: labelled lines for the briefing, evening check and twin summary; `chat.clip_lines` keeps line breaks
+- iMessage for anyone (free plan): `POST /channels/imessage/line` registers a phone as a Photon shared user and returns the line they were assigned; the Finish step shows that line. Limit is Photon's 10 shared users on Free (100 Pro); Business has one dedicated number and no list. `SPECTRUM_PROJECT_ID` and `SPECTRUM_PROJECT_SECRET` are on agent-api. Verified live for Gavin's phone
+
 ## Next — Gavin's demo (real data)
 - Redo onboarding with real accounts: Calendar, Fitbit, then **Connect my health record** (FinchNode, production). Fix whatever the first real run shows
 - Add the skin cancer history (or let FinchNode supply it) and check the plan shows sunscreen and the monthly skin check
 - Text the Pulse line +1 (415) 603-5536 as a blue iMessage after linking with a new code
 - Decide simulator vs real Fitbit for the demo; first real 9 pm evening run is unverified
-- Add a "did it" check-in for focus areas with no sensor (stress, unplug, study, balance, routine, hydration, sun)
+- Ask Photon (sponsor) to enable the Business plan: one dedicated number, no allowlist, no 10-user cap
+- Improve the chat answers (iMessage / ASI:One replies) the way the briefing was reworked
 - Publish the Google consent screen (7-day token expiry); rotate every secret that was pasted in chat (Spacetime token, FinchNode keys and webhook secret, others) after the demo
 
 ## Known bugs
