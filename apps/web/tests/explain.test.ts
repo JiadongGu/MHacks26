@@ -87,6 +87,9 @@ describe("labels", () => {
     expect(sourceLabel("")).toBe("Unknown");
     expect(metricLabel("resting_heart_rate")).toBe("Resting heart rate");
     expect(metricLabel("")).toBe("Unknown");
+    expect(metricLabel("spo2")).toBe("Blood oxygen");
+    expect(metricLabel("resting_hr baseline")).toBe("Resting heart rate baseline");
+    expect(metricLabel("custom_metric")).toBe("Custom metric");
   });
 });
 

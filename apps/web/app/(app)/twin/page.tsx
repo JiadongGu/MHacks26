@@ -167,12 +167,12 @@ function TwinBody({ view }: { view: TwinView }) {
   const days = typeof view.baselines.computed_from_days === "number" ? view.baselines.computed_from_days : 0;
   const ranged = view.labs.some((l) => labRange(l.display, l.unit, l.value));
   return (
-    <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
+    <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
       <div className="space-y-4">
         <Section title="Profile" headingId="t-profile" index={0}>
           <dl className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-5">
             <Stat label="Age" value={show(p.age)} />
-            <Stat label="Sex" value={show(p.sex)} />
+            <Stat label="Sex" value={humanize(show(p.sex))} />
             <Stat label="Height" value={p.height_cm ? formatHeight(Number(p.height_cm)) : "Not set"} />
             <Stat label="Weight" value={p.weight_kg ? formatWeight(Number(p.weight_kg)) : "Not set"} />
             <Stat label="Time zone" value={show(p.timezone)} />
@@ -192,7 +192,7 @@ function TwinBody({ view }: { view: TwinView }) {
                   chips={
                     <>
                       {c.status && <Chip>{humanize(c.status)}</Chip>}
-                      {c.source && <Chip>{c.source === "self_reported" ? "Self-reported" : humanize(c.source)}</Chip>}
+                      {c.source && <Chip>{c.source === "self_reported" ? "Self-reported" : c.source === "finchnode" ? "FinchNode" : humanize(c.source)}</Chip>}
                     </>
                   }
                 />

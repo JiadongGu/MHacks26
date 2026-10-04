@@ -84,7 +84,7 @@ export default async function TrendsPage({ searchParams }: { searchParams: Param
             if (have.length === 0) return null;
             return (
               <GroupSection key={c.id} title={c.title} headingId={`tr-${c.id}`}>
-                <ul className="grid gap-4 lg:grid-cols-2">
+                <ul className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                   {have.map((trend, i) => (
                     <MetricCard key={trend.key} trend={trend} color={c.color} range={range} today={today} index={i} />
                   ))}
