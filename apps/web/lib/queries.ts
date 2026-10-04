@@ -108,6 +108,31 @@ export async function listAlerts(userId: string, limit = 20): Promise<AlertView[
   }));
 }
 
+/** The newest alert of one kind from the last `hours` hours, or null. Used for the evening check card. */
+export async function getRecentAlertOfKind(userId: string, kind: string, hours: number): Promise<AlertView | null> {
+  const since = new Date(Date.now() - hours * 3_600_000);
+  const rows = await db
+    .select()
+    .from(schema.alerts)
+    .where(
+      and(eq(schema.alerts.user_id, userId), eq(schema.alerts.kind, kind), gte(schema.alerts.created_at, since)),
+    )
+    .orderBy(desc(schema.alerts.created_at))
+    .limit(1);
+  const r = rows[0];
+  if (!r) return null;
+  return {
+    id: r.id,
+    kind: r.kind,
+    severity: r.severity,
+    title: r.title,
+    body: r.body,
+    proposal_id: r.proposal_id,
+    created_at: r.created_at.toISOString(),
+    read_at: iso(r.read_at),
+  };
+}
+
 export async function markAlertsRead(userId: string, ids: string[] | "all"): Promise<number> {
   const where =
     ids === "all"

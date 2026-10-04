@@ -85,3 +85,15 @@ def test_endpoints_require_internal_token_and_validate(briefing_calls, monkeypat
     assert c.post("/demo/briefing?user_id=not-a-uuid", headers=HEADERS).status_code == 422
     assert c.post("/demo/scenario", headers=HEADERS,
                   json={"user_id": str(USER), "scenario": "bogus"}).status_code == 422
+
+
+async def test_evening_endpoint_forces_the_evening_job(monkeypatch):
+    calls = []
+
+    async def run_evening(user_id, force=False):
+        calls.append((user_id, force))
+        return True
+
+    monkeypatch.setattr(compass, "run_evening", run_evening)
+    assert await demo.evening(USER) == {"ran": True}
+    assert calls == [(USER, True)]
