@@ -10,9 +10,11 @@ import { FitbitStatusCard } from "./fitbit-status";
 export function StepDevices({
   simulate,
   setSimulate,
+  returnTo = "settings",
 }: {
   simulate: boolean;
   setSimulate: (on: boolean) => void;
+  returnTo?: "onboarding" | "settings";
 }) {
   const [busy, setBusy] = useState(false);
   const [simNote, setSimNote] = useState<string | null>(null);
@@ -45,7 +47,7 @@ export function StepDevices({
         <p className="mb-4 mt-1 text-sm text-muted-foreground">
           Pulse reads your watch data through Google Health. You sign in with Google and approve read access.
         </p>
-        <FitbitStatusCard />
+        <FitbitStatusCard returnTo={returnTo} />
       </div>
 
       <div className="py-5">

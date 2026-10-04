@@ -21,9 +21,9 @@ export function StepConnect({
           Pulse fits your focus areas into the free time between your events, and writes them to its own
           &quot;Pulse Health&quot; calendar. It changes your main calendar only when you approve.
         </p>
-        <GoogleStatusCard />
+        <GoogleStatusCard returnTo="onboarding" />
       </section>
-      <StepDevices simulate={simulate} setSimulate={setSimulate} />
+      <StepDevices simulate={simulate} setSimulate={setSimulate} returnTo="onboarding" />
     </div>
   );
 }

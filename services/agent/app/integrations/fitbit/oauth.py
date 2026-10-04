@@ -10,6 +10,7 @@ import httpx
 
 from app.core.config import settings
 from app.integrations.gcal.store import fernet
+from app.integrations.return_page import clean
 
 AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth"
 TOKEN_URL = "https://oauth2.googleapis.com/token"
@@ -29,10 +30,10 @@ def _client() -> dict[str, str]:
     return {"client_id": s.fitbit_client_id, "client_secret": s.fitbit_client_secret}
 
 
-def authorization_url(user_id: str) -> str:
+def authorization_url(user_id: str, return_to: str = "settings") -> str:
     verifier = secrets.token_urlsafe(64)
     challenge = base64.urlsafe_b64encode(hashlib.sha256(verifier.encode()).digest()).rstrip(b"=").decode()
-    payload = {"u": user_id, "v": verifier, "t": int(time.time())}
+    payload = {"u": user_id, "v": verifier, "t": int(time.time()), "r": clean(return_to)}
     state = fernet().encrypt(json.dumps(payload).encode()).decode()
     return (
         AUTH_URL
