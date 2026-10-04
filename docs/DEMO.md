@@ -11,7 +11,7 @@ Setup: `/demo` panel open on laptop, team iPhone mirrored via QuickTime, Google 
 
 Fallbacks: if iMessage is slow, show the alert on the dashboard and the `messages` log in `/demo`. If Gemini 429s, templates fire (say nothing). If Calendar insert fails, show the proposal state in `/demo` and the apply error.
 
-Talking points: wellness guidance not diagnosis; every autonomous action is approval-gated; data is synthetic (FinchNode) plus one real Fitbit.
+Talking points: wellness guidance not diagnosis; anything that changes your real schedule needs your YES (routine daily plans go into a separate Pulse Health calendar you can hide); data is synthetic (FinchNode) plus one real Fitbit.
 
 ## iMessage on Photon's free plan (read before demoing)
 - Only phones registered as users on the Photon project can text Pulse, and each user gets their **own** assigned Pulse line:

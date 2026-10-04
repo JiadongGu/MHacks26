@@ -19,3 +19,4 @@ One line each: choice, reason.
 - Google Calendar integration owned by J (moved from P, 2026-10-03): it closes J's approval loop (proposal -> apply) without a cross-owner dependency.
 - Spacetime module owned by J (moved from P, 2026-10-03): J owns both the module and every reader (rules, dashboard views); P only calls the `ingest` reducer.
 - FinchNode integration owned by P (moved from J, 2026-10-03): client, record → twin mapping, import endpoints, fixtures, FinchNode sponsor track. J keeps the twin model (baselines, thresholds, versions) that the rules depend on.
+- Daily plan events are written to the separate "Pulse Health" Google calendar without asking (decided by J, 2026-10-03): they are routine, tagged so Pulse only replaces its own events, and the calendar can be hidden. Anything that changes the user's real schedule (e.g. illness sleep blocks) still needs YES.
