@@ -4,8 +4,10 @@ import { FitbitStatusCard } from "@/components/onboarding/fitbit-status";
 import { GoogleStatusCard } from "@/components/onboarding/google-status";
 import { PageHeader } from "@/components/page-header";
 import { ReturnToast } from "@/components/settings/return-toast";
+import { MetricToggles } from "@/components/settings/metric-toggles";
 import { SettingsForm } from "@/components/settings/settings-form";
 import { Section } from "@/components/ui-bits";
+import { cleanHidden } from "@/lib/metrics";
 import { ErrorNote } from "@/components/ui-bits";
 import { getProfile } from "@/lib/queries";
 import { parseQuietHours } from "@/lib/quiet-hours";
@@ -86,6 +88,13 @@ export default async function SettingsPage({ searchParams }: { searchParams: Par
               />
             </>
           )}
+        </Section>
+
+        <Section title="Dashboard" headingId="s-dashboard">
+          <p className="mb-4 max-w-[60ch] text-sm text-muted-foreground">
+            Pulse shows every number it has. Untick any you would rather not see.
+          </p>
+          <MetricToggles hidden={cleanHidden(profile?.hidden_metrics ?? [])} disabled={!profile} />
         </Section>
       </div>
     </>

@@ -189,3 +189,11 @@ async def build_plan(user_id: UUID, day: date, now: datetime, write_calendar: bo
         night.shifted_min,
         night.reason,
     )
+
+
+async def build_plans(user_id: UUID, now: datetime, write_calendar: bool = True) -> list[Plan]:
+    """Plan today and tomorrow, so the calendar is never empty for the day ahead."""
+    profile = await store.load_profile(user_id)
+    zone = ZoneInfo(profile.get("timezone") or DEFAULT_TIMEZONE)
+    today = now.astimezone(zone).date()
+    return [await build_plan(user_id, d, now, write_calendar) for d in (today, today + timedelta(days=1))]

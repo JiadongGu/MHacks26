@@ -1,0 +1,1 @@
+ALTER TABLE "profiles" ADD COLUMN "hidden_metrics" text[] DEFAULT '{}'::text[] NOT NULL;

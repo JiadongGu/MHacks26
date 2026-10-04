@@ -295,7 +295,8 @@ async def _facts(user_id: UUID, now: datetime) -> dict[str, Any]:
 async def _briefing_body(user_id: UUID, now: datetime) -> None:
     facts = await _facts(user_id, now)
     try:
-        facts["plan_text"] = (await planner.build_plan(user_id, facts["local"].date(), now)).text
+        today_plan, _tomorrow = await planner.build_plans(user_id, now)
+        facts["plan_text"] = today_plan.text
     except Exception as exc:  # the briefing still goes out without a plan
         log.warning("compass.plan_failed job=briefing user=%s err=%s", user_id, type(exc).__name__)
     text = compose_briefing(facts)

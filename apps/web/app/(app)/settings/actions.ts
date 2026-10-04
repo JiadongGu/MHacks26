@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import { getSessionUser } from "@/lib/auth/server";
 import { db, schema } from "@/lib/db";
 import { isValidTimeZone } from "@/lib/profile";
+import { cleanHidden } from "@/lib/metrics";
 import { isHHMM, validateQuietHours } from "@/lib/quiet-hours";
 
 export type SettingsInput = {
@@ -49,6 +50,24 @@ export async function saveSettingsAction(input: SettingsInput): Promise<Settings
   } catch (err) {
     console.error("saveSettingsAction failed", err);
     return { ok: false, error: "Could not save settings. Try again." };
+  }
+  return { ok: true };
+}
+
+/** Saves which dashboard number cards are hidden. Unknown keys are dropped. */
+export async function saveHiddenMetricsAction(hidden: string[]): Promise<SettingsResult> {
+  const user = await getSessionUser();
+  if (!user) return { ok: false, error: "Not signed in." };
+  try {
+    const updated = await db
+      .update(schema.profiles)
+      .set({ hidden_metrics: cleanHidden(hidden) })
+      .where(eq(schema.profiles.user_id, user.id))
+      .returning({ id: schema.profiles.user_id });
+    if (updated.length === 0) return { ok: false, error: "Finish step 1 of setup first." };
+  } catch (err) {
+    console.error("saveHiddenMetricsAction failed", err);
+    return { ok: false, error: "Could not save. Try again." };
   }
   return { ok: true };
 }
