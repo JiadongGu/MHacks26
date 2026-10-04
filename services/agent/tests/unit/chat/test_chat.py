@@ -512,3 +512,9 @@ async def test_emergency_words_reply_911_and_log_an_urgent_entry(store):
     reply = await chat.handle(msg("I have crushing chest pain and my left arm is numb"))
     assert reply.reply == chat.EMERGENCY_TEXT
     assert store.symptoms == [(USER, "I have crushing chest pain and my left arm is numb", True)]
+
+
+def test_big_numbers_reach_the_model_whole():
+    assert chat._whole(6770.7) == 6771 and chat._whole(7.5) == 7.5 and chat._whole(None) is None
+    rows = [{"day": TODAY, "metric": "steps", "sum": 4000.6, "avg": None}]
+    assert chat.build_status(None, rows, [], TODAY)["steps_today"] == 4001
