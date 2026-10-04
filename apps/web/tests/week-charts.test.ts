@@ -12,7 +12,7 @@ const rows = [
 describe("buildTrends", () => {
   it("gives one trend per chart with oldest-first values and a formatted latest", () => {
     const t = buildTrends(rows, []);
-    expect(t.map((x) => x.key)).toEqual(["sleep_total_min", "steps", "resting_heart_rate", "hrv_sdnn"]);
+    expect(t.map((x) => x.key)).toEqual(["sleep_total_min", "steps", "resting_heart_rate", "hrv_sdnn", "spo2"]);
     const steps = t.find((x) => x.key === "steps")!;
     expect(steps.values).toEqual([8000, 2000]);
     expect([steps.latest, steps.low, steps.high]).toEqual(["2,000", "2,000", "8,000"]);
