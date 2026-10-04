@@ -13,6 +13,8 @@ export type PlanItem = {
   event_id?: string;
   /** True once the person ticked it off. */
   done?: boolean;
+  /** mental, physical, calm, sleep, health or self_care. Sets its colour on the calendar and here. */
+  category?: string;
 };
 
 export type PlanView = {
@@ -24,6 +26,22 @@ export type PlanView = {
   wake_time: string | null;
   items: PlanItem[];
 };
+
+/** Pulse's calendar colours. The same palette Google Calendar draws, so the dashboard matches the calendar. */
+export const CATEGORY_STYLE: Record<string, { label: string; hex: string }> = {
+  mental: { label: "Mental focus", hex: "#5484ed" },
+  physical: { label: "Physical", hex: "#51b749" },
+  calm: { label: "Calm and rest", hex: "#a4bdfc" },
+  sleep: { label: "Sleep", hex: "#dbadff" },
+  health: { label: "Skin and health", hex: "#ffb878" },
+  self_care: { label: "Self-care", hex: "#46d6db" },
+};
+
+/** The categories used by these items, in the fixed order above, for a legend. */
+export function categoriesIn(items: PlanItem[]): string[] {
+  const used = new Set(items.map((i) => i.category).filter((c): c is string => !!c));
+  return Object.keys(CATEGORY_STYLE).filter((k) => used.has(k));
+}
 
 export type ItemState = "done" | "now" | "upcoming";
 
@@ -58,6 +76,7 @@ export function parseItems(raw: unknown): PlanItem[] {
       why: typeof o.why === "string" ? o.why : "",
       event_id: isString(o.event_id) ? o.event_id : undefined,
       done: o.done === true ? true : undefined,
+      category: typeof o.category === "string" && o.category in CATEGORY_STYLE ? o.category : undefined,
     });
   }
   return out.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
