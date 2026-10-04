@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { saveSettingsAction } from "@/app/(app)/settings/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Field, describedBy } from "@/components/ui-bits";
+import { Group, describedBy } from "@/components/ui-bits";
 import { isValidTimeZone } from "@/lib/profile";
 import { isHHMM, quietWindowMinutes, validateQuietHours } from "@/lib/quiet-hours";
 import { formatMinutes } from "@/lib/goals";
@@ -53,9 +53,9 @@ export function SettingsForm({ initial, disabled }: { initial: Values; disabled:
   const quiet = validateQuietHours(v.quiet_start, v.quiet_end);
 
   return (
-    <form onSubmit={submit} noValidate className="max-w-xl space-y-8">
-      <div className="grid gap-6 sm:grid-cols-2">
-        <Field id="s-tz" label="Time zone" error={errors.timezone} className="sm:col-span-2">
+    <form onSubmit={submit} noValidate className="space-y-8">
+      <Group title="Schedule" id="s-schedule-title" index={1}>
+        <FieldRow id="s-tz" label="Time zone" error={errors.timezone}>
           <Input
             id="s-tz"
             spellCheck={false}
@@ -64,8 +64,8 @@ export function SettingsForm({ initial, disabled }: { initial: Values; disabled:
             onChange={(e) => set("timezone", e.target.value)}
             {...describedBy("s-tz", undefined, errors.timezone)}
           />
-        </Field>
-        <Field id="s-wake" label="Usual wake time" error={errors.wake_time}>
+        </FieldRow>
+        <FieldRow id="s-wake" label="Usual wake time" error={errors.wake_time}>
           <Input
             id="s-wake"
             type="time"
@@ -74,8 +74,8 @@ export function SettingsForm({ initial, disabled }: { initial: Values; disabled:
             onChange={(e) => set("wake_time", e.target.value)}
             {...describedBy("s-wake", undefined, errors.wake_time)}
           />
-        </Field>
-        <Field id="s-bed" label="Usual bed time" error={errors.bed_time}>
+        </FieldRow>
+        <FieldRow id="s-bed" label="Usual bed time" error={errors.bed_time}>
           <Input
             id="s-bed"
             type="time"
@@ -84,17 +84,32 @@ export function SettingsForm({ initial, disabled }: { initial: Values; disabled:
             onChange={(e) => set("bed_time", e.target.value)}
             {...describedBy("s-bed", undefined, errors.bed_time)}
           />
-        </Field>
-      </div>
+        </FieldRow>
+      </Group>
 
-      <fieldset className="space-y-3" disabled={disabled}>
-        <legend className="text-base font-semibold">Quiet hours</legend>
-        <p className="max-w-[60ch] text-sm text-muted-foreground">
-          Pulse holds nudges and info alerts in this window. Urgent alerts still reach you. Clear both
-          fields to turn quiet hours off.
-        </p>
-        <div className="grid gap-6 sm:grid-cols-2">
-          <Field id="s-qs" label="Start" error={errors.quiet_start}>
+      <fieldset disabled={disabled}>
+        <legend className="sr-only">Quiet hours</legend>
+        <Group
+          title="Quiet hours"
+          id="s-quiet-title"
+          index={2}
+          footer={
+            <>
+              <span className="block max-w-[60ch]">
+                Pulse holds nudges and info alerts in this window. Urgent alerts still reach you. Clear both
+                fields to turn quiet hours off.
+              </span>
+              <span className="num mt-1 block" aria-live="polite">
+                {quiet.ok && quiet.value
+                  ? `Quiet for ${formatMinutes(quietWindowMinutes(quiet.value))} each day.`
+                  : quiet.ok
+                    ? "Quiet hours are off."
+                    : ""}
+              </span>
+            </>
+          }
+        >
+          <FieldRow id="s-qs" label="Start" error={errors.quiet_start}>
             <Input
               id="s-qs"
               type="time"
@@ -102,28 +117,50 @@ export function SettingsForm({ initial, disabled }: { initial: Values; disabled:
               onChange={(e) => set("quiet_start", e.target.value)}
               {...describedBy("s-qs", undefined, errors.quiet_start)}
             />
-          </Field>
-          <Field id="s-qe" label="End">
+          </FieldRow>
+          <FieldRow id="s-qe" label="End">
             <Input
               id="s-qe"
               type="time"
               value={v.quiet_end}
               onChange={(e) => set("quiet_end", e.target.value)}
             />
-          </Field>
-        </div>
-        <p className="text-xs text-muted-foreground" aria-live="polite">
-          {quiet.ok && quiet.value
-            ? `Quiet for ${formatMinutes(quietWindowMinutes(quiet.value))} each day.`
-            : quiet.ok
-              ? "Quiet hours are off."
-              : ""}
-        </p>
+          </FieldRow>
+        </Group>
       </fieldset>
 
       <Button type="submit" size="lg" className="h-10 px-5" disabled={busy || disabled}>
         {busy ? "Saving..." : "Save settings"}
       </Button>
     </form>
+  );
+}
+
+/** A settings row: the label on the left, the control on the right, the error below. */
+function FieldRow({
+  id,
+  label,
+  error,
+  children,
+}: {
+  id: string;
+  label: string;
+  error?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="px-4 py-2.5">
+      <div className="flex items-center justify-between gap-4">
+        <label htmlFor={id} className="text-sm font-medium">
+          {label}
+        </label>
+        <div className="w-44 sm:w-56 [&_input]:text-right">{children}</div>
+      </div>
+      {error && (
+        <p id={`${id}-error`} className="mt-1 text-right text-xs text-destructive">
+          {error}
+        </p>
+      )}
+    </div>
   );
 }

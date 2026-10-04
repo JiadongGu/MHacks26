@@ -13,11 +13,11 @@ type Params = Promise<{ channel?: string | string[] }>;
 
 function ConversationsSkeleton() {
   return (
-    <div role="status" aria-label="Loading conversations" className="grid gap-8 lg:grid-cols-[18rem_minmax(0,1fr)] lg:gap-12">
-      <div className="space-y-3">
-        <Skeleton className="h-16 w-full" />
-        <Skeleton className="h-16 w-full" />
-        <Skeleton className="h-16 w-full" />
+    <div role="status" aria-label="Loading conversations" className="grid gap-4 lg:grid-cols-[19rem_minmax(0,1fr)]">
+      <div className="space-y-2">
+        <Skeleton className="h-20 w-full" />
+        <Skeleton className="h-20 w-full" />
+        <Skeleton className="h-20 w-full" />
       </div>
       <Skeleton className="h-80 w-full max-w-3xl" />
     </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CalendarCheck } from "lucide-react";
+import { CalendarCheck, CircleCheck, CircleDashed } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -47,11 +47,10 @@ export function GoogleStatusCard({
     };
   }, [attempt]);
 
-  if (loading) return <Skeleton role="status" aria-label="Loading Google Calendar status" className="h-16 max-w-xl" />;
+  if (loading) return <Skeleton role="status" aria-label="Loading Google Calendar status" className="h-14 w-full" />;
   if (error && !status) {
     return (
       <ErrorNote
-        className="max-w-xl"
         action={
           <Button
             variant="outline"
@@ -72,17 +71,22 @@ export function GoogleStatusCard({
   }
 
   return (
-    <div className="flex max-w-xl flex-wrap items-center justify-between gap-4 border-y border-border py-5">
-      <div className="min-w-0">
-        <p className="flex items-center gap-2 text-base font-semibold">
-          <CalendarCheck className="size-4" aria-hidden="true" />
-          {status?.connected ? "Connected" : "Not connected"}
-        </p>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {status?.connected
-            ? `${status.email ?? "Google account"}${status.last_sync ? `, synced ${timeAgo(status.last_sync)}` : ""}`
-            : "Pulse reads your events and writes to its own Pulse Health calendar."}
-        </p>
+    <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="flex min-w-0 items-center gap-3">
+        <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-secondary text-foreground/70">
+          <CalendarCheck className="size-5" aria-hidden="true" />
+        </span>
+        <div className="min-w-0">
+          <p className="flex flex-wrap items-center gap-2 text-sm font-semibold">
+            Google Calendar
+            <ConnectionPill connected={!!status?.connected} />
+          </p>
+          <p className="mt-0.5 max-w-[50ch] text-sm text-muted-foreground">
+            {status?.connected
+              ? `${status.email ?? "Google account"}${status.last_sync ? `, synced ${timeAgo(status.last_sync)}` : ""}`
+              : "Pulse reads your events and writes to its own Pulse Health calendar."}
+          </p>
+        </div>
       </div>
       <Button asChild variant={status?.connected ? "outline" : "default"}>
         {/* A full page navigation. The proxy passes the 302 to Google through. */}
@@ -92,5 +96,21 @@ export function GoogleStatusCard({
         </a>
       </Button>
     </div>
+  );
+}
+
+/** Connection state as an icon and a word. */
+export function ConnectionPill({ connected }: { connected: boolean }) {
+  const Icon = connected ? CircleCheck : CircleDashed;
+  return (
+    <span
+      className={
+        "inline-flex h-5 items-center gap-1 rounded-full px-2 text-xs font-medium " +
+        (connected ? "bg-ok/15 text-ok-ink" : "bg-secondary text-foreground/75")
+      }
+    >
+      <Icon className="size-3" aria-hidden="true" />
+      {connected ? "Connected" : "Not connected"}
+    </span>
   );
 }

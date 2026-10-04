@@ -13,6 +13,12 @@
  *   Each health category has one color, used for its label, icon and chart line only:
  *   heart #FF2D55, sleep #5E5CE6, activity #FF9500, respiratory #32ADE6.
  *   Status always pairs color with an icon and a word.
+ *
+ * Motion (all of it off under prefers-reduced-motion)
+ *   .reveal       fade-up entrance, 480 ms. Set style={{ "--stagger": n }} to delay by n x 60 ms.
+ *   .skeleton-shimmer  loading skeleton sweep, 1.6 s loop.
+ *   .card-interactive  2 px lift and a soft shadow on hover.
+ *   .num          tabular numbers, for every figure that changes or lines up in a column.
  */
 @import "tailwindcss";
 @import "tw-animate-css";
@@ -38,6 +44,19 @@
   --text-3xl--line-height: 2.25rem;
   --text-5xl: 3.25rem;
   --text-5xl--line-height: 1.04;
+
+  --color-heart: #ff2d55;
+  --color-sleep: #5e5ce6;
+  --color-activity: #ff9500;
+  --color-respiratory: #32ade6;
+  --color-labs: #34c759;
+  --color-body: #af52de;
+  --color-ok: var(--ok);
+  --color-ok-ink: var(--ok-ink);
+  --color-warn: var(--warn);
+  --color-warn-ink: var(--warn-ink);
+  --color-bad: var(--bad);
+  --color-bad-ink: var(--bad-ink);
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -112,6 +131,15 @@
   --sidebar-accent-foreground: #0058b0;
   --sidebar-border: #e5e5ea;
   --sidebar-ring: #0071e3;
+  --ok: #34c759;
+  --ok-ink: #1b7f3b;
+  --warn: #ff9500;
+  --warn-ink: #8f4e00;
+  --bad: #ff3b30;
+  --bad-ink: #c4001a;
+  --scroll-thumb: rgb(60 60 67 / 0.28);
+  --scroll-thumb-hover: rgb(60 60 67 / 0.45);
+  color-scheme: light;
 }
 
 .dark {
@@ -146,6 +174,15 @@
   --sidebar-accent-foreground: #f5f5f7;
   --sidebar-border: #38383a;
   --sidebar-ring: #0a84ff;
+  --ok: #30d158;
+  --ok-ink: #5fdc82;
+  --warn: #ff9f0a;
+  --warn-ink: #ffb340;
+  --bad: #ff453a;
+  --bad-ink: #ff8a80;
+  --scroll-thumb: rgb(235 235 245 / 0.28);
+  --scroll-thumb-hover: rgb(235 235 245 / 0.45);
+  color-scheme: dark;
 }
 
 @layer base {
@@ -166,9 +203,138 @@
     outline: 2px solid var(--ring);
     outline-offset: 2px;
   }
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scroll-thumb) transparent;
+  }
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--scroll-thumb);
+    border: 3px solid transparent;
+    border-radius: 999px;
+    background-clip: content-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--scroll-thumb-hover);
+    background-clip: content-box;
+  }
+}
+
+@utility num {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1, "cv11" 1;
+}
+
+@keyframes reveal-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.97) translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@utility reveal {
+  animation: reveal-up 480ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation-delay: calc(var(--stagger, 0) * 60ms);
+}
+
+@utility skeleton-shimmer {
+  background-color: var(--muted);
+  background-image: linear-gradient(
+    100deg,
+    transparent 30%,
+    color-mix(in oklab, var(--card) 70%, transparent) 50%,
+    transparent 70%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s linear infinite;
+}
+
+@utility card-interactive {
+  transition:
+    transform 180ms cubic-bezier(0.2, 0.7, 0.2, 1),
+    box-shadow 180ms ease,
+    border-color 180ms ease;
+  &:hover {
+    transform: translateY(-2px);
+    border-color: color-mix(in oklab, var(--border), var(--foreground) 14%);
+    box-shadow: 0 6px 20px -8px rgb(0 0 0 / 0.14);
+  }
+  &:active {
+    transform: translateY(0);
+    box-shadow: none;
+  }
+}
+
+@utility animate-pop {
+  animation: pop-in 140ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.ambient-layer {
+  --mx: 50%;
+  --my: 0%;
+  position: fixed;
+  inset: 0;
+  z-index: -10;
+  pointer-events: none;
+  overflow: hidden;
+}
+.ambient-glow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    560px circle at var(--mx) var(--my),
+    color-mix(in oklab, var(--primary) 9%, transparent),
+    transparent 70%
+  );
+}
+.ambient-fade {
+  position: absolute;
+  inset: 0;
+  mask-image: linear-gradient(to bottom, #000 0%, #000 30%, transparent 85%);
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .animate-pop {
+    animation: none;
+  }
+  .skeleton-shimmer {
+    animation: none;
+    background-image: none;
+  }
+  .card-interactive:hover {
+    transform: none;
+  }
   *,
   *::before,
   *::after {
@@ -180,6 +346,9 @@
 }
 
 @media print {
+  .ambient-layer {
+    display: none;
+  }
   html.dark {
     --background: #fff;
     --foreground: #000;
