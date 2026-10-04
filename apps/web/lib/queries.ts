@@ -532,3 +532,27 @@ export async function getFocusPicks(userId: string): Promise<string[]> {
     .orderBy(asc(schema.focus_areas.picked_at));
   return rows.map((r) => r.key);
 }
+
+/**
+ * True when there is a real source of body data: a connected Fitbit, or the Apple Watch simulator that sent data
+ * in the last week. Without one, the dashboard hides its charts and numbers instead of showing empty ones.
+ */
+export async function hasDeviceData(userId: string): Promise<boolean> {
+  const fitbit = await db
+    .select({ n: count() })
+    .from(schema.fitbit_connections)
+    .where(eq(schema.fitbit_connections.user_id, userId));
+  if ((fitbit[0]?.n ?? 0) > 0) return true;
+  const since = new Date(Date.now() - 7 * 24 * 3600 * 1000);
+  const sim = await db
+    .select({ n: count() })
+    .from(schema.ingest_log)
+    .where(
+      and(
+        eq(schema.ingest_log.user_id, userId),
+        eq(schema.ingest_log.source, "apple_watch_sim"),
+        gt(schema.ingest_log.received_at, since),
+      ),
+    );
+  return (sim[0]?.n ?? 0) > 0;
+}

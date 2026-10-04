@@ -18,7 +18,7 @@ from app.twin import builder as twin_builder
 from app.twin import store as twin_store
 from app.twin.tz import DEFAULT_TIMEZONE
 
-from . import render, schedule, shape, store
+from . import judgment, render, schedule, shape, store
 
 DEFAULT_BED = time(22, 30)
 DEFAULT_WAKE = time(7, 0)
@@ -119,7 +119,7 @@ async def build_plan(user_id: UUID, day: date, now: datetime, write_calendar: bo
     bed = _to_time(profile.get("bed_time")) or DEFAULT_BED
     wake = _to_time(profile.get("wake_time")) or DEFAULT_WAKE
     picks = await focus_store.list_picks(user_id)
-    keys = schedule.planned_keys(picks, await _risk_flags(user_id), day)
+    flags = await _risk_flags(user_id)
     try:
         await gcal_sync.refresh_user(user_id)
     except Exception as exc:
@@ -147,7 +147,17 @@ async def build_plan(user_id: UUID, day: date, now: datetime, write_calendar: bo
     night = schedule.night_plan(
         day, tz, next_busy[0][0] if next_busy else None, bed, wake, await _sleep_need(user_id)
     )
-    items = [i.__dict__ | {"event_id": None} for i in schedule.place(keys, usable, load)]
+    upcoming = await store.events_between(
+        user_id, day_start, day_start + timedelta(days=judgment.EXAM_HORIZON_DAYS + 1)
+    )
+    ctx = judgment.Context(
+        day=day,
+        exams=judgment.parse_exams(upcoming, day, zone),
+        courses=judgment.find_courses(upcoming),
+        bed=night.bed,
+    )
+    keys = schedule.planned_keys(picks, flags, day, load, ctx)
+    items = [i.__dict__ | {"event_id": None} for i in schedule.place(keys, usable, load, ctx)]
     wd = schedule.wind_down(picks, night)
     if wd is not None and wd.start > now_local + timedelta(minutes=5):
         items.append(wd.__dict__ | {"event_id": None})

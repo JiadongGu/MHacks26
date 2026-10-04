@@ -52,6 +52,11 @@ describe("buildFocusRows", () => {
     expect(out.map((r) => r.key)).toEqual(["sleep", "sun"]);
     expect(out[1].text).toBe("0 of 2 steps done today");
   });
+  it("says a watch is needed instead of showing a zero when no device is connected", () => {
+    const out = buildFocusRows({ picks: ["sleep", "study"], goals, rows: [], today, items: [item("study")], hasDevice: false });
+    expect(out[0]).toMatchObject({ pct: null, text: "Connect a watch to track this" });
+    expect(out[1]).toMatchObject({ text: "0 of 1 study blocks done today" });
+  });
   it("ignores unknown keys", () => {
     expect(buildFocusRows({ picks: ["nope"], goals, rows, today, items: [] })).toEqual([]);
   });

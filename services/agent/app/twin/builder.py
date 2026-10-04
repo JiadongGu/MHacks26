@@ -880,14 +880,20 @@ def summarize(twin: Mapping[str, Any]) -> str:
         )
 
     b = _dict(twin.get("baselines"))
+    sources = _dict(b.get("sources"))
+
+    def measured(key: str) -> bool:
+        """A baseline counts only when it came from the person's own data, not a population default."""
+        return b.get(key) is not None and sources.get(key) != "default"
+
     base = []
-    if b.get("resting_hr") is not None:
+    if measured("resting_hr"):
         base.append(f"resting heart rate {_fmt_num(b['resting_hr'])} bpm")
-    if b.get("hrv_sdnn") is not None:
+    if measured("hrv_sdnn"):
         base.append(f"HRV {_fmt_num(b['hrv_sdnn'])} ms")
-    if b.get("sleep_min") is not None:
+    if measured("sleep_min"):
         base.append(f"sleep {b['sleep_min'] / 60:.1f} h")
-    if b.get("steps") is not None:
+    if measured("steps"):
         base.append(f"{round(b['steps']):,} steps a day")
     if base:
         lines.append("Your usual: " + " · ".join(base))

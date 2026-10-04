@@ -91,6 +91,10 @@ describe("planHeadline", () => {
     expect(planHeadline("normal")).toBe("Today is a steady day.");
     expect(planHeadline("packed")).toBe("Today is a busy one with few gaps.");
   });
+  it("can speak about tomorrow", () => {
+    expect(planHeadline("light", "tomorrow")).toBe("Tomorrow looks open.");
+    expect(planHeadline("packed", "tomorrow")).toBe("Tomorrow is a busy one with few gaps.");
+  });
   it("falls back to the steady wording for an unknown load", () => {
     expect(planHeadline("weird" as never)).toBe("Today is a steady day.");
   });

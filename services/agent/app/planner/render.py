@@ -107,4 +107,9 @@ def focus_lines(picks: list[str], items: list[dict], bed: datetime | None) -> li
     for key in keys:
         what = _summary(key, items, bed)
         out.append(f"• {BY_KEY[key].label}: {what if what else 'nothing scheduled today'}")
+    extras = [i["key"] for i in items if i["key"] in ("move", "break")]
+    if "move" in extras:
+        out.append("• Also: a short workout to break up the day")
+    elif "break" in extras:
+        out.append("• Also: a stretch and water break between blocks")
     return out

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { EmptyState, ErrorNote } from "@/components/ui-bits";
 import { DEFAULT_TIMEZONE, localDay } from "@/lib/briefing";
 import { buildFocusRows } from "@/lib/focus-progress";
-import { getDailyMetricRows, getDailyPlan, getFocusPicks, listGoals } from "@/lib/queries";
+import { getDailyMetricRows, getDailyPlan, getFocusPicks, hasDeviceData, listGoals } from "@/lib/queries";
 
 function daysAgo(day: string, n: number): string {
   const d = new Date(`${day}T12:00:00Z`);
@@ -13,19 +13,20 @@ function daysAgo(day: string, n: number): string {
 
 export async function FocusSection({ userId, timeZone }: { userId: string; timeZone: string | null }) {
   const today = localDay(timeZone || DEFAULT_TIMEZONE);
-  let picks, goals, rows, plan;
+  let picks, goals, rows, plan, hasDevice;
   try {
-    [picks, goals, rows, plan] = await Promise.all([
+    [picks, goals, rows, plan, hasDevice] = await Promise.all([
       getFocusPicks(userId),
       listGoals(userId),
       getDailyMetricRows(userId, daysAgo(today, 6)),
       getDailyPlan(userId, today),
+      hasDeviceData(userId),
     ]);
   } catch (err) {
     console.error("FocusSection failed", err);
     return <ErrorNote>Could not load your focus progress. Reload the page to try again.</ErrorNote>;
   }
-  const out = buildFocusRows({ picks, goals, rows, today, items: plan?.items ?? [] });
+  const out = buildFocusRows({ picks, goals, rows, today, items: plan?.items ?? [], hasDevice });
   if (out.length === 0) {
     return (
       <EmptyState title="No focus areas yet">

@@ -16,9 +16,12 @@ export function PlanPanel({
   plan,
   timeZone,
   nowIso,
+  when = "today",
 }: {
   plan: PlanView | null;
   timeZone: string;
+  /** Which day this card shows. Tomorrow's card has no ticks to make yet, only a replan. */
+  when?: "today" | "tomorrow";
   /** The server's clock, so the first render matches the browser's. */
   nowIso: string;
 }) {
@@ -42,7 +45,7 @@ export function PlanPanel({
   async function replan() {
     setBusy(true);
     try {
-      await agent("/plan/rebuild?day=today", { method: "POST", body: {} });
+      await agent(`/plan/rebuild?day=${when}`, { method: "POST", body: {} });
       toast.success("Plan updated.");
       startRefresh(() => router.refresh());
     } catch (err) {
@@ -60,7 +63,7 @@ export function PlanPanel({
 
   if (!plan) {
     return (
-      <EmptyState title="No plan for today yet" action={button("Make today's plan")}>
+      <EmptyState title={`No plan for ${when} yet`} action={button(`Make ${when}'s plan`)}>
         Pulse builds a plan each morning from your calendar and the areas you chose to focus on.
       </EmptyState>
     );
@@ -70,7 +73,7 @@ export function PlanPanel({
   const bed = bedtimeLabel(plan.bed_time);
   return (
     <div>
-      <p className="text-sm text-muted-foreground">{planHeadline(plan.load)}</p>
+      <p className="text-sm text-muted-foreground">{planHeadline(plan.load, when)}</p>
 
       {plan.items.length === 0 ? (
         <p className="mt-3 text-sm text-muted-foreground">
