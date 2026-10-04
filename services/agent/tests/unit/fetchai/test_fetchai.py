@@ -123,3 +123,21 @@ async def test_build_agent_has_a_stable_address_and_the_chat_protocol():
     assert a.address == fa.build_agent(seed="unit test seed").address
     assert a.address != fa.build_agent(seed="another seed").address
     assert fa.chat_proto.digest in a.protocols
+
+
+async def test_the_agent_registers_an_agentverse_handle(monkeypatch):
+    seen = {}
+    real = fa.Agent
+
+    def spy(**kwargs):
+        seen.update(kwargs)
+        return real(**kwargs)
+
+    monkeypatch.setattr(fa, "Agent", spy)
+    fa.build_agent(seed="unit test seed")
+    assert seen["handle"] == "pulse-health"
+
+    monkeypatch.setenv("AGENT_HANDLE", "pulse-demo")
+    settings.cache_clear()
+    fa.build_agent(seed="unit test seed")
+    assert seen["handle"] == "pulse-demo"

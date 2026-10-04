@@ -1,10 +1,13 @@
 // Step 2 state and its seed. This file has no "use client", so a Server Component can import it.
+import { EMPTY_ADDED, type AddedHistory } from "@/lib/history";
 import { readTwin, type TwinFamily, type TwinView } from "@/lib/twin";
 
 export type HistoryState = {
   scenario: string | null;
   twin: TwinView | null;
   removed: { conditions: string[]; medications: string[]; allergies: string[] };
+  /** Things the person typed in, not found in a record. */
+  added: AddedHistory;
   family: TwinFamily[];
 };
 
@@ -12,6 +15,7 @@ export const EMPTY_HISTORY: HistoryState = {
   scenario: null,
   twin: null,
   removed: { conditions: [], medications: [], allergies: [] },
+  added: EMPTY_ADDED,
   family: [],
 };
 

@@ -34,7 +34,7 @@ Set on each service. Secrets are never committed. `INTERNAL_TOKEN` must be the s
 
 ## After the first deploy
 1. Add the deployed callbacks to the Google OAuth clients: `https://<agent-api>/integrations/google/callback` (Calendar client) and `https://<agent-api>/integrations/fitbit/callback` (Health client). Keep the localhost ones for development.
-2. Open the Agentverse Inspector link for the **deployed** `agent-fetchai` once and click Connect, then Mailbox. The deployed agent has its own mailbox.
+2. Publish the agent's handle and README (and create its mailbox) once, **from a local copy, never from Railway**: the uAgents library answers `/connect` only to `127.0.0.1` (a request through the public URL gets a 403, which the Inspector shows as "Something went wrong while proving mailbox connection"). Run `cd services/agent && uv run python -m app.fetchai.agent` with the same `AGENT_SEED` as production, open the Inspector link it prints (`...uri=http%3A//127.0.0.1%3A8001...`) in a browser on that machine, click Connect, then Mailbox, and stop the local copy afterwards. The deployed agent keeps polling the same mailbox. Repeat whenever the README or handle changes.
 3. In Testing mode, add every demo Google account as a test user, and re-consent within 7 days of judging (Testing-mode refresh tokens expire).
 4. Run `AGENT_URL=... INTERNAL_TOKEN=... GATEWAY_URL=... WEB_URL=... DEMO_USER_ID=... scripts/smoke.sh`, and again 10 minutes before the demo.
 

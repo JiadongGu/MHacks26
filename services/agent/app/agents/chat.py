@@ -52,8 +52,22 @@ GENERIC_ERROR = "Sorry, something went wrong on my side. Please try again in a m
 HELP_TEXT = ("I can tell you your steps, sleep, heart rate, goals, or upcoming events. "
              "Reply STATUS for a summary.")
 
-APPROVE_RE = re.compile(r"^(yes|y|approve|ok|do it|sure)\b", re.IGNORECASE)
-REJECT_RE = re.compile(r"^(no|n|reject|skip|nah)\b", re.IGNORECASE)
+# The whole message must be the answer: "ok thanks" or "no worries" are not decisions (eval found both).
+APPROVE_RE = re.compile(
+    r"^(yes|y|yep|yeah|yes please|approve|approved|do it|sure|ok|okay|go ahead)[\s.!👍]*$", re.IGNORECASE)
+REJECT_RE = re.compile(r"^(no|n|nope|nah|no thanks|reject|skip|skip it|don'?t)[\s.!]*$", re.IGNORECASE)
+EMERGENCY_RE = re.compile(
+    r"chest (pain|pressure|tight)|can'?t breathe|cannot breathe|trouble breathing|short(ness)? of breath|"
+    r"(face|arm|left arm).{0,20}(numb|droop|weak)|slurr|stroke|faint(ed|ing)?|passed out|"
+    r"suicid|kill myself|end my life|overdos|severe bleeding|seizure", re.IGNORECASE)
+EMERGENCY_TEXT = (
+    "This could be an emergency. Call 911 now (or your local emergency number), or have someone take you "
+    "to the nearest emergency room. In the US you can also call or text 988 for a crisis line. "
+    "I'm a wellness assistant and can't help with emergencies.")
+SET_GOAL_RE = re.compile(r"\b(step|steps|sleep)\b.*\bgoal\b.*?(\d[\d,\.]*)\s*(h|hours?)?", re.IGNORECASE)
+SYMPTOM_RE = re.compile(
+    r"\b(i have|i'?ve got|i feel|feeling|my .{0,15}(hurts|aches))\b.*"
+    r"(sore|pain|ache|fever|cough|nause|dizz|headache|tired|sick|chills|congest)", re.IGNORECASE)
 STATUS_RE = re.compile(r"^status\W*$", re.IGNORECASE)
 FAST_MAX_WORDS = 6
 
@@ -487,6 +501,13 @@ class Toolbox:
     async def t_reject_proposal(self) -> dict[str, Any]:
         return await self._decide("rejected")
 
+    async def _supersede_pending(self, keep: UUID) -> None:
+        """A new proposal replaces the user's other pending ones (\"make that 6:30 instead\")."""
+        async with db.neon() as conn:
+            await conn.execute(
+                "update calendar_proposals set status = 'expired', decided_at = now() "
+                "where user_id = %s and status = 'pending' and id <> %s", (self.user_id, keep))
+
     async def t_propose_calendar_block(self, title: str, start_iso: str, end_iso: str,
                                        rationale: str = "") -> dict[str, Any]:
         try:
@@ -506,6 +527,10 @@ class Toolbox:
         created = await proposals_api.create(ProposalCreate(
             user_id=self.user_id, title=title, starts_at=start, ends_at=end,
             rationale=(rationale or "Suggested in chat")[:300]))
+        try:
+            await self._supersede_pending(created.id)
+        except Exception as exc:  # replacing older proposals is best effort; the new one stands
+            log.warning("chat.supersede_failed err=%s", type(exc).__name__)
         when = fmt_range(created.starts_at, created.ends_at, self.tz)
         return {"ok": True, "title": created.title, "when": when,
                 "next": "Ask the user to reply YES to add it to the calendar or NO to skip."}
@@ -596,7 +621,12 @@ def system_prompt(tz: str) -> str:
         "You are Pulse, a warm personal health companion that texts the user. Give wellness guidance, "
         "never a diagnosis. Use the tools to get facts. Never invent numbers. Never ask for a user id. "
         f"Reply in at most {MAX_REPLY} characters, plain text, no markdown. If something sounds dangerous, "
-        "advise medical care. Approve or reject a proposal only when the user clearly asks. After "
+        "advise medical care. Approve or reject a proposal only when the user explicitly says yes/approve "
+        "or no/reject to it; for unclear replies ('not sure', 'ok thanks', 'no worries') ask what they "
+        "want and do not call approve or reject. To change a pending proposal (e.g. 'make that 6:30'), "
+        "call propose_calendar_block with the same title and the new time; it replaces the old one. "
+        "You can only see this user's own data: if asked about another person or a user id, say so "
+        "plainly. After "
         "propose_calendar_block, tell the user to reply YES to add it. "
         f"The user's local time is {now.isoformat(timespec='minutes')} ({tz}). Use that offset for times.")
 
@@ -616,7 +646,7 @@ class GeminiChat:
 
     def _config(self, allow_tools: bool) -> types.GenerateContentConfig:
         return types.GenerateContentConfig(
-            system_instruction=self._system, temperature=0.4, max_output_tokens=400,
+            system_instruction=self._system, temperature=0.4, max_output_tokens=1024,
             tools=self._tools if allow_tools else None,
             automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
             http_options=types.HttpOptions(timeout=int(CALL_TIMEOUT_S * 1000)))
@@ -682,6 +712,21 @@ async def tonight_sleep_window(tools: Toolbox) -> tuple[datetime, datetime]:
 
 async def fallback_reply(tools: Toolbox, text: str) -> tuple[str, list[dict[str, Any]]]:
     """Deterministic answer by keyword. Uses the same tools as the LLM."""
+    goal = SET_GOAL_RE.search(text)
+    if goal and re.search(r"\b(set|change|make|update)\b", text, re.IGNORECASE):
+        what, num = goal.group(1).lower(), float(goal.group(2).replace(",", ""))
+        metric, target = ("sleep_total_min", num * 60 if goal.group(3) or num < 24 else num) \
+            if what == "sleep" else ("steps", num)
+        r = await tools.call("set_goal", {"metric": metric, "target": target, "period": "day"})
+        if r.get("error"):
+            return "I couldn't change that goal. Try again in a minute.", [{"name": "set_goal"}]
+        shown = f"{target / 60:g} h of sleep" if metric.startswith("sleep") else f"{num:,.0f} steps"
+        return f"Done. Your daily goal is now {shown}.", [{"name": "set_goal", "args": {"metric": metric}}]
+    if SYMPTOM_RE.search(text):
+        await tools.call("log_symptom", {"text": text})
+        return ("Sorry you're not feeling well. I logged it and will keep an eye on your vitals. Rest, "
+                "drink water, and contact a clinician if it gets worse or you're worried.",
+                [{"name": "log_symptom"}])
     intent = detect_intent(text)
     if intent == "block":
         start, end = await tonight_sleep_window(tools)
@@ -740,6 +785,9 @@ async def answer(tools: Toolbox, history: list[dict[str, Any]], text: str,
 async def respond(user_id: UUID, channel: str, text: str, history: list[dict[str, Any]]
                   ) -> tuple[str, list[dict[str, Any]], list[ReplyAction]]:
     tools = Toolbox(user_id, channel, await tz_of(user_id))
+    if EMERGENCY_RE.search(text):
+        await tools.call("log_symptom", {"text": text})
+        return EMERGENCY_TEXT, [{"name": "emergency_guard"}], []
     intent = classify(text)
     if intent in ("approve", "reject"):
         res = await tools.call("approve_proposal" if intent == "approve" else "reject_proposal", None)
