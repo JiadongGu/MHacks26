@@ -35,7 +35,7 @@ from app.integrations.gcal import store as gcal_store  # noqa: E402
 USER_TABLES = [
     "alerts", "briefings", "calendar_connections", "calendar_events_cache", "calendar_proposals",
     "channel_links", "daily_plans", "daily_summary", "digital_twin", "ehr_records", "fitbit_connections",
-    "focus_areas", "goals", "ingest_log", "job_runs", "messages", "profiles",
+    "finchnode_connections", "focus_areas", "goals", "ingest_log", "job_runs", "messages", "profiles",
 ]
 REVOKE_URL = "https://oauth2.googleapis.com/revoke"
 
