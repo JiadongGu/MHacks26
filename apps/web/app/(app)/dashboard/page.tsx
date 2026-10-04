@@ -29,8 +29,8 @@ export default async function DashboardPage() {
   return (
     <>
       <PageHeader eyebrow="Today" title={first ? `Hello, ${first}` : "Dashboard"} className="mb-8" />
-      <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_19rem] lg:gap-16">
-        <div className="space-y-12">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-6">
+        <div className="space-y-6">
           <Suspense fallback={<Skeleton role="status" aria-label="Loading status" className="h-40" />}>
             <StatusHero userId={user.id} />
           </Suspense>
@@ -72,7 +72,7 @@ export default async function DashboardPage() {
           </Section>
         </div>
 
-        <aside className="space-y-12" aria-label="Focus, numbers and calendar">
+        <aside className="space-y-6" aria-label="Focus, numbers and calendar">
           <Section title="Your focus today" headingId="h-focus">
             <Suspense fallback={<Skeleton role="status" aria-label="Loading your focus" className="h-32" />}>
               <FocusSection userId={user.id} timeZone={profile.timezone} />

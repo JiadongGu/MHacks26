@@ -40,7 +40,7 @@ export default async function TrendsPage({ searchParams }: { searchParams: Param
       </PageHeader>
 
       <div className="mb-10 flex flex-wrap items-center justify-between gap-4">
-        <nav aria-label="Time range" className="flex gap-1 rounded-lg border border-border p-1">
+        <nav aria-label="Time range" className="flex gap-1 rounded-lg border border-border bg-card p-1">
           {RANGES.map((r) => (
             <Link
               key={r}
@@ -73,7 +73,7 @@ export default async function TrendsPage({ searchParams }: { searchParams: Param
       )}
 
       {trends && trends.some((t) => t.latest !== null) && (
-        <div className="space-y-12">
+        <div className="space-y-6">
           {CATEGORIES.map((c) => (
             <Section key={c.id} title={c.title} headingId={`tr-${c.id}`}>
               <ul className="grid gap-6 lg:grid-cols-2">

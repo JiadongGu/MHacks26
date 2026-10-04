@@ -27,7 +27,7 @@ function Value({ trend, value }: { trend: Trend; value: number }) {
 export function MetricCard({ trend, color, range }: { trend: Trend; color: string; range: number }) {
   const { ref, delta } = trend;
   return (
-    <li className="rounded-lg border border-border p-4 print:break-inside-avoid">
+    <li className="rounded-lg border border-border bg-card p-4 print:break-inside-avoid">
       <div className="flex items-start justify-between gap-3">
         <h3 className="flex items-center gap-2 text-base">
           <span aria-hidden="true" className="size-2 rounded-full" style={{ background: color }} />

@@ -1,28 +1,18 @@
 /*
- * Pulse design tokens. Defined once, here.
+ * Pulse design tokens (v3, after the Apple Health UI kit). Defined once, here.
  *
- * Type pairing
- *   Heading: Fraunces (serif, optical size). Weight 500. Tight leading.
- *   Body and UI: Geist (sans). Weights 400 and 500. Weight 600 for card titles only.
- *   Numbers and codes: Geist Mono.
- *
- * Type scale (size / line height)
- *   text-xs   12 / 16   weight 500   labels, timestamps, eyebrow text
- *   text-sm   14 / 20   weight 400   secondary text, form hints, nav
- *   text-base 16 / 24   weight 400   body
- *   text-xl   20 / 28   weight 600   card title
- *   text-3xl  30 / 36   weight 500   page heading (Fraunces)
- *   text-5xl  52 / 54   weight 500   landing heading (Fraunces)
+ * Type: Inter only, for headings, body and numbers. Geist Mono for codes and IDs.
+ *   Page heading 30 bold, card title 20 semibold, body 16, secondary 14, labels 12.
  *
  * Spacing scale (4 px base). Use only these steps.
  *   1 = 4   2 = 8   3 = 12   4 = 16   6 = 24   8 = 32   12 = 48   16 = 64
  *
  * Color
- *   Neutrals carry the whole interface. Their hue is warm (60).
- *   One accent, ember orange (hue 55), marks the primary action. It has no other job.
- *   Destructive red marks errors. A red state also carries an icon and text.
- *   Text on background: foreground 17:1, muted-foreground 7.7:1 (dark theme).
- *   Primary button: primary-foreground on primary 8.4:1 (dark), 6.2:1 (light).
+ *   Gray grouped background, white cards with a hairline border, radius 10.
+ *   One tint, Apple blue, marks actions and links.
+ *   Each health category has one color, used for its label, icon and chart line only:
+ *   heart #FF2D55, sleep #5E5CE6, activity #FF9500, respiratory #32ADE6.
+ *   Status always pairs color with an icon and a word.
  */
 @import "tailwindcss";
 @import "tw-animate-css";
@@ -32,8 +22,8 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-heading: var(--font-fraunces), ui-serif, Georgia, serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 
   --text-xs: 0.75rem;
@@ -90,72 +80,72 @@
 }
 
 :root {
-  --radius: 0.5rem;
-  --background: oklch(0.985 0.004 80);
-  --foreground: oklch(0.19 0.01 60);
-  --card: oklch(1 0.002 80);
-  --card-foreground: oklch(0.19 0.01 60);
-  --popover: oklch(1 0.002 80);
-  --popover-foreground: oklch(0.19 0.01 60);
-  --primary: oklch(0.68 0.16 55);
-  --primary-foreground: oklch(0.18 0.02 55);
-  --secondary: oklch(0.955 0.006 80);
-  --secondary-foreground: oklch(0.25 0.01 60);
-  --muted: oklch(0.955 0.006 80);
-  --muted-foreground: oklch(0.45 0.01 60);
-  --accent: oklch(0.945 0.008 80);
-  --accent-foreground: oklch(0.25 0.01 60);
-  --destructive: oklch(0.52 0.2 27);
-  --border: oklch(0.89 0.008 80);
-  --input: oklch(0.86 0.008 80);
-  --ring: oklch(0.35 0.01 60);
-  --chart-1: oklch(0.68 0.16 55);
-  --chart-2: oklch(0.5 0.01 60);
-  --chart-3: oklch(0.62 0.01 60);
-  --chart-4: oklch(0.72 0.01 60);
-  --chart-5: oklch(0.82 0.01 60);
-  --sidebar: oklch(0.97 0.005 80);
-  --sidebar-foreground: oklch(0.19 0.01 60);
-  --sidebar-primary: oklch(0.25 0.01 60);
-  --sidebar-primary-foreground: oklch(0.985 0.004 80);
-  --sidebar-accent: oklch(0.93 0.008 80);
-  --sidebar-accent-foreground: oklch(0.19 0.01 60);
-  --sidebar-border: oklch(0.89 0.008 80);
-  --sidebar-ring: oklch(0.35 0.01 60);
+  --radius: 0.625rem;
+  --background: #f2f2f7;
+  --foreground: #1c1c1e;
+  --card: #ffffff;
+  --card-foreground: #1c1c1e;
+  --popover: #ffffff;
+  --popover-foreground: #1c1c1e;
+  --primary: #0071e3;
+  --primary-foreground: #ffffff;
+  --secondary: #e9e9ee;
+  --secondary-foreground: #1c1c1e;
+  --muted: #f2f2f7;
+  --muted-foreground: #6c6c70;
+  --accent: #e9e9ee;
+  --accent-foreground: #1c1c1e;
+  --destructive: #d70015;
+  --border: #e5e5ea;
+  --input: #d1d1d6;
+  --ring: #0071e3;
+  --chart-1: #ff2d55;
+  --chart-2: #5e5ce6;
+  --chart-3: #ff9500;
+  --chart-4: #32ade6;
+  --chart-5: #34c759;
+  --sidebar: #fbfbfd;
+  --sidebar-foreground: #1c1c1e;
+  --sidebar-primary: #0071e3;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #e8eefb;
+  --sidebar-accent-foreground: #0058b0;
+  --sidebar-border: #e5e5ea;
+  --sidebar-ring: #0071e3;
 }
 
 .dark {
-  --background: oklch(0.165 0.008 60);
-  --foreground: oklch(0.96 0.005 80);
-  --card: oklch(0.2 0.008 60);
-  --card-foreground: oklch(0.96 0.005 80);
-  --popover: oklch(0.22 0.008 60);
-  --popover-foreground: oklch(0.96 0.005 80);
-  --primary: oklch(0.76 0.15 55);
-  --primary-foreground: oklch(0.18 0.02 55);
-  --secondary: oklch(0.26 0.008 60);
-  --secondary-foreground: oklch(0.96 0.005 80);
-  --muted: oklch(0.24 0.008 60);
-  --muted-foreground: oklch(0.72 0.01 70);
-  --accent: oklch(0.27 0.008 60);
-  --accent-foreground: oklch(0.96 0.005 80);
-  --destructive: oklch(0.72 0.18 25);
-  --border: oklch(1 0 0 / 11%);
-  --input: oklch(1 0 0 / 16%);
-  --ring: oklch(0.88 0.01 80);
-  --chart-1: oklch(0.76 0.15 55);
-  --chart-2: oklch(0.8 0.01 80);
-  --chart-3: oklch(0.65 0.01 80);
-  --chart-4: oklch(0.5 0.01 80);
-  --chart-5: oklch(0.38 0.01 80);
-  --sidebar: oklch(0.185 0.008 60);
-  --sidebar-foreground: oklch(0.96 0.005 80);
-  --sidebar-primary: oklch(0.96 0.005 80);
-  --sidebar-primary-foreground: oklch(0.18 0.01 60);
-  --sidebar-accent: oklch(0.26 0.008 60);
-  --sidebar-accent-foreground: oklch(0.96 0.005 80);
-  --sidebar-border: oklch(1 0 0 / 11%);
-  --sidebar-ring: oklch(0.88 0.01 80);
+  --background: #000000;
+  --foreground: #f5f5f7;
+  --card: #1c1c1e;
+  --card-foreground: #f5f5f7;
+  --popover: #2c2c2e;
+  --popover-foreground: #f5f5f7;
+  --primary: #0a84ff;
+  --primary-foreground: #ffffff;
+  --secondary: #2c2c2e;
+  --secondary-foreground: #f5f5f7;
+  --muted: #1c1c1e;
+  --muted-foreground: #a1a1a6;
+  --accent: #2c2c2e;
+  --accent-foreground: #f5f5f7;
+  --destructive: #ff6961;
+  --border: #38383a;
+  --input: #48484a;
+  --ring: #0a84ff;
+  --chart-1: #ff375f;
+  --chart-2: #7d7aff;
+  --chart-3: #ff9f0a;
+  --chart-4: #64d2ff;
+  --chart-5: #30d158;
+  --sidebar: #111113;
+  --sidebar-foreground: #f5f5f7;
+  --sidebar-primary: #0a84ff;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #1c2a40;
+  --sidebar-accent-foreground: #f5f5f7;
+  --sidebar-border: #38383a;
+  --sidebar-ring: #0a84ff;
 }
 
 @layer base {
@@ -170,7 +160,7 @@
   }
   h1,
   h2 {
-    @apply font-heading font-medium tracking-tight text-balance;
+    @apply font-heading font-bold tracking-tight text-balance;
   }
   :focus-visible {
     outline: 2px solid var(--ring);

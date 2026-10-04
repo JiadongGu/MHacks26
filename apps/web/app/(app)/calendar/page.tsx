@@ -27,7 +27,7 @@ export default async function CalendarPage({ searchParams }: { searchParams: Par
         calendar.
       </PageHeader>
 
-      <div className="space-y-12">
+      <div className="space-y-6">
         <Section title="This week" headingId="h-week">
           <Suspense
             key={monday}

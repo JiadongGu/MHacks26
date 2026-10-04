@@ -80,8 +80,8 @@ function TwinBody({ view }: { view: TwinView }) {
   const p = view.profile;
   const days = typeof view.baselines.computed_from_days === "number" ? view.baselines.computed_from_days : 0;
   return (
-    <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-16">
-      <div className="space-y-12">
+    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-6">
+      <div className="space-y-6">
         <Section title="Profile" headingId="t-profile">
           <Facts
             rows={[
@@ -162,7 +162,7 @@ function TwinBody({ view }: { view: TwinView }) {
         </Section>
       </div>
 
-      <div className="space-y-12">
+      <div className="space-y-6">
         <Section title="Baselines" headingId="t-baselines">
           <ul className="divide-y divide-border border-y border-border">
             {Object.entries(BASELINE_LABEL).map(([key, info]) => (

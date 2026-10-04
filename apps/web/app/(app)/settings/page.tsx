@@ -43,7 +43,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Par
       </PageHeader>
 
       {unfinished && (
-        <p className="mb-12 max-w-[60ch] rounded-lg border border-border px-4 py-3 text-sm">
+        <p className="mb-12 max-w-[60ch] rounded-lg border border-border bg-card px-4 py-3 text-sm">
           Setup is not finished.{" "}
           <Link href="/onboarding" className="font-medium underline underline-offset-4">
             Go back to setup
@@ -51,7 +51,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Par
         </p>
       )}
 
-      <div className="max-w-3xl space-y-12">
+      <div className="max-w-3xl space-y-6">
         <Section title="Connections" headingId="s-connections">
           <h3 className="mb-2 text-sm font-medium">Google Calendar</h3>
           <GoogleStatusCard />
