@@ -144,7 +144,7 @@ export function OnboardingFlow({
 
       <div className="min-w-0">
         {complete && (
-          <p className="mb-6 max-w-[60ch] rounded-lg border border-border px-4 py-3 text-sm">
+          <p className="mb-6 max-w-[60ch] rounded-lg border border-border bg-card px-4 py-3 text-sm">
             Setup is complete. You can change any step.{" "}
             <Link href="/dashboard" className="underline underline-offset-4">
               Back to the dashboard

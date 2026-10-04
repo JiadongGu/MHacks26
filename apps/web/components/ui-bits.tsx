@@ -25,9 +25,9 @@ export function Section({
   headingId?: string;
 }) {
   return (
-    <section aria-labelledby={headingId} className={cn("border-t border-border pt-4", className)}>
+    <section aria-labelledby={headingId} className={cn("rounded-lg border border-border bg-card p-4 md:p-5", className)}>
       <div className="mb-4 flex min-h-8 items-center justify-between gap-4">
-        <h2 id={headingId} className="text-xl">
+        <h2 id={headingId} className="text-lg font-semibold">
           {title}
         </h2>
         {action}

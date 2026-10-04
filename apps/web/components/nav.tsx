@@ -20,9 +20,11 @@ import { cn } from "@/lib/utils";
 export type NavItem = {
   href: string;
   label: string;
-  /** Shorter text for the mobile bottom bar, where eight items share the width. */
+  /** Shorter text for the mobile bottom bar, where six items share the width. */
   shortLabel?: string;
   icon: LucideIcon;
+  /** On phones this item is an icon in the top bar instead of a bottom tab. */
+  topOnMobile?: boolean;
 };
 
 export const MAIN_NAV: NavItem[] = [
@@ -31,9 +33,9 @@ export const MAIN_NAV: NavItem[] = [
   { href: "/conversations", label: "Conversations", shortLabel: "Chats", icon: MessageSquare },
   { href: "/calendar", label: "Calendar", icon: CalendarDays },
   { href: "/twin", label: "Twin", icon: HeartPulse },
-  { href: "/goals", label: "Goals", icon: Target },
+  { href: "/goals", label: "Goals", icon: Target, topOnMobile: true },
   { href: "/alerts", label: "Alerts", icon: Bell },
-  { href: "/settings", label: "Settings", icon: Settings },
+  { href: "/settings", label: "Settings", icon: Settings, topOnMobile: true },
 ];
 
 export const ONBOARDING_NAV: NavItem = {
@@ -100,7 +102,7 @@ function BottomLink({ item }: { item: NavItem }) {
       aria-current={active ? "page" : undefined}
       aria-label={item.label}
       className={cn(
-        "flex min-h-14 min-w-0 flex-1 flex-col items-center justify-center gap-1 px-0.5 text-[10px] font-medium text-muted-foreground transition-colors",
+        "flex min-h-14 min-w-0 flex-1 flex-col items-center justify-center gap-1 px-0.5 text-[11px] font-medium text-muted-foreground transition-colors",
         "hover:text-foreground active:bg-sidebar-accent",
         active && "text-foreground",
       )}
@@ -122,7 +124,7 @@ export function BottomNav() {
       aria-label="Main"
       className="fixed inset-x-0 bottom-0 z-30 flex border-t border-sidebar-border bg-sidebar pb-[env(safe-area-inset-bottom)] print:hidden md:hidden"
     >
-      {MAIN_NAV.map((item) => (
+      {MAIN_NAV.filter((item) => !item.topOnMobile).map((item) => (
         <BottomLink key={item.href} item={item} />
       ))}
     </nav>
@@ -133,6 +135,17 @@ export function TopLinks({ extra }: { extra: NavItem[] }) {
   const pathname = usePathname();
   return (
     <nav aria-label="Secondary" className="flex items-center gap-4 text-sm">
+      {MAIN_NAV.filter((item) => item.topOnMobile).map((item) => (
+        <Link
+          key={item.href}
+          href={item.href}
+          aria-label={item.label}
+          aria-current={pathname.startsWith(item.href) ? "page" : undefined}
+          className="text-muted-foreground hover:text-foreground aria-[current=page]:text-primary"
+        >
+          <item.icon className="size-5" aria-hidden="true" />
+        </Link>
+      ))}
       {extra.map((item) => (
         <Link
           key={item.href}

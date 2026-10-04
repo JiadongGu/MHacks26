@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { HeartPulse } from "lucide-react";
 import { UserButton } from "@neondatabase/auth-ui";
 import { SiteFooter } from "@/components/site-footer";
 import {
@@ -15,8 +16,9 @@ export function Wordmark() {
   return (
     <Link
       href="/dashboard"
-      className="font-heading text-xl font-medium tracking-tight"
+      className="inline-flex items-center gap-1.5 text-xl font-bold tracking-tight"
     >
+      <HeartPulse className="size-5 text-[#FF2D55]" aria-hidden="true" />
       Pulse
     </Link>
   );
