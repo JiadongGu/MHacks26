@@ -257,6 +257,9 @@ def r8_recovery(ctx: RuleContext) -> Finding | None:
     if ctx.twin.get("status") != "possibly_ill" or base is None:
         return None
     today = ctx.local_now.date()
+    if any(k == "illness_onset" and at.astimezone(ctx.zone).date() >= today - timedelta(days=1)
+           for k, at in ctx.recent_alerts):
+        return None
     now_v = _daily(ctx, "resting_heart_rate", today)
     prev_v = _daily(ctx, "resting_heart_rate", today - timedelta(days=1))
     if now_v is None or prev_v is None or now_v > base + 3 or prev_v > base + 3:

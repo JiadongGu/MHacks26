@@ -100,7 +100,8 @@ async def _series(user_id: UUID, now: datetime) -> list[dict[str, Any]]:
     if not spacetime.configured():
         return []
     uid = str(UUID(str(user_id)))
-    base = f"SELECT * FROM minute_agg WHERE user_id = '{uid}' AND minute_ms >= "
+    await spacetime.ensure_watching(uid)
+    base = f"SELECT * FROM {spacetime.table('minute_agg')} WHERE user_id = '{uid}' AND minute_ms >= "
     recent = await spacetime.sql(base + str(_ms(now - timedelta(hours=3))))
     bp = await spacetime.sql(
         base + str(_ms(now - timedelta(hours=24)))
@@ -217,7 +218,8 @@ async def sweep_all() -> None:
         return
     try:
         since = int((datetime.now(UTC) - timedelta(minutes=SWEEP_WINDOW_MIN)).timestamp() * 1000)
-        rows = await spacetime.sql(f"SELECT user_id FROM minute_agg WHERE minute_ms >= {since}")
+        rows = await spacetime.sql(
+            f"SELECT user_id FROM {spacetime.table('minute_agg')} WHERE minute_ms >= {since}")
         users = sorted({UUID(r["user_id"]) for r in rows})
     except Exception as exc:
         log.exception("live.sweep_failed err=%s", type(exc).__name__)
