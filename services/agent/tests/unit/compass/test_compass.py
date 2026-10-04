@@ -69,9 +69,10 @@ FACTS = {
                "current": 8200.0, "pct": 102.5, "on_track": True},
               {"metric": "sleep_total_min", "period": "day", "direction": "at_least", "target": 450.0,
                "current": 312.0, "pct": 69.3, "on_track": False}],
-    "events": [{"title": "Board presentation", "when": "Thu Oct 15, 9:00 AM", "important": True},
-               {"title": "Lunch", "when": "Thu Oct 15, 12:00 PM", "important": False}],
-    "tomorrow_events": [{"title": "Board presentation", "when": "Thu Oct 15, 9:00 AM"}],
+    "events": [{"title": "Board presentation", "when": "Thu Oct 15, 9:00 AM", "day": "tomorrow",
+                "important": True},
+               {"title": "Lunch", "when": "Thu Oct 15, 12:00 PM", "day": "tomorrow", "important": False}],
+    "tomorrow_events": [{"title": "Board presentation", "when": "Thu Oct 15, 9:00 AM", "day": "tomorrow"}],
     "pending_proposal": False,
 }
 
@@ -95,27 +96,30 @@ def test_evening_text_is_kind_about_goals_and_shows_no_targets():
     assert "steps goal reached" in text
     assert "sleep 5.2 h so far" in text
     assert "not met" not in text and "8,000" not in text and "/450" not in text
-    assert "Tomorrow:\n• Thu Oct 15, 9:00 AM: Board presentation" in text
+    assert "Tomorrow: Board presentation tomorrow." in text
+    assert "9:00" not in text
     assert "Tonight: Aim for 7.5 h of sleep. Lights out by 22:30." in text
 
 
 def test_evening_text_uses_the_plan_and_tonights_bedtime_when_there_is_one():
-    facts = {**FACTS, "plan_text": "Tomorrow is a busy one with few gaps. Here is the plan:\n• 12:40 pm walk",
+    facts = {**FACTS, "plan_headline": "Tomorrow is a busy one with few gaps.",
+             "focus_lines": ["• Move more: a walk"], "plan_why": "Your day is packed, so I kept it short.",
              "tonight_bed": "10:15 pm", "tonight_reason": "You start at 8:00 am tomorrow."}
     text = compass.compose_evening(facts)
-    assert "• 12:40 pm walk" in text
+    assert "Tomorrow is a busy one with few gaps." in text
+    assert "Focus for tomorrow:\n• Move more: a walk" in text
+    assert "Why: Your day is packed, so I kept it short." in text
     assert "Tonight: Aim for lights out by 10:15 pm. You start at 8:00 am tomorrow." in text
     assert "Lights out by 22:30" not in text
 
 
 def test_briefing_names_the_focus_instead_of_numbers_and_uses_the_plan():
     facts = {**FACTS, "status": "normal", "sleep_min": 450.0, "focus": ["sleep better", "move more"],
-             "plan_text": "Today looks open. Here is the plan:\n• 12:30 pm walk\n• 2:00 pm study block",
+             "focus_lines": ["• Move more: a walk", "• Build better study habits: 2 study blocks"],
              "plan_why": "Your day is open."}
     text = compass.compose_briefing(facts)
-    assert "Focus: sleep better, move more." in text
-    assert "• 12:30 pm walk\n• 2:00 pm study block" in text
-    assert "Why: Your day is open." in text
+    assert "Focus today:\n• Move more: a walk\n• Build better study habits: 2 study blocks" in text
+    assert "Why: Your day is open." in text and "Times are in Today's plan" in text
     assert "8,000" not in text and "Today's goals" not in text
     assert "Take it easy" not in text  # the plan replaces the generic tip
     assert len(text) <= compass.MAX_BRIEFING_CHARS
@@ -358,13 +362,22 @@ def test_goal_line_reads_naturally():
     assert goal_line(g("workout", 3, "week")) == "3 workouts a week"
 
 
-def test_briefing_is_laid_out_in_labelled_sections_with_the_first_name_only():
-    plan = "Today looks open. Here is the plan:\n• 10:30 am study block\nLights out by 12:15 am."
+def test_briefing_is_broad_strokes_with_the_first_name_and_no_clock_times():
     facts = {**FACTS, "name": "Ada Lovelace", "status": "normal", "sleep_min": 400.0,
-             "focus": ["sleep better"], "plan_text": plan, "plan_why": "Your day is open, so there is room."}
-    lines = compass.compose_briefing(facts).split("\n")
+             "focus_lines": ["• Sleep better: a wind-down, lights out around 12:15 am"],
+             "plan_why": "Your day is open, so there is room."}
+    text = compass.compose_briefing(facts)
+    lines = text.split("\n")
     assert lines[0] == "Good morning, Ada."
-    assert "Last night: you slept 6.7 h." in lines and "Status: normal." in lines
-    assert "Coming up:" in lines and "• Thu Oct 15, 9:00 AM: Board presentation" in lines
-    assert "• 10:30 am study block" in lines and lines[-1].startswith("Why: ")
-    assert "" in lines  # blank lines between sections
+    assert "Last night: you slept 6.7 h. Status: normal." in lines
+    assert "Coming up: Board presentation tomorrow." in lines
+    assert "9:00" not in text and "AM" not in text
+    assert lines[-1].startswith("Times are in Today") and "" in lines
+
+
+def test_coming_up_names_the_day_never_the_time():
+    assert compass.coming_up([]) is None
+    two = [{"title": "A", "day": "tomorrow"}, {"title": "B", "day": "tomorrow"}]
+    assert compass.coming_up(two) == "A and B tomorrow."
+    mixed = [{"title": "A", "day": "today"}, {"title": "B", "day": "Friday"}]
+    assert compass.coming_up(mixed) == "A (today); B (Friday)."

@@ -228,3 +228,20 @@ def test_sunscreen_gets_the_morning_and_the_reapply_follows_two_hours_later():
 
 def test_the_reapply_is_dropped_when_the_morning_item_could_not_be_placed():
     assert schedule.place(["sun_reapply"], [shape.Slot(at(12), at(15))], "normal") == []
+
+
+def test_focus_lines_describe_each_area_without_clock_times():
+    from app.planner import render
+
+    def it(key):
+        return {"key": key, "title": key, "start": at(10), "end": at(11)}
+
+    items = [it("study"), it("study"), it("steps"), it("sun"), it("sun_reapply"), it("wind_down")]
+    lines = render.focus_lines(["sleep", "steps", "study", "stress"], items, at(23, 30))
+    assert lines == [
+        "• Sleep better: a wind-down, lights out around 11:30 pm",
+        "• Move more: a walk",
+        "• Build better study habits: 2 study blocks",
+        "• Feel less stressed: nothing needed today",
+        "• Protect my skin: sunscreen, a reapply",
+    ]
