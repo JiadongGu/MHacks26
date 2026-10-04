@@ -38,6 +38,12 @@ async def briefing(user_id: UUID) -> dict[str, bool]:
     return {"ran": await compass.run_briefing(user_id, force=True)}
 
 
+@router.post("/evening")
+async def evening(user_id: UUID) -> dict[str, bool]:
+    """Run the 9 pm evening check now: tonight's bedtime, tomorrow's plan, and the calendar events."""
+    return {"ran": await compass.run_evening(user_id, force=True)}
+
+
 @router.post("/rebuild")
 async def rebuild(user_id: UUID) -> dict[str, bool]:
     return {"ran": await compass.run_rebuild(user_id, force=True)}

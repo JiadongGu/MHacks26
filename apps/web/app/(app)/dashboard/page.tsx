@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { BriefingSection } from "@/components/dashboard/briefing-section";
+import { EveningSection } from "@/components/dashboard/evening-section";
 import { GoalRings } from "@/components/dashboard/goal-rings";
 import { PlanSection } from "@/components/dashboard/plan-section";
 import {
@@ -42,6 +43,12 @@ export default async function DashboardPage() {
           <Section title="Today's plan" headingId="h-plan">
             <Suspense fallback={<ListSkeleton rows={2} label="Loading plan" />}>
               <PlanSection userId={user.id} timeZone={profile.timezone} />
+            </Suspense>
+          </Section>
+
+          <Section title="Evening check" headingId="h-evening">
+            <Suspense fallback={<ListSkeleton rows={1} label="Loading evening check" />}>
+              <EveningSection userId={user.id} />
             </Suspense>
           </Section>
 
