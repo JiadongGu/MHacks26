@@ -20,7 +20,11 @@ from psycopg.types.json import Jsonb
 from app import notify
 from app.agents import chat
 from app.core import db
+from app.focus import store as focus_store
+from app.focus.catalog import BY_KEY
 from app.integrations.gcal import sync as gcal_sync
+from app.planner import render as plan_render
+from app.planner import service as planner
 from app.rules.engine import _block
 from app.rules.types import RuleContext
 from app.twin import service as twin_service
@@ -32,7 +36,7 @@ WINDOW_MIN = 10
 JOB_HOURS: dict[str, int] = {"briefing": 7, "evening": 21, "rebuild": 3}
 JOB_TIMEOUT_S = 120
 SWEEP_EXPIRE_H = 24
-MAX_BRIEFING_CHARS = 600
+MAX_BRIEFING_CHARS = 800
 DEFAULT_SLEEP_MIN = 450
 
 
@@ -107,7 +111,7 @@ def recommend(facts: dict[str, Any]) -> str:
     steps_goal = next((g for g in facts.get("goals", []) if g["metric"] == "steps" and g["period"] == "day"),
                       None)
     if steps_goal:
-        return f"A brisk 20 minute walk helps you reach {chat.num(steps_goal['target'])} steps."
+        return "A brisk 20 minute walk is an easy way to add steps."
     return "Keep your routine steady and drink water."
 
 
@@ -119,17 +123,23 @@ def compose_briefing(facts: dict[str, Any]) -> str:
     else:
         parts.append("I have no sleep data for last night.")
     parts.append(f"Status: {str(facts.get('status', 'unknown')).replace('_', ' ')}.")
-    goals = facts.get("goals", [])
-    if goals:
-        parts.append("Today's goals: " + "; ".join(goal_line(g) for g in goals[:3]) + ".")
+    focus = facts.get("focus", [])
+    if focus:
+        parts.append("Your focus: " + ", ".join(focus) + ".")
     events = [e for e in facts.get("events", []) if e["important"]][:3]
     if events:
         parts.append("Important soon: " + "; ".join(f"{e['title']} ({e['when']})" for e in events) + ".")
-    parts.append(recommend(facts))
+    if facts.get("plan_text"):
+        parts.append(facts["plan_text"])
+    else:
+        parts.append(recommend(facts))
     return chat.clip(" ".join(parts), MAX_BRIEFING_CHARS)
 
 
 def sleep_recommendation(facts: dict[str, Any]) -> str:
+    if facts.get("tonight_bed"):
+        base = f"Aim for lights out by {facts['tonight_bed']}. {facts.get('tonight_reason', '')}".strip()
+        return base + (" Your body needs the rest." if facts.get("status") == "possibly_ill" else "")
     target = facts.get("sleep_goal_min") or DEFAULT_SLEEP_MIN
     bed = facts.get("bed_time") or "22:30"
     base = f"Aim for {chat.minutes_text(target)} of sleep. Lights out by {bed}."
@@ -140,22 +150,26 @@ def sleep_recommendation(facts: dict[str, Any]) -> str:
 
 def goal_result(g: dict[str, Any]) -> str:
     met = g["on_track"] if g["direction"] == "at_most" else g["pct"] >= 100
-    return f"{chat.metric_label(g['metric'])} {chat.num(g['current'])}/{chat.num(g['target'])} " \
-           f"({'met' if met else 'not met'})"
+    label = chat.metric_label(g["metric"])
+    if met:
+        return f"{label} goal reached"
+    if g["metric"].startswith("sleep"):
+        return f"{label} {chat.minutes_text(g['current'])} so far"
+    return f"{label} {chat.num(g['current'])} so far"
 
 
 def compose_evening(facts: dict[str, Any]) -> str:
     parts = ["Evening check."]
     day_goals = [g for g in facts.get("goals", []) if g["period"] == "day"]
     if day_goals:
-        parts.append("Goals today: " + "; ".join(goal_result(g) for g in day_goals[:3]) + ".")
-    else:
-        parts.append("You have no daily goals set.")
+        parts.append("Today: " + "; ".join(goal_result(g) for g in day_goals[:3]) + ".")
     events = facts.get("tomorrow_events", [])[:3]
     if events:
         parts.append("Tomorrow: " + "; ".join(f"{e['title']} ({e['when']})" for e in events) + ".")
     else:
         parts.append("Nothing on your calendar tomorrow.")
+    if facts.get("plan_text"):
+        parts.append(facts["plan_text"])
     parts.append(sleep_recommendation(facts))
     return chat.clip(" ".join(parts), MAX_BRIEFING_CHARS)
 
@@ -263,7 +277,9 @@ async def _facts(user_id: UUID, now: datetime) -> dict[str, Any]:
                        and g["period"] == "day"), None)
     pending = await chat.pending_proposal(user_id)
     bed = profile.get("bed_time")
+    focus = [BY_KEY[k].label.lower() for k in await focus_store.list_picks(user_id) if k in BY_KEY]
     return {
+        "focus": focus,
         "name": (profile.get("display_name") or "").strip() or None, "tz": tz, "local": local,
         "status": status["status"], "sleep_min": status["sleep_min"], "goals": goals,
         "sleep_goal_min": sleep_goal, "bed_time": bed.strftime("%H:%M") if hasattr(bed, "strftime") else bed,
@@ -278,6 +294,10 @@ async def _facts(user_id: UUID, now: datetime) -> dict[str, Any]:
 
 async def _briefing_body(user_id: UUID, now: datetime) -> None:
     facts = await _facts(user_id, now)
+    try:
+        facts["plan_text"] = (await planner.build_plan(user_id, facts["local"].date(), now)).text
+    except Exception as exc:  # the briefing still goes out without a plan
+        log.warning("compass.plan_failed job=briefing user=%s err=%s", user_id, type(exc).__name__)
     text = compose_briefing(facts)
     await save_briefing(user_id, facts["local"].date(), text)
     alert = await persist_alert(user_id, "morning_briefing", "Good morning", text,
@@ -306,6 +326,15 @@ def _to_time(value: Any) -> dtime | None:
 
 async def _evening_body(user_id: UUID, now: datetime) -> None:
     facts = await _facts(user_id, now)
+    today = facts["local"].date()
+    try:
+        tonight = await planner.build_plan(user_id, today, now)  # refreshes tonight's wind-down
+        tomorrow = await planner.build_plan(user_id, today + timedelta(days=1), now)
+        facts["tonight_bed"] = plan_render.clock(tonight.bed)
+        facts["tonight_reason"] = tonight.reason if tonight.shifted_min > 0 else ""
+        facts["plan_text"] = tomorrow.text
+    except Exception as exc:  # the evening message still goes out without a plan
+        log.warning("compass.plan_failed job=evening user=%s err=%s", user_id, type(exc).__name__)
     text = compose_evening(facts)
     proposal = None
     if wants_sleep_block(facts):

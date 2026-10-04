@@ -89,3 +89,48 @@ def insert_proposal_event(
 
 def delete_event(creds, calendar_id: str, event_id: str) -> None:
     _svc(creds).events().delete(calendarId=calendar_id, eventId=event_id).execute()
+
+
+PLAN_PROP = "pulse_plan"
+
+
+def replace_plan_events(
+    creds, calendar_id: str, day_key: str, keep_before: datetime, items: list[dict]
+) -> list[str]:
+    """Replace one day's planned events that have not started yet. Events already in the past stay.
+
+    Each event carries a private `pulse_plan=<day>` property so only Pulse's own events are ever touched.
+    """
+    svc = _svc(creds)
+    page = None
+    while True:
+        resp = (
+            svc.events()
+            .list(
+                calendarId=calendar_id,
+                privateExtendedProperty=f"{PLAN_PROP}={day_key}",
+                singleEvents=True,
+                maxResults=250,
+                pageToken=page,
+            )
+            .execute()
+        )
+        for e in resp.get("items", []):
+            start = e.get("start", {}).get("dateTime")
+            if start and datetime.fromisoformat(start) >= keep_before:
+                svc.events().delete(calendarId=calendar_id, eventId=e["id"]).execute()
+        page = resp.get("nextPageToken")
+        if not page:
+            break
+    ids = []
+    for it in items:
+        body = {
+            "summary": it["title"],
+            "description": f"{it['why']}\n\nPlanned by Pulse around your calendar. Delete it any time.",
+            "start": {"dateTime": it["start"].isoformat()},
+            "end": {"dateTime": it["end"].isoformat()},
+            "reminders": {"useDefault": False, "overrides": [{"method": "popup", "minutes": 10}]},
+            "extendedProperties": {"private": {PLAN_PROP: day_key, "pulse_kind": it["key"]}},
+        }
+        ids.append(svc.events().insert(calendarId=calendar_id, body=body).execute()["id"])
+    return ids
