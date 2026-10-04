@@ -78,6 +78,12 @@ cd services/gateway && npm i && npx tsx --env-file=.env src/index.ts
 
 Env vars are listed in `.env.example`. Tests: `uv run pytest` in `services/agent`, `npm test` in `apps/web` and `services/gateway`.
 
+## Known limitations
+
+- iMessage runs on Photon's free shared pool: testers must be registered on the Photon project and each gets their own assigned line (see docs/DEMO.md). A paid dedicated line removes this.
+- The Apple Watch is simulated (Health Auto Export JSON format); Fitbit data is real via the Google Health API.
+- Wellness guidance only; no diagnosis.
+
 ## Team
 
 J (Jiadong Gu) and P (Gavin Mordhorst).
