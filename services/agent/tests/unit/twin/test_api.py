@@ -218,6 +218,17 @@ def test_rebuild_uses_last_seven_days_of_daily_summary(client, fake):
     assert model["thresholds"]["bp_warn"] == [130, 80]
 
 
+def test_rebuild_applies_profile_edits(client, fake):
+    uid = uuid4()
+    client.post("/twin/import", json={"user_id": str(uid), "scenario": "baseline-adult"})
+    fake.profile = {"dob": None, "sex": "female", "height_cm": 170.0, "weight_kg": 81.6,
+                    "timezone": "America/Detroit"}
+    model = client.post(f"/twin/{uid}/rebuild").json()["model"]
+    assert model["profile"]["weight_kg"] == 81.6
+    assert model["profile"]["height_cm"] == 170.0
+    assert model["profile"]["timezone"] == "America/Detroit"
+
+
 def test_rebuild_and_get_without_twin_return_404(client):
     uid = uuid4()
     assert client.post(f"/twin/{uid}/rebuild").status_code == 404
