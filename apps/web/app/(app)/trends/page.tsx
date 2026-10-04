@@ -3,7 +3,8 @@ import Link from "next/link";
 import { MetricCard } from "@/components/trends/metric-card";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
-import { EmptyState, ErrorNote, Section } from "@/components/ui-bits";
+import { GroupSection } from "@/components/dashboard/rise";
+import { EmptyState, ErrorNote } from "@/components/ui-bits";
 import { localDay } from "@/lib/briefing";
 import { addDays, zoneOrDefault } from "@/lib/calendar-week";
 import { getDailyMetricRows, getLatestTwin } from "@/lib/queries";
@@ -74,16 +75,23 @@ export default async function TrendsPage({ searchParams }: { searchParams: Param
 
       {trends && trends.some((t) => t.latest !== null) && (
         <div className="space-y-6">
-          {CATEGORIES.map((c) => (
-            <Section key={c.id} title={c.title} headingId={`tr-${c.id}`}>
-              <ul className="grid gap-6 lg:grid-cols-2">
-                {c.metrics.map((key) => {
-                  const trend = trends.find((t) => t.key === key);
-                  return trend && <MetricCard key={key} trend={trend} color={c.color} range={range} />;
-                })}
-              </ul>
-            </Section>
-          ))}
+          {CATEGORIES.map((c) => {
+            // A metric with no data in the range stays out. A category with none left loses its heading.
+            const have = c.metrics.flatMap((key) => {
+              const t = trends.find((x) => x.key === key);
+              return t && t.latest !== null ? [t] : [];
+            });
+            if (have.length === 0) return null;
+            return (
+              <GroupSection key={c.id} title={c.title} headingId={`tr-${c.id}`}>
+                <ul className="grid gap-4 lg:grid-cols-2">
+                  {have.map((trend, i) => (
+                    <MetricCard key={trend.key} trend={trend} color={c.color} range={range} today={today} index={i} />
+                  ))}
+                </ul>
+              </GroupSection>
+            );
+          })}
         </div>
       )}
     </>

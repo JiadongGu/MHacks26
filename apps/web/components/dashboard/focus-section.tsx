@@ -38,12 +38,12 @@ export async function FocusSection({ userId, timeZone }: { userId: string; timeZ
     );
   }
   return (
-    <ul className="max-w-xl space-y-5">
+    <ul className="space-y-5">
       {out.map((r) => (
         <li key={r.key}>
           <div className="flex items-baseline justify-between gap-4">
             <p className="text-sm font-medium">{r.label}</p>
-            {r.pct !== null && <p className="font-mono text-xs text-muted-foreground">{Math.round(r.pct)}%</p>}
+            {r.pct !== null && <p className="text-xs font-semibold tabular-nums">{Math.round(r.pct)}%</p>}
           </div>
           {r.pct !== null && (
             <div
@@ -54,7 +54,7 @@ export async function FocusSection({ userId, timeZone }: { userId: string; timeZ
               aria-valuenow={Math.round(r.pct)}
               className="mt-2 h-2 overflow-hidden rounded-full bg-muted"
             >
-              <div className="h-full rounded-full bg-foreground" style={{ width: `${Math.round(r.pct)}%` }} />
+              <div className="h-full rounded-full bg-foreground transition-[width] duration-500 motion-reduce:transition-none" style={{ width: `${Math.round(r.pct)}%` }} />
             </div>
           )}
           <p className="mt-1.5 text-xs text-muted-foreground">{r.text}</p>
