@@ -3,8 +3,8 @@
 import { useEffect, useRef, type ReactNode } from "react";
 
 /**
- * Fixed background behind the app content. A faint glow and a dot grid follow the pointer.
- * `children` is the slot for a canvas layer, such as <PulseField intensity="ambient" bpm={n} />.
+ * Fixed background behind the app content. A faint glow follows the pointer.
+ * `children` is the slot for the canvas dot field, <PulseField intensity="ambient" bpm={n} />.
  * With reduced motion, or without a fine pointer, the glow stays at the top of the page.
  */
 export function AmbientLayer({ children }: { children?: ReactNode }) {
@@ -40,8 +40,6 @@ export function AmbientLayer({ children }: { children?: ReactNode }) {
   return (
     <div ref={ref} aria-hidden="true" className="ambient-layer print:hidden">
       <div className="ambient-glow" />
-      <div className="ambient-dots" />
-      <div className="ambient-dots-lit" />
       {children}
     </div>
   );

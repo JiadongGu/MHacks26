@@ -16,7 +16,7 @@
  *
  * Motion (all of it off under prefers-reduced-motion)
  *   .reveal       fade-up entrance, 480 ms. Set style={{ "--stagger": n }} to delay by n x 60 ms.
- *   .shimmer      loading skeleton sweep, 1.6 s loop.
+ *   .skeleton-shimmer  loading skeleton sweep, 1.6 s loop.
  *   .card-interactive  2 px lift and a soft shadow on hover.
  *   .num          tabular numbers, for every figure that changes or lines up in a column.
  */
@@ -137,7 +137,6 @@
   --warn-ink: #8f4e00;
   --bad: #ff3b30;
   --bad-ink: #c4001a;
-  --dot: rgb(60 60 67 / 0.16);
   --scroll-thumb: rgb(60 60 67 / 0.28);
   --scroll-thumb-hover: rgb(60 60 67 / 0.45);
   color-scheme: light;
@@ -181,7 +180,6 @@
   --warn-ink: #ffb340;
   --bad: #ff453a;
   --bad-ink: #ff8a80;
-  --dot: rgb(235 235 245 / 0.14);
   --scroll-thumb: rgb(235 235 245 / 0.28);
   --scroll-thumb-hover: rgb(235 235 245 / 0.45);
   color-scheme: dark;
@@ -269,7 +267,7 @@
   animation-delay: calc(var(--stagger, 0) * 60ms);
 }
 
-@utility shimmer {
+@utility skeleton-shimmer {
   background-color: var(--muted);
   background-image: linear-gradient(
     100deg,
@@ -319,24 +317,10 @@
     transparent 70%
   );
 }
-.ambient-dots {
+.ambient-fade {
   position: absolute;
   inset: 0;
-  background-image: radial-gradient(circle at 1px 1px, var(--dot) 1px, transparent 1.5px);
-  background-size: 24px 24px;
-  mask-image: linear-gradient(to bottom, #000, transparent 70%);
-}
-.ambient-dots-lit {
-  position: absolute;
-  inset: 0;
-  background-image: radial-gradient(
-    circle at 1px 1px,
-    color-mix(in oklab, var(--primary) 55%, transparent) 1px,
-    transparent 1.5px
-  );
-  background-size: 24px 24px;
-  mask-image: radial-gradient(260px circle at var(--mx) var(--my), #000, transparent 100%);
-  opacity: 0.55;
+  mask-image: linear-gradient(to bottom, #000 0%, #000 30%, transparent 85%);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -344,7 +328,7 @@
   .animate-pop {
     animation: none;
   }
-  .shimmer {
+  .skeleton-shimmer {
     animation: none;
     background-image: none;
   }

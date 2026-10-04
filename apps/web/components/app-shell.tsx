@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { HeartPulse } from "lucide-react";
 import { UserButton } from "@neondatabase/auth-ui";
+import { PulseField } from "@/components/ambient/pulse-field";
 import { AmbientLayer } from "@/components/ambient-layer";
 import { PaletteButton, PaletteProvider } from "@/components/command-palette";
 import { SiteFooter } from "@/components/site-footer";
@@ -40,8 +41,11 @@ export function AppShell({
   return (
     <PaletteProvider showDemo={showDemo}>
       <div className="min-h-dvh md:grid md:grid-cols-[15rem_1fr] print:block">
-        {/* Background slot: drop <PulseField intensity="ambient" bpm={n} /> inside AmbientLayer. */}
-        <AmbientLayer />
+        <AmbientLayer>
+          <div className="ambient-fade">
+            <PulseField intensity="ambient" bpm={64} />
+          </div>
+        </AmbientLayer>
         <a
           href="#main"
           className="sr-only print:hidden focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-primary focus:px-3 focus:py-2 focus:text-sm focus:font-medium focus:text-primary-foreground"
