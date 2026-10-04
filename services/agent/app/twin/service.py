@@ -40,7 +40,19 @@ async def import_from_finchnode(user_id: UUID, scenario: str | None, patient_id:
     if patient_id is None:
         patient_id = await finchnode.resolve_patient_id(scenario or "")
     body, origin = await finchnode.fetch_records(patient_id)
+    return await save_records(user_id, body, origin, scenario or body.get("scenario"), started)
 
+
+async def save_records(
+    user_id: UUID,
+    body: dict[str, Any],
+    origin: str,
+    scenario_id: str | None,
+    started: float | None = None,
+    provenance: dict[str, Any] | None = None,
+) -> DigitalTwin:
+    """Build the twin from a FinchNode records body, replace the stored records, and save a new version."""
+    started = started if started is not None else time.monotonic()
     profile = await store.profile_row(user_id)
     now = datetime.now(UTC)
     today = local_now((profile or {}).get("timezone"), now).date()
@@ -48,6 +60,7 @@ async def import_from_finchnode(user_id: UUID, scenario: str | None, patient_id:
     twin = builder.from_finchnode(body, today=today)
     twin["provenance"]["finchnode_source"] = origin
     twin["provenance"]["imported_at"] = now.isoformat()
+    twin["provenance"].update(provenance or {})
     previous = await store.latest_twin(user_id)
     if previous:
         old = previous["model"]
@@ -60,7 +73,6 @@ async def import_from_finchnode(user_id: UUID, scenario: str | None, patient_id:
 
     summary = builder.summarize(twin)
     categories = {k: v for k, v in body["record"].items() if isinstance(v, list)}
-    scenario_id = scenario or body.get("scenario")
     version = await store.save_import(user_id, scenario_id, categories, twin, summary)
     log.info(
         "event=twin_import user=%s version=%d origin=%s ms=%d",

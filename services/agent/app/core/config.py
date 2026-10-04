@@ -29,6 +29,7 @@ class Settings(BaseSettings):
     google_client_secret: str = ""
     google_redirect_uri: str = ""
     finchnode_api_key: str = ""
+    finchnode_webhook_secret: str = ""
     elevenlabs_api_key: str = ""
     elevenlabs_voice_id: str = ""
     agent_seed: str = ""

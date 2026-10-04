@@ -44,6 +44,11 @@ async def health() -> Health:
 from app.twin.api import router as twin_router  # noqa: E402
 
 app.include_router(twin_router)
+from app.twin.live_api import public as finchnode_public  # noqa: E402
+from app.twin.live_api import router as finchnode_live  # noqa: E402
+
+app.include_router(finchnode_public)
+app.include_router(finchnode_live)
 from app.goals.api import router as goals_router  # noqa: E402
 
 app.include_router(goals_router)
