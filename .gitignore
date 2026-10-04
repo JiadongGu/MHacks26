@@ -25,3 +25,8 @@ build/
 .data/
 .neon
 .claude/worktrees/
+
+# testreel (demo videos): session state holds a login cookie; outputs are large
+video/.auth/
+video/output/
+testreel-output/
