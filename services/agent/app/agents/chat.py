@@ -198,15 +198,12 @@ def aggregate_days(rows: list[dict[str, Any]], metric: str) -> dict[str, Any] | 
 
 
 def sleep_minutes(rows: list[dict[str, Any]], today: date) -> float | None:
-    """Last night's sleep: today's row, else yesterday's."""
-    by_day = {r["day"]: r for r in rows if r["metric"] == "sleep_total_min"}
-    for d in (today, today - timedelta(days=1)):
-        r = by_day.get(d)
-        if r is not None:
-            v = r["sum"] if r["sum"] is not None else r["avg"]
-            if v is not None:
-                return float(v)
-    return None
+    """Last night's sleep, stored on the wake day. None until today's night has synced."""
+    r = next((r for r in rows if r["metric"] == "sleep_total_min" and r["day"] == today), None)
+    if r is None:
+        return None
+    v = r["sum"] if r["sum"] is not None else r["avg"]
+    return None if v is None else float(v)
 
 
 def build_status(twin: dict[str, Any] | None, rows: list[dict[str, Any]], goals: list[dict[str, Any]],
@@ -217,6 +214,7 @@ def build_status(twin: dict[str, Any] | None, rows: list[dict[str, Any]], goals:
     steps = None if steps_row is None else (steps_row["sum"] if steps_row["sum"] is not None else None)
     goal = next((g for g in goals if g["metric"] == "steps" and g["period"] == "day"), None)
     target = float(goal["target"]) if goal else (model.get("baselines") or {}).get("steps")
+    target = None if target is None else round(target)
     rhr = next((r for r in rows if r["metric"] == "resting_heart_rate" and r["day"] == today), None)
     return {"status": model.get("status") or "unknown", "steps_today": steps,
             "steps_goal": target, "steps_goal_is_user_goal": goal is not None,

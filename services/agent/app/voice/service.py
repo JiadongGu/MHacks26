@@ -149,12 +149,9 @@ async def synthesize(text: str) -> bytes:
 
 async def todays_briefing(user_id: UUID, day: date | None = None,
                           generate: bool = True) -> tuple[date, dict[str, Any]] | None:
-    """The briefing row for the user's local day. Runs the briefing job once if the row is missing."""
+    """The briefing row for the user's local day. Only the scheduled 7 am run writes it."""
     day = day or await user_today(user_id)
     row = await load_briefing(user_id, day)
-    if row is None and generate:
-        await compass.run_briefing(user_id, force=True)
-        row = await load_briefing(user_id, day)
     return (day, row) if row else None
 
 

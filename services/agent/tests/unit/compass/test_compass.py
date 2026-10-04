@@ -183,7 +183,7 @@ class Runs:
         monkeypatch.setattr(compass, "done_runs", done_runs)
         monkeypatch.setattr(compass, "load_profile", profile)
         monkeypatch.setattr(compass, "list_users", list_users)
-        monkeypatch.setattr(compass, "BODIES", {j: body(j) for j in compass.JOB_HOURS})
+        monkeypatch.setattr(compass, "BODIES", {j: body(j) for j in (*compass.JOB_HOURS, "checkin")})
 
 
 @pytest.fixture
@@ -198,13 +198,11 @@ async def test_run_writes_ok_row(runs):
     assert runs.rows[0]["detail"] == compass.period_key(compass.local_now(DETROIT))
 
 
-async def test_run_skips_when_done_unless_forced(runs):
+async def test_run_skips_when_done(runs):
     key = compass.period_key(compass.local_now(DETROIT))
     runs.done = {("briefing", A, key)}
     assert await compass.run_briefing(A) is False
     assert runs.bodies == []
-    assert await compass.run_briefing(A, force=True) is True
-    assert runs.bodies == [("briefing", A)]
 
 
 async def test_failed_job_is_recorded_as_error_and_never_raises(runs):
@@ -418,13 +416,11 @@ def test_the_briefing_carries_the_heads_up_before_coming_up():
     assert text.index("Heads-up:") < text.index("Coming up:")
 
 
-async def test_a_manual_run_never_stops_the_scheduled_one(runs):
-    """A forced briefing (a button, the welcome text) must not make the 7 am run think it is already done."""
-    assert await compass.run_briefing(A, force=True) is True
-    assert [r["job"] for r in runs.rows] == ["briefing:manual"]
-    # The scheduler only counts rows named for the job itself, so it still runs the real one.
-    assert ("briefing:manual", A, compass.period_key(compass.local_now(DETROIT))) not in {
-        (job, uid, key) for (job, uid, key) in runs.done
-    }
+async def test_a_checkin_never_stops_the_scheduled_runs(runs):
+    """An on-demand check-in must not make the 7 am or 9 pm run think it is already done."""
+    assert await compass.run_checkin(A) is True
+    assert await compass.run_checkin(A) is True
+    assert [r["job"] for r in runs.rows] == ["checkin:manual", "checkin:manual"]
     assert await compass.run_briefing(A) is True
-    assert [r["job"] for r in runs.rows] == ["briefing:manual", "briefing"]
+    assert [r["job"] for r in runs.rows][-1] == "briefing"
+

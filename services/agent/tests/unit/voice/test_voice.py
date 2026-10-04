@@ -105,20 +105,10 @@ async def test_changed_text_makes_new_audio(store):
     assert route.call_count == 2
 
 
-@respx.mock
-async def test_missing_briefing_runs_job_once(store):
+async def test_missing_briefing_is_not_generated(store):
     _, runs = store
-    respx.post(TTS_URL).mock(return_value=httpx.Response(200, content=MP3))
-    assert await service.briefing_audio(USER) == MP3
-    assert runs == [(USER, True)]
-
-
-async def test_no_briefing_after_job_gives_none(store, monkeypatch):
-    async def run_briefing(user_id, force=False):
-        return False
-
-    monkeypatch.setattr(compass, "run_briefing", run_briefing)
     assert await service.briefing_audio(USER) is None
+    assert runs == []
 
 
 @respx.mock
