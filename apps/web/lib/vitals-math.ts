@@ -22,6 +22,8 @@ export type VitalTile = {
 export type VitalsPayload = {
   series: VitalPoint[];
   tiles: VitalTile[];
+  /** Hours the series covers. Longer than asked when the recent window was empty. */
+  hours?: number;
 };
 
 export type SeriesSummary = {

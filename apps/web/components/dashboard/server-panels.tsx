@@ -84,7 +84,8 @@ export async function ProposalsSection({ userId }: { userId: string }) {
 
 export async function AlertsSection({ userId }: { userId: string }) {
   const initial = await listAlerts(userId, 20).catch(() => undefined);
-  return <AlertsFeed initial={initial} limit={20} />;
+  // The check-ins have their own section, so they are not repeated here.
+  return <AlertsFeed initial={initial} limit={20} hideKinds={["morning_briefing", "evening_check", "welcome"]} />;
 }
 
 export async function UpcomingEvents({ userId }: { userId: string }) {

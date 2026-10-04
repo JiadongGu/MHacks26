@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { CheckinsSection } from "@/components/dashboard/checkins-section";
 import { FocusSection } from "@/components/dashboard/focus-section";
 import { NumbersSection } from "@/components/dashboard/numbers-section";
+import { WeekSection } from "@/components/dashboard/week-section";
 import { PlanSection } from "@/components/dashboard/plan-section";
 import {
   AgentSeen,
@@ -34,12 +35,6 @@ export default async function DashboardPage() {
             <StatusHero userId={user.id} />
           </Suspense>
 
-          <Section title="Your focus today" headingId="h-focus">
-            <Suspense fallback={<Skeleton role="status" aria-label="Loading your focus" className="h-32" />}>
-              <FocusSection userId={user.id} timeZone={profile.timezone} />
-            </Suspense>
-          </Section>
-
           <Section title="Check-ins" headingId="h-checkins">
             <Suspense fallback={<ListSkeleton rows={2} label="Loading check-ins" />}>
               <CheckinsSection userId={user.id} timeZone={profile.timezone} />
@@ -64,6 +59,12 @@ export default async function DashboardPage() {
             </Suspense>
           </Section>
 
+          <Section title="This week" headingId="h-week">
+            <Suspense fallback={<Skeleton role="status" aria-label="Loading trends" className="h-40" />}>
+              <WeekSection userId={user.id} timeZone={profile.timezone} hidden={profile.hidden_metrics} />
+            </Suspense>
+          </Section>
+
           <Section title="Alerts" headingId="h-alerts">
             <Suspense fallback={<ListSkeleton label="Loading alerts" />}>
               <AlertsSection userId={user.id} />
@@ -71,7 +72,13 @@ export default async function DashboardPage() {
           </Section>
         </div>
 
-        <aside className="space-y-6" aria-label="Numbers and calendar">
+        <aside className="space-y-6" aria-label="Focus, numbers and calendar">
+          <Section title="Your focus today" headingId="h-focus">
+            <Suspense fallback={<Skeleton role="status" aria-label="Loading your focus" className="h-32" />}>
+              <FocusSection userId={user.id} timeZone={profile.timezone} />
+            </Suspense>
+          </Section>
+
           <Section title="Your numbers" headingId="h-numbers">
             <Suspense fallback={<Skeleton role="status" aria-label="Loading your numbers" className="h-40" />}>
               <NumbersSection userId={user.id} timeZone={profile.timezone} hidden={profile.hidden_metrics} />

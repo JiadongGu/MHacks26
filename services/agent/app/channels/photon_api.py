@@ -57,3 +57,58 @@ async def get_line(body: LineRequest) -> LineOut:
                 (phone, body.user_id),
             )
     return LineOut(line=line, phone=phone)
+
+
+class WelcomeIn(BaseModel):
+    user_id: UUID
+
+
+def welcome_text(first_name: str | None, focus_labels: list[str]) -> str:
+    who = f", {first_name}" if first_name else ""
+    lines = [f"Welcome to Pulse{who}. I am your health companion."]
+    if focus_labels:
+        lines.append("You are working on: " + ", ".join(focus_labels) + ".")
+    lines += [
+        "",
+        "Each morning and evening I will check in, and I plan your focus areas around your calendar.",
+        'You can ask me things any time, like "how did I sleep?" or "what is my plan today?".',
+        "",
+        "Here is your first check-in:",
+    ]
+    return "\n".join(lines)
+
+
+@router.post("/welcome")
+async def welcome(body: WelcomeIn) -> dict[str, bool]:
+    """Text the person first, once, when setup is done: a welcome and then a first check-in.
+
+    Does nothing if they were already welcomed. The text only goes out if their iMessage is linked.
+    """
+    from app.agents import compass  # imported here: compass pulls in the whole agent
+    from app.focus.catalog import BY_KEY
+    from app.focus.store import list_picks
+    from app.notify import dispatch
+    from app.twin.tz import local_now
+
+    async with db.neon() as conn:
+        cur = await conn.execute(
+            "select 1 as n from alerts where user_id = %s and kind = 'welcome' limit 1", (body.user_id,)
+        )
+        if await cur.fetchone():
+            return {"sent": False}
+    profile = await _profile(body.user_id)
+    first = (profile.get("display_name") or "").split()[:1]
+    picks = [BY_KEY[k].label.lower() for k in await list_picks(body.user_id) if k in BY_KEY]
+    alert = await compass.persist_alert(
+        body.user_id, "welcome", "Welcome to Pulse", welcome_text(first[0] if first else None, picks), {}
+    )
+    await dispatch(body.user_id, alert)
+    # A first check-in right after: the evening one when it is already late in the day.
+    async with db.neon() as conn:
+        cur = await conn.execute("select timezone from profiles where user_id = %s", (body.user_id,))
+        tz = ((await cur.fetchone()) or {}).get("timezone") or "America/Detroit"
+    if local_now(tz).hour >= 17:
+        await compass.run_evening(body.user_id, force=True)
+    else:
+        await compass.run_briefing(body.user_id, force=True)
+    return {"sent": True}
