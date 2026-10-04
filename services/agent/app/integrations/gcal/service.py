@@ -4,6 +4,7 @@ from datetime import UTC, datetime, timedelta
 from googleapiclient.discovery import build
 
 from app.contracts import CalendarEvent
+from app.planner.categories import color_id_for
 
 HEALTH_CALENDAR_NAME = "Pulse Health"
 IMPORTANT_RE = re.compile(r"exam|interview|flight|presentation|race|final|midterm|deadline|wedding", re.I)
@@ -94,11 +95,6 @@ def delete_event(creds, calendar_id: str, event_id: str) -> None:
 PLAN_PROP = "pulse_plan"
 
 
-# Google event colors: 7 peacock (blue-green), 1 lavender, 6 tangerine. Never the calendar's default yellow.
-PLAN_COLORS = {"wind_down": "1", "sun": "6", "sun_reapply": "6", "skin_check": "6"}
-PLAN_DEFAULT_COLOR = "7"
-
-
 def replace_plan_events(
     creds, calendar_id: str, day_key: str, keep_before: datetime, items: list[dict]
 ) -> list[str]:
@@ -134,7 +130,7 @@ def replace_plan_events(
             "description": f"{it['why']}\n\nPlanned by Pulse around your calendar. Delete it any time.",
             "start": {"dateTime": it["start"].isoformat()},
             "end": {"dateTime": it["end"].isoformat()},
-            "colorId": PLAN_COLORS.get(it["key"], PLAN_DEFAULT_COLOR),
+            "colorId": color_id_for(it["key"]),
             "reminders": {"useDefault": False, "overrides": [{"method": "popup", "minutes": 10}]},
             "extendedProperties": {"private": {PLAN_PROP: day_key, "pulse_kind": it["key"]}},
         }

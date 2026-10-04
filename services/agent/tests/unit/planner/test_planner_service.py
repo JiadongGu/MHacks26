@@ -284,17 +284,22 @@ async def test_hydration_is_left_out_for_someone_told_to_limit_fluids(monkeypatc
     assert any(i["key"] == "hydration" for i in (await service.build_plan(UID, MON, NOW)).items)
 
 
-def test_plan_events_are_coloured_and_never_the_default_yellow(monkeypatch):
+def test_plan_events_take_the_colour_of_their_category_and_never_yellow(monkeypatch):
     cal = FakeCalendar([])
     monkeypatch.setattr(gcal_service, "_svc", lambda creds: cal)
+    keys = ["study", "steps", "stress", "wind_down", "sun", "hydration", "move", "break"]
     items = [
-        {"key": "study", "title": "Study", "why": "x", "start": at(10), "end": at(11)},
-        {"key": "wind_down", "title": "Wind down", "why": "x", "start": at(22), "end": at(23)},
-        {"key": "sun", "title": "Sunscreen", "why": "x", "start": at(8), "end": at(9)},
+        {"key": k, "title": k, "why": "x", "start": at(8 + n), "end": at(8 + n, 30)}
+        for n, k in enumerate(keys)
     ]
     gcal_service.replace_plan_events(object(), "cal-1", "2026-10-05", at(0), items)
-    assert [b["colorId"] for b in cal.inserted] == ["7", "1", "6"]
-    assert "5" not in {b["colorId"] for b in cal.inserted}  # 5 is banana yellow
+    colours = {b["extendedProperties"]["private"]["pulse_kind"]: b["colorId"] for b in cal.inserted}
+    assert colours == {
+        "study": "9", "steps": "10", "move": "10", "stress": "1", "break": "1",
+        "wind_down": "3", "sun": "6", "hydration": "7",
+    }
+    assert "5" not in colours.values()  # 5 is banana yellow
+
 
 
 async def test_build_plans_covers_today_and_tomorrow(monkeypatch):

@@ -19,6 +19,7 @@ from app.twin import store as twin_store
 from app.twin.tz import DEFAULT_TIMEZONE
 
 from . import judgment, render, schedule, shape, store
+from .categories import category_of
 
 DEFAULT_BED = time(22, 30)
 DEFAULT_WAKE = time(7, 0)
@@ -157,10 +158,13 @@ async def build_plan(user_id: UUID, day: date, now: datetime, write_calendar: bo
         bed=night.bed,
     )
     keys = schedule.planned_keys(picks, flags, day, load, ctx)
-    items = [i.__dict__ | {"event_id": None} for i in schedule.place(keys, usable, load, ctx)]
+    items = [
+        i.__dict__ | {"event_id": None, "category": category_of(i.key)}
+        for i in schedule.place(keys, usable, load, ctx)
+    ]
     wd = schedule.wind_down(picks, night)
     if wd is not None and wd.start > now_local + timedelta(minutes=5):
-        items.append(wd.__dict__ | {"event_id": None})
+        items.append(wd.__dict__ | {"event_id": None, "category": category_of(wd.key)})
     items.sort(key=lambda i: i["start"])
 
     ids = await _write_calendar(user_id, day, now, items) if write_calendar else None

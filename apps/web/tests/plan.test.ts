@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
+  CATEGORY_STYLE,
   bedtimeLabel,
+  categoriesIn,
   itemState,
   onCalendar,
   parseItems,
@@ -97,5 +99,25 @@ describe("planHeadline", () => {
   });
   it("falls back to the steady wording for an unknown load", () => {
     expect(planHeadline("weird" as never)).toBe("Today is a steady day.");
+  });
+});
+
+describe("categories", () => {
+  it("keeps a known category from stored items and drops an unknown one", () => {
+    const base = { title: "x", start: "2026-10-04T14:00:00+00:00", end: "2026-10-04T14:30:00+00:00" };
+    const parsed = parseItems([
+      { ...base, key: "study", category: "mental" },
+      { ...base, key: "odd", category: "nope" },
+      { ...base, key: "old" },
+    ]);
+    expect(parsed.map((i) => i.category)).toEqual(["mental", undefined, undefined]);
+  });
+  it("lists the categories in use in a fixed order for the legend", () => {
+    const mk = (category: string) => ({ key: "k", title: "t", start: "", end: "", why: "", category });
+    expect(categoriesIn([mk("health"), mk("mental"), mk("mental")])).toEqual(["mental", "health"]);
+    expect(categoriesIn([])).toEqual([]);
+  });
+  it("never uses yellow", () => {
+    for (const c of Object.values(CATEGORY_STYLE)) expect(c.hex).not.toBe("#fbd75b");
   });
 });

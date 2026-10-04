@@ -7,7 +7,16 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui-bits";
 import { agent, errorText } from "@/lib/api-client";
-import { bedtimeLabel, itemState, onCalendar, planHeadline, type PlanItem, type PlanView } from "@/lib/plan";
+import {
+  CATEGORY_STYLE,
+  bedtimeLabel,
+  categoriesIn,
+  itemState,
+  onCalendar,
+  planHeadline,
+  type PlanItem,
+  type PlanView,
+} from "@/lib/plan";
 import { clockLabel, durationLabel, minutesBetween } from "@/lib/vitals-card";
 import { cn } from "@/lib/utils";
 
@@ -95,6 +104,17 @@ export function PlanPanel({
         </ol>
       )}
 
+      {categoriesIn(plan.items).length > 0 && (
+        <ul className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground" aria-label="Colour key">
+          {categoriesIn(plan.items).map((k) => (
+            <li key={k} className="flex items-center gap-1.5">
+              <span className="size-2.5 rounded-full" style={{ backgroundColor: CATEGORY_STYLE[k].hex }} aria-hidden="true" />
+              {CATEGORY_STYLE[k].label}
+            </li>
+          ))}
+        </ul>
+      )}
+
       <div className="mt-2 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-3">
         <div className="text-sm text-muted-foreground">
           {bed && <p>Aim for lights out by {bed}.</p>}
@@ -165,6 +185,14 @@ function TimelineRow({
       <div className={cn("min-w-0 pb-4", last && "pb-2")}>
         <div className={cn(now && "-mt-1 rounded-lg bg-sidebar-accent px-3 py-2")}>
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            {item.category && (
+              <span
+                className="size-2.5 shrink-0 rounded-full"
+                style={{ backgroundColor: CATEGORY_STYLE[item.category].hex }}
+                title={CATEGORY_STYLE[item.category].label}
+                aria-hidden="true"
+              />
+            )}
             <p
               className={cn(
                 "text-sm font-medium",
