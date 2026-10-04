@@ -12,7 +12,7 @@ import { timeAgo } from "@/lib/format";
 type FitbitStatus = { connected: boolean; last_sync: string | null };
 
 /** Shows the Fitbit connection and the connect link. Used in onboarding step 3 and in settings. */
-export function FitbitStatusCard() {
+export function FitbitStatusCard({ returnTo = "settings" }: { returnTo?: "onboarding" | "settings" }) {
   const [status, setStatus] = useState<FitbitStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [missing, setMissing] = useState(false);
@@ -91,8 +91,8 @@ export function FitbitStatusCard() {
       </div>
       <Button asChild variant={status?.connected ? "outline" : "default"}>
         {/* A full page navigation. The proxy passes the 302 to Google through. */}
-        {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
-        <a href="/api/agent/integrations/fitbit/authorize">{status?.connected ? "Reconnect" : "Connect Fitbit"}</a>
+        { }
+        <a href={`/api/agent/integrations/fitbit/authorize?return_to=${returnTo}`}>{status?.connected ? "Reconnect" : "Connect Fitbit"}</a>
       </Button>
     </div>
   );

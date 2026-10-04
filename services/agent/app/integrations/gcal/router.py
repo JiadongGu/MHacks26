@@ -10,6 +10,7 @@ from app.contracts import CalendarEvent
 from app.core.auth import require_internal
 from app.core.config import settings
 from app.core.logging import log
+from app.integrations import return_page
 
 from . import oauth, service, store, sync
 
@@ -25,15 +26,15 @@ async def _creds(user_id: UUID):
 
 
 @router.get("/integrations/google/authorize")
-async def authorize(user_id: UUID):
-    return RedirectResponse(oauth.authorization_url(str(user_id)))
+async def authorize(user_id: UUID, return_to: str = "settings"):
+    return RedirectResponse(oauth.authorization_url(str(user_id), return_to))
 
 
 @public.get("/integrations/google/callback")
 async def callback(code: str | None = None, state: str | None = None, error: str | None = None):
-    web = settings().public_web_url
+    web = f"{settings().public_web_url}/{return_page.from_state(state)}"
     if error or not code or not state:
-        return RedirectResponse(f"{web}/settings?google=denied")
+        return RedirectResponse(f"{web}?google=denied")
     try:
         user_id, refresh_token = await asyncio.to_thread(oauth.complete, code, state)
         creds = await asyncio.to_thread(oauth.credentials_for, refresh_token)
@@ -43,8 +44,8 @@ async def callback(code: str | None = None, state: str | None = None, error: str
         await sync.refresh_user(UUID(user_id))
     except (ValueError, InvalidToken, KeyError) as e:
         log.warning("event=gcal_callback_failed err=%s", e)
-        return RedirectResponse(f"{web}/settings?google=error")
-    return RedirectResponse(f"{web}/settings?google=connected")
+        return RedirectResponse(f"{web}?google=error")
+    return RedirectResponse(f"{web}?google=connected")
 
 
 @router.get("/integrations/google/status")
