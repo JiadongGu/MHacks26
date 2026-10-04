@@ -235,6 +235,9 @@ export default async function TwinPage() {
           ? `Status: ${STATUS_LABEL[view.status]}. ${twin?.summary ?? ""}`
           : "What Pulse knows about you, and where each fact comes from."}
       </PageHeader>
+      <Button asChild variant="outline" className="-mt-8 mb-12">
+        <Link href="/share">Share with clinician</Link>
+      </Button>
 
       {loadFailed && <ErrorNote className="max-w-[60ch]">Could not load your twin. Reload the page to try again.</ErrorNote>}
 
