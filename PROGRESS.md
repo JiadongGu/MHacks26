@@ -12,20 +12,22 @@
 - Live vitals: Fitbit (Google Health API) + Apple Watch simulator → Spacetime → rules; live HR chart on the dashboard
 - Chat (iMessage, ASI:One, web): tools, link codes (6-char, 15-min expiry, rate limited), deterministic 911 guard, exact YES/NO
 - ElevenLabs spoken briefing; daily planner (writes to Pulse Health calendar without asking — decided); evening check
-- Pages: dashboard, twin, goals, alerts (+ "Why?" explanations), calendar & approvals, conversations, settings, demo, privacy
+- Pages: dashboard, trends (7/30/90 d vs normal band), twin/health record, share with clinician (printable), goals, alerts (+ "Why?" explanations), conversations, settings, demo (+ Reset demo), privacy. Calendar page removed (#91), plans stay in Google Calendar
+- Frontend v3 (2026-10-04, #86 #89 #90 #91 #92 #95 #96): Apple-Health-style light theme, Inter only; landing with canvas PulseField background + ECG line; dashboard rebuilt to Figma Home (status card, vitals cards with sparklines, plan timeline, approval card); grouped sidebar, ⌘K palette, ambient layer; every page restyled; checked live at 1440 and 375 px
+- Emergency words are logged as an urgent alert (#93); proposals that already ended are hidden and expired (#95)
 - Focus areas carry meaning for the planner and chat (`app/focus/guide.py`, new `sun` area); skin cancer history turns on sunscreen, a reapply ≥2 h later and a monthly skin check (#68, #75)
 - Dashboard: Your numbers under the status hero with per-metric settings toggles, plan for today and tomorrow (#74, #76); focus save 405 fixed, connect returns to setup (#73)
 - Gemini eval harness (services/agent/evals) with findings fixed; README, Devpost draft, video script; Figma file; testreel skill (video/)
 
 ## Waiting on
-- P: redeploy agent-api + agent-fetchai from current main ("Why?" explanations, 911 guard, model fallback are not live until then); Agentverse Inspector → Connect → Mailbox (Pulse shows inactive, no handle)
+- P: redeploy agent-api from current main: **Reset demo** (`/demo/reset`, #94), urgent emergency alerts (#93), expiring ended proposals (#95) are not live until then. Agentverse Inspector → Connect → Mailbox (Pulse shows inactive, no handle)
 - P: publish the Google OAuth consent screen to "In production" (Testing tokens expire after 7 days); rename it to Pulse
-- Figma clinical redesign (in progress) → decide whether to port the light theme + Home / Vitals & Trends / Health record
+- Robin's twin still says 397 lb (twin copy of an old 180 kg entry; profile is fixed to 180 lb): press Rebuild twin on /demo
 
 ## Next
-- Port the redesign; Vitals & Trends page; Share-with-clinician summary
+- Rehearse with docs/PITCH.md (3:00) and its pre-demo checklist; press Reset demo before going on stage
 - Uptime monitors + `scripts/smoke.sh` against production; check Neon compute hours before judging
-- Record the demo video (docs/VIDEO_SCRIPT.md) with testreel + phone capture; submit Devpost + ASI:One
+- Record the backup demo video (docs/VIDEO_SCRIPT.md) with testreel + phone capture; submit Devpost (docs/DEVPOST.md, updated) + ASI:One
 
 - Dashboard (2026-10-04): Your focus today (progress per focus area; sleep, steps and workouts measured, the rest counted from ticked plan items via `POST /plan/done`), one Check-ins section (morning and evening share a card, newest first, broad goals with no clock times), Your numbers as a compact side panel with per-metric hide toggles in settings (`profiles.hidden_metrics`), events colored peacock/lavender/tangerine, plans cover today and tomorrow
 - Readable AI text: labelled lines for the briefing, evening check and twin summary; `chat.clip_lines` keeps line breaks
