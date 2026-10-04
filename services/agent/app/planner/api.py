@@ -26,10 +26,12 @@ async def get_plan(user_id: UUID, day: date | None = None) -> dict:
 
 
 @router.post("/rebuild")
-async def rebuild(user_id: UUID, day: Literal["today", "tomorrow"] = "today") -> dict:
-    """Plan a day now and write it to the calendar. Used by the demo panel and for testing."""
+async def rebuild(user_id: UUID, day: Literal["today", "tomorrow", "both"] = "today") -> dict:
+    """Plan a day, or today and tomorrow, now and write it to the calendar. For the demo panel and tests."""
     tz = (await store.load_profile(user_id)).get("timezone") or DEFAULT_TIMEZONE
     now = datetime.now(UTC)
+    if day == "both":
+        return {"plans": [p.as_json() for p in await service.build_plans(user_id, now)]}
     local_day = now.astimezone(ZoneInfo(tz)).date()
     plan = await service.build_plan(user_id, local_day + timedelta(days=1 if day == "tomorrow" else 0), now)
     return plan.as_json()
