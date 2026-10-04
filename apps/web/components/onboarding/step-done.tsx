@@ -27,6 +27,12 @@ export function StepDone() {
         return;
       }
     }
+    // Pulse texts first: a welcome and a first check-in, if iMessage is linked. Never blocks the dashboard.
+    try {
+      await agent("/channels/imessage/welcome", { method: "POST", body: {} });
+    } catch {
+      // The welcome is a courtesy.
+    }
     router.push("/dashboard");
   }
 

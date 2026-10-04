@@ -28,6 +28,7 @@ from app.planner import service as planner
 from app.rules.engine import _block
 from app.rules.types import RuleContext
 from app.twin import service as twin_service
+from app.twin import store as twin_store
 from app.twin.tz import DEFAULT_TIMEZONE, local_now
 
 log = logging.getLogger("pulse.compass")
@@ -139,6 +140,29 @@ def coming_up(events: list[dict[str, Any]], with_day: bool = True) -> str | None
     return "; ".join(f"{e['title']} ({e.get('day', 'soon')})" for e in events) + "."
 
 
+OUTDOOR_WORDS = ("fair", "picnic", "tailgate", "game", "run", "hike", "walk", "tour", "festival", "bonding",
+                 "practice", "rush", "cookout", "beach", "field")
+
+
+def heads_up(facts: dict[str, Any]) -> str | None:
+    """One personal observation for today, from the calendar, the plan and what the person is working on."""
+    today = [e for e in facts.get("events", []) if e.get("day") == "today"]
+    n = len(today)
+    outdoors = any(w in e["title"].lower() for e in today for w in OUTDOOR_WORDS)
+    sun_care = facts.get("skin_cancer") or "sun" in facts.get("focus_keys", [])
+    load = facts.get("plan_load")
+    if sun_care and (n >= 3 or outdoors):
+        why = f"You have {n} events today" if n >= 3 else "You have an event that may be outdoors today"
+        return f"{why}, so remember to reapply your sunscreen if you are outside."
+    if load == "packed":
+        return "It is a packed day, so protect one real break, even a short one."
+    if "study" in facts.get("focus_keys", []) and load == "light":
+        return "Your day is open, which makes it a good one to get ahead on studying."
+    if "sleep" in facts.get("focus_keys", []) and facts.get("tonight_early"):
+        return "You start early tomorrow, so aim for an earlier night."
+    return None
+
+
 def compose_briefing(facts: dict[str, Any]) -> str:
     """Broad strokes: how you are, what you are working on today, what is coming up, and why.
 
@@ -159,6 +183,9 @@ def compose_briefing(facts: dict[str, Any]) -> str:
         out += ["", "Focus today:"] + list(facts["focus_lines"])
     elif facts.get("focus"):
         out += ["", "Focus: " + ", ".join(facts["focus"]) + "."]
+    tip = heads_up(facts)
+    if tip:
+        out += ["", "Heads-up: " + tip]
     soon = coming_up([e for e in facts.get("events", []) if e["important"]][:3])
     if soon:
         out += ["", "Coming up: " + soon]
@@ -311,9 +338,14 @@ async def _facts(user_id: UUID, now: datetime) -> dict[str, Any]:
                        and g["period"] == "day"), None)
     pending = await chat.pending_proposal(user_id)
     bed = profile.get("bed_time")
-    focus = [BY_KEY[k].label.lower() for k in await focus_store.list_picks(user_id) if k in BY_KEY]
+    picks = await focus_store.list_picks(user_id)
+    focus = [BY_KEY[k].label.lower() for k in picks if k in BY_KEY]
+    twin = await twin_store.latest_twin(user_id)
+    flags = ((twin or {}).get("model") or {}).get("risk_flags") or []
     return {
         "focus": focus,
+        "focus_keys": picks,
+        "skin_cancer": "skin_cancer" in flags,
         "name": (profile.get("display_name") or "").strip() or None, "tz": tz, "local": local,
         "status": status["status"], "sleep_min": status["sleep_min"], "goals": goals,
         "sleep_goal_min": sleep_goal, "bed_time": bed.strftime("%H:%M") if hasattr(bed, "strftime") else bed,
@@ -333,6 +365,8 @@ async def _briefing_body(user_id: UUID, now: datetime) -> None:
         today_plan, _tomorrow = await planner.build_plans(user_id, now)
         facts["plan_text"] = today_plan.text
         facts["focus_lines"] = today_plan.focus_lines
+        facts["plan_load"] = today_plan.load
+        facts["tonight_early"] = today_plan.shifted_min > 0
         facts["plan_why"] = today_plan.why
     except Exception as exc:  # the briefing still goes out without a plan
         log.warning("compass.plan_failed job=briefing user=%s err=%s", user_id, type(exc).__name__)

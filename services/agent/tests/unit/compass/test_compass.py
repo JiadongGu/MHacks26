@@ -382,3 +382,37 @@ def test_coming_up_names_the_day_never_the_time():
     assert compass.coming_up(two, with_day=False) == "A and B."
     mixed = [{"title": "A", "day": "today"}, {"title": "B", "day": "Friday"}]
     assert compass.coming_up(mixed) == "A (today); B (Friday)."
+
+
+def _day_facts(**extra):
+    events = [{"title": f"Event {i}", "when": "x", "day": "today", "important": False} for i in range(4)]
+    base = {"events": events,
+            "focus_keys": ["sun", "study"], "skin_cancer": True, "plan_load": "normal"}
+    return {**base, **extra}
+
+
+def test_heads_up_points_out_a_busy_day_to_someone_who_protects_their_skin():
+    tip = compass.heads_up(_day_facts())
+    assert "4 events today" in tip and "reapply your sunscreen" in tip
+
+
+def test_heads_up_notices_an_outdoor_event_even_when_the_day_is_not_busy():
+    facts = _day_facts(events=[{"title": "Club fair", "when": "x", "day": "today", "important": True}])
+    assert "may be outdoors" in compass.heads_up(facts)
+
+
+def test_heads_up_falls_back_to_the_load_study_and_sleep_and_can_be_empty():
+    quiet = {"events": [], "focus_keys": [], "skin_cancer": False}
+    assert compass.heads_up({**quiet, "plan_load": "packed"}).startswith("It is a packed day")
+    assert "study" in compass.heads_up({**quiet, "focus_keys": ["study"], "plan_load": "light"})
+    assert "earlier night" in compass.heads_up({**quiet, "focus_keys": ["sleep"], "tonight_early": True})
+    assert compass.heads_up({**quiet, "plan_load": "normal"}) is None
+
+
+def test_the_briefing_carries_the_heads_up_before_coming_up():
+    events = [{"title": f"Event {i}", "when": "x", "day": "today", "important": i == 0} for i in range(4)]
+    text = compass.compose_briefing({**FACTS, "status": "normal", "sleep_min": 450.0,
+                                     **_day_facts(events=events),
+                                     "focus_lines": ["• Protect my skin: sunscreen"]})
+    assert "Heads-up: You have 4 events today" in text
+    assert text.index("Heads-up:") < text.index("Coming up:")

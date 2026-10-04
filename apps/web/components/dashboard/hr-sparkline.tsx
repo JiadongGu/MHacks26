@@ -93,7 +93,7 @@ export function HrSparkline({ initial }: { initial?: VitalsPayload }) {
         <div
           className="mt-3 h-32 w-full"
           role="img"
-          aria-label={`Heart rate, last ${DEFAULT_HOURS} hours. Latest ${Math.round(current.value)} bpm. Low ${Math.round(min)}, high ${Math.round(max)}.`}
+          aria-label={`Heart rate, last ${data?.hours ?? DEFAULT_HOURS} hours. Latest ${Math.round(current.value)} bpm. Low ${Math.round(min)}, high ${Math.round(max)}.`}
         >
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={series} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
@@ -122,7 +122,7 @@ export function HrSparkline({ initial }: { initial?: VitalsPayload }) {
           </ResponsiveContainer>
         </div>
         <figcaption className="mt-1 text-xs text-muted-foreground">
-          Low {Math.round(min)} bpm, high {Math.round(max)} bpm, last {DEFAULT_HOURS} hours. Updates every 15
+          Low {Math.round(min)} bpm, high {Math.round(max)} bpm, last {data?.hours ?? DEFAULT_HOURS} hours. Updates every 15
           seconds.
         </figcaption>
       </figure>
