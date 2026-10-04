@@ -20,6 +20,7 @@ from app.agents import compass
 from app.core import db
 from app.core.config import settings
 from app.twin.tz import DEFAULT_TIMEZONE, local_now
+from app.voice.speech import speakable
 
 log = logging.getLogger("pulse.voice")
 
@@ -135,7 +136,7 @@ async def synthesize(text: str) -> bytes:
             res = await client.post(
                 url, params={"output_format": OUTPUT_FORMAT},
                 headers={"xi-api-key": s.elevenlabs_api_key},
-                json={"text": text, "model_id": MODEL_ID})
+                json={"text": speakable(text), "model_id": MODEL_ID})
     except httpx.HTTPError as exc:
         raise ElevenLabsError(f"request failed ({type(exc).__name__})") from exc
     if res.status_code != 200 or not res.content:
